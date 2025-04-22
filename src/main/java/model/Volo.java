@@ -8,6 +8,7 @@ public class Volo {
     private String orarioPrevisto;
     private StatoVolo stato;
     private Amministratore amministratore;
+    private TabellaOrario tabellaOrario;
 
     public Volo(String codiceUnivoco, String compagniaAerea, String dataVolo, String orarioPrevisto, StatoVolo stato, Amministratore amministratore) {
         this.codiceUnivoco = codiceUnivoco;
@@ -16,6 +17,10 @@ public class Volo {
         this.orarioPrevisto = orarioPrevisto;
         this.stato = stato;
         this.amministratore = amministratore;
+    }
+
+    public TabellaOrario getTabellaOrario() {
+        return tabellaOrario;
     }
 
     public Amministratore getAmministratore() {
@@ -40,6 +45,10 @@ public class Volo {
 
     public StatoVolo getStato() {
         return stato;
+    }
+
+    public void setTabellaOrario(TabellaOrario tabellaOrario) {
+        this.tabellaOrario = tabellaOrario;
     }
 
     public void setAmministratore(Amministratore amministratore) {
