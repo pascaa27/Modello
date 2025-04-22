@@ -2,7 +2,7 @@ package model;
 
 public class Utente {
 
-    public String login;
+    protected String login;
     public String password;
 
     public Utente(String login, String password) {
@@ -27,8 +27,10 @@ public class Utente {
     }
 
     public void modificaPrenotazione(){
+        System.out.println("Modifica prenotazione");
     }
 
     public void visualizzaAggiornamentoVolo(){
+        System.out.println("Visualizza aggiornamenti volo");
     }
 }
