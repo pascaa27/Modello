@@ -7,6 +7,8 @@ public class UtenteGenerico extends Utente {
 
     private String nomeUtente;
     private List<Prenotazione> prenotazioni= new ArrayList<>();     //attributo che rappresenta tutte le prenotazioni fatte da questo utente
+    private AreaPersonale areaPersonale;
+
 
     public void aggiungiPrenotazione(Prenotazione p) {
         prenotazioni.add(p);        //aggiunge alla lista le prenotazioni p
@@ -37,5 +39,13 @@ public class UtenteGenerico extends Utente {
 
     public void prenotaVolo(){
         System.out.println("Prenotazione effettuata da " + login);
+    }
+
+    public AreaPersonale getAreaPersonale() {
+        return areaPersonale;
+    }
+
+    public void setAreaPersonale(AreaPersonale areaPersonale) {
+        this.areaPersonale = areaPersonale;
     }
 }

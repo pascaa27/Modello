@@ -1,4 +1,6 @@
 package model;
+import java.util.List;
+import java.util.ArrayList;
 
 public class Prenotazione {
     private String numBiglietto;
@@ -6,6 +8,7 @@ public class Prenotazione {
     private StatoPrenotazione stato;
     private UtenteGenerico utenteGenerico;
     private DatiPasseggero datiPasseggero;
+    private List<Bagaglio> bagagli = new ArrayList<>();
 
     public Prenotazione() {
         this.numBiglietto = numBiglietto;
@@ -53,5 +56,13 @@ public class Prenotazione {
 
     public void setPostoAssegnato(String postoAssegnato) {
         this.postoAssegnato = postoAssegnato;
+    }
+
+    public List<Bagaglio> getBagagli() {
+        return bagagli;
+    }
+
+    public void setBagagli(List<Bagaglio> bagagli) {
+        this.bagagli = bagagli;
     }
 }
