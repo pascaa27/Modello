@@ -9,6 +9,7 @@ public class Prenotazione {
     private UtenteGenerico utenteGenerico;
     private DatiPasseggero datiPasseggero;
     private List<Bagaglio> bagagli = new ArrayList<>();
+    private Volo volo;
 
     public Prenotazione() {
         this.numBiglietto = numBiglietto;
@@ -16,6 +17,14 @@ public class Prenotazione {
         this.stato = stato;
         this.utenteGenerico = utenteGenerico;
         this.datiPasseggero = datiPasseggero;
+    }
+
+    public Volo getVolo() {
+        return volo;
+    }
+
+    public void setVolo(Volo volo) {
+        this.volo = volo;
     }
 
     public StatoPrenotazione getStato() {

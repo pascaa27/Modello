@@ -1,5 +1,8 @@
 package model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Volo {
 
     private String codiceUnivoco;
@@ -9,6 +12,7 @@ public class Volo {
     private StatoVolo stato;
     private Amministratore amministratore;
     private TabellaOrario tabellaOrario;
+    private List<Prenotazione> prenotazioni = new ArrayList<>();
 
     public Volo(String codiceUnivoco, String compagniaAerea, String dataVolo, String orarioPrevisto, StatoVolo stato, Amministratore amministratore) {
         this.codiceUnivoco = codiceUnivoco;
@@ -17,6 +21,10 @@ public class Volo {
         this.orarioPrevisto = orarioPrevisto;
         this.stato = stato;
         this.amministratore = amministratore;
+    }
+
+    public List<Prenotazione> getPrenotazioni() {
+        return prenotazioni;
     }
 
     public TabellaOrario getTabellaOrario() {
@@ -45,6 +53,10 @@ public class Volo {
 
     public StatoVolo getStato() {
         return stato;
+    }
+
+    public void setPrenotazioni(List<Prenotazione> prenotazioni) {
+        this.prenotazioni = prenotazioni;
     }
 
     public void setTabellaOrario(TabellaOrario tabellaOrario) {
