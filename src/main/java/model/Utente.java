@@ -3,7 +3,7 @@ package model;
 public class Utente {
 
     protected String login;
-    public String password;
+    private String password;
 
     public Utente(String login, String password) {
         this.login = login;
