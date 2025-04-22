@@ -1,4 +1,4 @@
-import model.Utente;
+package model;
 
 public class AreaPersonale {
 
