@@ -6,12 +6,20 @@ public class Volo {
     private String compagniaAerea;
     private String dataVolo;
     private String orarioPrevisto;
+    private StatoVolo stato;
+    private Amministratore amministratore;
 
-    public Volo(String codiceUnivoco, String compagniaAerea, String dataVolo, String orarioPrevisto) {
+    public Volo(String codiceUnivoco, String compagniaAerea, String dataVolo, String orarioPrevisto, StatoVolo stato, Amministratore amministratore) {
         this.codiceUnivoco = codiceUnivoco;
         this.compagniaAerea = compagniaAerea;
         this.dataVolo = dataVolo;
         this.orarioPrevisto = orarioPrevisto;
+        this.stato = stato;
+        this.amministratore = amministratore;
+    }
+
+    public Amministratore getAmministratore() {
+        return amministratore;
     }
 
     public String getCodiceUnivoco() {
@@ -30,6 +38,14 @@ public class Volo {
         return orarioPrevisto;
     }
 
+    public StatoVolo getStato() {
+        return stato;
+    }
+
+    public void setAmministratore(Amministratore amministratore) {
+        this.amministratore = amministratore;
+    }
+
     public void setCodiceUnivoco(String codiceUnivoco) {
         this.codiceUnivoco = codiceUnivoco;
     }
@@ -46,5 +62,7 @@ public class Volo {
         this.orarioPrevisto = orarioPrevisto;
     }
 
-
+    public void setStato(StatoVolo stato) {
+        this.stato = stato;
+    }
 }
