@@ -14,13 +14,14 @@ public class Volo {
     private TabellaOrario tabellaOrario;
     private List<Prenotazione> prenotazioni = new ArrayList<>();
 
-    public Volo(String codiceUnivoco, String compagniaAerea, String dataVolo, String orarioPrevisto, StatoVolo stato, Amministratore amministratore) {
+    public Volo(String codiceUnivoco, String compagniaAerea, String dataVolo, String orarioPrevisto, StatoVolo stato, Amministratore amministratore, TabellaOrario tabellaOrario) {
         this.codiceUnivoco = codiceUnivoco;
         this.compagniaAerea = compagniaAerea;
         this.dataVolo = dataVolo;
         this.orarioPrevisto = orarioPrevisto;
         this.stato = stato;
         this.amministratore = amministratore;
+        this.tabellaOrario = tabellaOrario;
     }
 
     public List<Prenotazione> getPrenotazioni() {

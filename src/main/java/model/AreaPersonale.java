@@ -5,10 +5,12 @@ public class AreaPersonale {
     private String ritardoVolo;
     private String cancellazioneVolo;
     private String variazioneVolo;
-
     private Utente utente;      //associazione con la classe utente
 
-    public AreaPersonale(Utente utente) {
+    public AreaPersonale(String ritardoVolo, String cancellazioneVolo, String variazioneVolo, Utente utente) {
+        this.ritardoVolo = ritardoVolo;
+        this.cancellazioneVolo = cancellazioneVolo;
+        this.variazioneVolo = variazioneVolo;
         this.utente = utente;
     }
 
@@ -42,6 +44,4 @@ public class AreaPersonale {
     public void setvariazioneVolo(String variazioneVolo) {
         this.variazioneVolo = variazioneVolo;
     }
-
-
 }

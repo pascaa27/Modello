@@ -3,7 +3,7 @@ package model;
 public enum StatoVolo {
     PROGRAMMATO,
     DECOLLATO,
-    IN_RITARDO,
+    INRITARDO,
     ATTERRATO,
     CANCELLATO
 }

@@ -23,5 +23,3 @@ public class Bagaglio {
         this.codUnivoco = codUnivoco;
     }
 }
-
-

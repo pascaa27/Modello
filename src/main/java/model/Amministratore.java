@@ -7,8 +7,9 @@ public class Amministratore extends Utente {
     private String nomeAdmin;
     private List<Volo> voliGestiti = new ArrayList<>();
 
-    public Amministratore(String login, String password) {
+    public Amministratore(String login, String password, String nomeAdmin) {
         super(login, password);
+        this.nomeAdmin = nomeAdmin;
     }
 
     public String getNomeAdmin() {

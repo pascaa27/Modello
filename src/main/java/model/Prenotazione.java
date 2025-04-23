@@ -11,12 +11,13 @@ public class Prenotazione {
     private List<Bagaglio> bagagli = new ArrayList<>();
     private Volo volo;
 
-    public Prenotazione() {
+    public Prenotazione(String numBiglietto, String postoAssegnato, StatoPrenotazione stato, UtenteGenerico utenteGenerico, DatiPasseggero datiPasseggero, Volo volo) {
         this.numBiglietto = numBiglietto;
         this.postoAssegnato = postoAssegnato;
         this.stato = stato;
         this.utenteGenerico = utenteGenerico;
         this.datiPasseggero = datiPasseggero;
+        this.volo = volo;
     }
 
     public Volo getVolo() {
