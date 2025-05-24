@@ -3,12 +3,12 @@ package model;
 public class DatiPasseggero {
     private String nome;
     private String cognome;
-    private String numeroDocumento;
+    private String codiceFiscale;
 
     public DatiPasseggero(String nome, String cognome, String numeroDocumento) {
         this.nome = nome;
         this.cognome = cognome;
-        this.numeroDocumento = numeroDocumento;
+        this.codiceFiscale = numeroDocumento;
     }
 
     public String getNome() {
@@ -25,11 +25,11 @@ public class DatiPasseggero {
         this.cognome = cognome;
     }
 
-    public String getNumeroDocumento() {
-        return numeroDocumento;
+    public String getCodiceFiscale() {
+        return codiceFiscale;
     }
-    public void setNumeroDocumento(String numeroDocumento) {
-        this.numeroDocumento = numeroDocumento;
+    public void setCodiceFiscale(String codiceFiscale) {
+        this.codiceFiscale = codiceFiscale;
     }
 
 }

@@ -44,7 +44,7 @@ public class GestioneVoli {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             Controller controller = new Controller();
-            JFrame frame = new JFrame();
+            JFrame frame = new JFrame("Gestione voli");
             frame.setContentPane(new GestioneVoli(controller).panelDatiVolo);
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.pack();
