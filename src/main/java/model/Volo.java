@@ -2,20 +2,19 @@ package model;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Date;
 
 public class Volo {
 
     private String codiceUnivoco;
     private String compagniaAerea;
-    private Date dataVolo;
+    private String dataVolo;
     private String orarioPrevisto;
     private StatoVolo stato;
     private Amministratore amministratore;
     private TabellaOrario tabellaOrario;
     private List<Prenotazione> prenotazioni = new ArrayList<>();
 
-    public Volo(String codiceUnivoco, String compagniaAerea, Date dataVolo, String orarioPrevisto, StatoVolo stato, Amministratore amministratore, TabellaOrario tabellaOrario) {
+    public Volo(String codiceUnivoco, String compagniaAerea, String dataVolo, String orarioPrevisto, StatoVolo stato, Amministratore amministratore, TabellaOrario tabellaOrario) {
         this.codiceUnivoco = codiceUnivoco;
         this.compagniaAerea = compagniaAerea;
         this.dataVolo = dataVolo;
@@ -45,7 +44,7 @@ public class Volo {
         return compagniaAerea;
     }
 
-    public Date getDataVolo() {
+    public String getDataVolo() {
         return dataVolo;
     }
 
@@ -77,7 +76,7 @@ public class Volo {
         this.compagniaAerea = compagniaAerea;
     }
 
-    public void setDataVolo(Date dataVolo) {
+    public void setDataVolo(String dataVolo) {
         this.dataVolo = dataVolo;
     }
 
