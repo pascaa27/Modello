@@ -35,7 +35,8 @@ public class Controller {
         return null;
     }
 
-    public void aggiungiPrenotazione(String numeroBiglietto, String posto, StatoPrenotazione stato, UtenteGenerico utenteGenerico, DatiPasseggero datiPasseggero, Volo volo) {
+    public void aggiungiPrenotazione(String numeroBiglietto, String posto, StatoPrenotazione stato, UtenteGenerico utenteGenerico, String nome, String cognome, String codiceFiscale, Volo volo) {
+        DatiPasseggero datiPasseggero = new DatiPasseggero(nome, cognome, codiceFiscale);
         Prenotazione prenotazione = new Prenotazione(numeroBiglietto, posto, stato, utenteGenerico, datiPasseggero, volo);
         prenotazioni.add(prenotazione);
     }

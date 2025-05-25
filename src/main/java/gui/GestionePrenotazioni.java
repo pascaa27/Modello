@@ -19,7 +19,7 @@ public class GestionePrenotazioni {
         String posto = postoTextField.getText();
         StatoPrenotazione stato = (StatoPrenotazione) statoPrenotazioneComboBox.getSelectedItem();
 
-        controller.aggiungiPrenotazione(numeroBiglietto, posto, stato, null, null, null);
+        controller.aggiungiPrenotazione(numeroBiglietto, posto, stato, null, null, null, null, null);
         JOptionPane.showMessageDialog(null, "Prenotazione aggiunta con successo!");
 
         numeroBigliettoTextField.setText("");
@@ -35,7 +35,7 @@ public class GestionePrenotazioni {
         }
 
         aggiungiPrenotazioneButton.addActionListener(e -> {
-            JOptionPane.showMessageDialog(null, "Per completare la prenotazione, inserisci prima i dati del passeggero.");
+            JOptionPane.showMessageDialog(null, "Per effettuare la prenotazione, inserire i seguenti dati:");
             JDialog dialog = new JDialog((JFrame) SwingUtilities.getWindowAncestor(panelPrenotazione), "Inserisci dati passeggero", true);
             DatiPasseggeroGUI datiGUI = new DatiPasseggeroGUI(dialog);
             dialog.setContentPane(datiGUI.getPanel());
@@ -43,10 +43,12 @@ public class GestionePrenotazioni {
             dialog.setLocationRelativeTo(null);
             dialog.setVisible(true);
 
-            DatiPasseggero datiPasseggero = datiGUI.getDatiPasseggero();
+            String nome = datiGUI.getNomeInserito();
+            String cognome = datiGUI.getCognomeInserito();
+            String codiceFiscale = datiGUI.getCodiceFiscaleInserito();
 
-            if(datiPasseggero == null) {
-                JOptionPane.showMessageDialog(null, "Dati passeggero non inseriti. Prenotazione annullata.");
+            if(nome == null || cognome == null || codiceFiscale == null || nome.isEmpty() || cognome.isEmpty() || codiceFiscale.isEmpty()) {
+                JOptionPane.showMessageDialog(null, "Dati passeggero non validi. Prenotazione annullata.");
                 return;
             }
 
@@ -54,7 +56,7 @@ public class GestionePrenotazioni {
             String posto = postoTextField.getText();
             StatoPrenotazione stato = (StatoPrenotazione) statoPrenotazioneComboBox.getSelectedItem();
 
-            controller.aggiungiPrenotazione(numeroBiglietto, posto, stato, null, datiPasseggero, null);
+            controller.aggiungiPrenotazione(numeroBiglietto, posto, stato, null, nome, cognome, codiceFiscale, null);
             JOptionPane.showMessageDialog(null, "Prenotazione completata con successo!");
 
             numeroBigliettoTextField.setText("");
