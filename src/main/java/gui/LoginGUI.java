@@ -16,22 +16,22 @@ public class LoginGUI {
 
         accediUtenteButton.addActionListener(e -> {
             JOptionPane.showMessageDialog(null, "Inserire le credenziali per l'accesso utente.");
-            new AccessoGUI(controller, "utente");
+            new AccessoUtenteGUI(controller, "utente");
         });
 
         registratiUtenteButton.addActionListener(e -> {
             JOptionPane.showMessageDialog(null, "Inserire le credenziali per la registrazione utente.");
-            new RegistrazioneGUI(controller, "utente");
+            new RegistrazioneUtenteGUI(controller, "utente");
         });
 
         accediAmmButton.addActionListener(e -> {
             JOptionPane.showMessageDialog(null, "Inserire le credenziali per l'accesso amministratore.");
-            new AccessoGUI(controller, "amministratore");
+            new AccessoUtenteGUI(controller, "amministratore");
         });
 
         registratiAmmButton.addActionListener(e -> {
             JOptionPane.showMessageDialog(null, "Inserire le credenziali per la registrazione amministratore.");
-            new RegistrazioneGUI(controller, "amministratore");
+            new RegistrazioneUtenteGUI(controller, "amministratore");
         });
     }
 
