@@ -40,4 +40,6 @@ public class Controller {
         Prenotazione prenotazione = new Prenotazione(numeroBiglietto, posto, stato, utenteGenerico, datiPasseggero, volo);
         prenotazioni.add(prenotazione);
     }
+
+
 }
