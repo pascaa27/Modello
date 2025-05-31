@@ -16,34 +16,30 @@ public class LoginGUI {
 
         accediUtenteButton.addActionListener(e -> {
             JOptionPane.showMessageDialog(null, "Inserire le credenziali per l'accesso utente.");
-            new AccessoGUI(controller, "utente");
+            new AccessoUtenteGUI(controller);
         });
 
         registratiUtenteButton.addActionListener(e -> {
             JOptionPane.showMessageDialog(null, "Inserire le credenziali per la registrazione utente.");
-            new RegistrazioneGUI(controller, "utente");
+            new RegistrazioneUtenteGUI(controller);
         });
 
         accediAmmButton.addActionListener(e -> {
             JOptionPane.showMessageDialog(null, "Inserire le credenziali per l'accesso amministratore.");
-            new AccessoGUI(controller, "amministratore");
+            new AccessoAmmGUI(controller);
         });
 
         registratiAmmButton.addActionListener(e -> {
             JOptionPane.showMessageDialog(null, "Inserire le credenziali per la registrazione amministratore.");
-            new RegistrazioneGUI(controller, "amministratore");
+            new RegistrazioneAmmGUI(controller);
         });
-    }
-
-    public JPanel getLoginPanel() {
-        return loginPanel;
     }
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             Controller controller = new Controller();
             JFrame frame = new JFrame("Area Login - Aeroporto");
-            frame.setContentPane(new LoginGUI(controller).getLoginPanel());
+            frame.setContentPane(new LoginGUI(controller).loginPanel);
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.pack();
             frame.setLocationRelativeTo(null);
