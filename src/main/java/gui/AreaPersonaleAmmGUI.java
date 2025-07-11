@@ -39,7 +39,6 @@ public class AreaPersonaleAmmGUI {
         passwordField.setEditable(false);
         passwordField.setEchoChar('•');
 
-// Bottone piccolo solo icona o emoji
         mostraPasswordButton = new JButton("Show");
         mostraPasswordButton.setPreferredSize(new Dimension(60, 28));
         mostraPasswordButton.setFocusPainted(false);
@@ -47,12 +46,10 @@ public class AreaPersonaleAmmGUI {
         mostraPasswordButton.setBorderPainted(false);
         mostraPasswordButton.addActionListener(e -> mostraNascondiPassword());
 
-// Pannello orizzontale per password e bottone
         JPanel passwordPanel = new JPanel(new BorderLayout());
         passwordPanel.add(passwordField, BorderLayout.CENTER);
         passwordPanel.add(mostraPasswordButton, BorderLayout.EAST);
 
-// Aggiungi il pannello orizzontale alla griglia principale
         areaPersonaleAmmPanel.add(passwordPanel);
     }
 

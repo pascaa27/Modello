@@ -1,6 +1,9 @@
 package controller;
 
+import gui.AreaPersonaleAmmGUI;
 import model.*;
+
+import javax.swing.*;
 import java.util.*;
 
 public class Controller {
@@ -41,5 +44,14 @@ public class Controller {
         prenotazioni.add(prenotazione);
     }
 
-
+    public void mostraAreaPersonaleAmm(JFrame finestraCorrente, Amministratore amministratore) {
+        finestraCorrente.setVisible(false);
+        AreaPersonaleAmmGUI nuovaGUI = new AreaPersonaleAmmGUI(this, amministratore);
+        JFrame frame = new JFrame("Area Personale Amministratore");
+        frame.setContentPane(nuovaGUI.getAreaPersonaleAmmPanel());
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.pack();
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
+    }
 }

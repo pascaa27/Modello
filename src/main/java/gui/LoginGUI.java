@@ -16,22 +16,54 @@ public class LoginGUI {
 
         accediUtenteButton.addActionListener(e -> {
             JOptionPane.showMessageDialog(null, "Inserire le credenziali per l'accesso utente.");
-            new AccessoUtenteGUI(controller);
+            JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(loginPanel); // Ottieni il frame corrente (finestra login)
+            frame.dispose(); // Chiudi la finestra corrente
+
+            JFrame nuovoFrame = new JFrame("Accesso Utente");
+            nuovoFrame.setContentPane(new AccessoUtenteGUI(controller).getAccessoPanel()); // getPanel() deve restituire il JPanel della nuova GUI
+            nuovoFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            nuovoFrame.pack();
+            nuovoFrame.setLocationRelativeTo(null);
+            nuovoFrame.setVisible(true);
         });
 
         registratiUtenteButton.addActionListener(e -> {
             JOptionPane.showMessageDialog(null, "Inserire le credenziali per la registrazione utente.");
-            new RegistrazioneUtenteGUI(controller);
+            JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(loginPanel);
+            frame.dispose();
+
+            JFrame nuovoFrame = new JFrame("Registrazione Utente");
+            nuovoFrame.setContentPane(new RegistrazioneUtenteGUI(controller).getRegistrazionePanel());
+            nuovoFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            nuovoFrame.pack();
+            nuovoFrame.setLocationRelativeTo(null);
+            nuovoFrame.setVisible(true);
         });
 
         accediAmmButton.addActionListener(e -> {
             JOptionPane.showMessageDialog(null, "Inserire le credenziali per l'accesso amministratore.");
-            new AccessoAmmGUI(controller);
+            JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(loginPanel);
+            frame.dispose();
+
+            JFrame nuovoFrame = new JFrame("Accesso Amministratore");
+            nuovoFrame.setContentPane(new AccessoAmmGUI(controller).getAccessoAmmPanel());
+            nuovoFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            nuovoFrame.pack();
+            nuovoFrame.setLocationRelativeTo(null);
+            nuovoFrame.setVisible(true);
         });
 
         registratiAmmButton.addActionListener(e -> {
             JOptionPane.showMessageDialog(null, "Inserire le credenziali per la registrazione amministratore.");
-            new RegistrazioneAmmGUI(controller);
+            JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(loginPanel);
+            frame.dispose();
+
+            JFrame nuovoFrame = new JFrame("Registrazione Amministratore");
+            nuovoFrame.setContentPane(new RegistrazioneAmmGUI(controller).getRegistrazioneAmmPanel());
+            nuovoFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            nuovoFrame.pack();
+            nuovoFrame.setLocationRelativeTo(null);
+            nuovoFrame.setVisible(true);
         });
     }
 

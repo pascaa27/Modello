@@ -34,10 +34,12 @@ public class AccessoAmmGUI {
             } else {
                 JOptionPane.showMessageDialog(accessoAmmPanel, "Credenziali errate.");
             }
-
         });
     }
 
+    public JPanel getAccessoAmmPanel() {
+        return accessoAmmPanel;
+    }
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {

@@ -26,7 +26,10 @@ public class AccessoUtenteGUI {
                 new AccessoUtenteGUI(controller);
             }
         });
+    }
 
+    public JPanel getAccessoPanel() {
+        return accessoPanel;
     }
 
     public static void main(String[] args) {

@@ -32,8 +32,10 @@ public class RegistrazioneUtenteGUI {
                 JOptionPane.showMessageDialog(null, "Inserisci le credenziali");
                 new RegistrazioneUtenteGUI(controller);
         });
+    }
 
-
+    public JPanel getRegistrazionePanel() {
+        return registrazionePanel;
     }
 
     public static void main(String[] args) {

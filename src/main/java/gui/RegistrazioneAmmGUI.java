@@ -40,6 +40,10 @@ public class RegistrazioneAmmGUI {
         });
     }
 
+    public JPanel getRegistrazioneAmmPanel() {
+        return registrazioneAmmPanel;
+    }
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             Controller controller = new Controller();
