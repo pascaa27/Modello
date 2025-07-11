@@ -2,6 +2,7 @@ package gui;
 
 import javax.swing.*;
 import controller.Controller;
+import model.Amministratore;
 
 public class AccessoAmmGUI {
     private JPanel accessoAmmPanel;
@@ -19,14 +20,24 @@ public class AccessoAmmGUI {
 
             if (email.isEmpty() || password.isEmpty()) {
                 JOptionPane.showMessageDialog(accessoAmmPanel, "Email e password non compilate.");
+                return;
             }
 
             if(email.equals("marcorossi@gmail.com") || password.equals("12345")) {
-                new AreaPersonaleAmmGUI(controller);
+                Amministratore amministratore = new Amministratore(email, password, "Marco", "Rossi");
+                JFrame frame = new JFrame("Area Personale Amministratore");
+                frame.setContentPane(new AreaPersonaleAmmGUI(controller, amministratore).getAreaPersonaleAmmPanel());
+                frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                frame.pack();
+                frame.setLocationRelativeTo(null);
+                frame.setVisible(true);
+            } else {
+                JOptionPane.showMessageDialog(accessoAmmPanel, "Credenziali errate.");
             }
 
         });
     }
+
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {

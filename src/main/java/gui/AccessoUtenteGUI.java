@@ -5,23 +5,23 @@ import controller.Controller;
 import javax.swing.*;
 
 public class AccessoUtenteGUI {
-    private JTextField emailtextField;
-    private JTextField passwordtextField;
-    private JButton ACCEDIButton;
+    private JTextField emailTextField;
+    private JTextField passwordTextField;
+    private JButton accediButton;
     private JPanel accessoPanel;
     private Controller controller;
-    private String emailinserita;
-    private String passwordinserita;
+    private String emailInserita;
+    private String passwordInserita;
 
 
     public AccessoUtenteGUI(Controller controller) {
         this.controller = controller;
-        emailinserita= emailtextField.getText().trim();
-        passwordinserita= passwordtextField.getText().trim();
+        emailInserita= emailTextField.getText().trim();
+        passwordInserita= passwordTextField.getText().trim();
 
-        ACCEDIButton.addActionListener(e -> {
+        accediButton.addActionListener(e -> {
 
-            if(emailinserita.isEmpty() || passwordinserita.isEmpty()) {
+            if(emailInserita.isEmpty() || passwordInserita.isEmpty()) {
                 JOptionPane.showMessageDialog(null, "Inserisci le credenziali");
                 new AccessoUtenteGUI(controller);
             }

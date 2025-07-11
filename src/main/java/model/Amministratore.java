@@ -5,11 +5,13 @@ import java.util.List;
 public class Amministratore extends Utente {
 
     private String nomeAdmin;
+    private String cognome;
     private List<Volo> voliGestiti = new ArrayList<>();
 
-    public Amministratore(String login, String password, String nomeAdmin) {
+    public Amministratore(String login, String password, String nomeAdmin, String cognome) {
         super(login, password);
         this.nomeAdmin = nomeAdmin;
+        this.cognome = cognome;
     }
 
     public String getNomeAdmin() {
@@ -26,6 +28,14 @@ public class Amministratore extends Utente {
 
     public void setVoliGestiti(List<Volo> voliGestiti) {
         this.voliGestiti = voliGestiti;
+    }
+
+    public String getCognome() {
+        return cognome;
+    }
+
+    public void setCognome(String cognome) {
+        this.cognome = cognome;
     }
 
     public void gestioneVolo() {

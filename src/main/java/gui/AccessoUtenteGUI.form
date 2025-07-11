@@ -8,19 +8,6 @@
     <properties/>
     <border type="none"/>
     <children>
-      <component id="3a05c" class="javax.swing.JLabel">
-        <constraints>
-          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value="Accesso Utente"/>
-        </properties>
-      </component>
-      <hspacer id="33c08">
-        <constraints>
-          <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-        </constraints>
-      </hspacer>
       <component id="41c43" class="javax.swing.JLabel">
         <constraints>
           <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
@@ -29,7 +16,7 @@
           <text value="Email"/>
         </properties>
       </component>
-      <component id="8d24c" class="javax.swing.JTextField" binding="emailtextField">
+      <component id="8d24c" class="javax.swing.JTextField" binding="emailTextField">
         <constraints>
           <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
             <preferred-size width="150" height="-1"/>
@@ -45,7 +32,7 @@
           <text value="Password"/>
         </properties>
       </component>
-      <component id="bf2e3" class="javax.swing.JTextField" binding="passwordtextField">
+      <component id="bf2e3" class="javax.swing.JTextField" binding="passwordTextField">
         <constraints>
           <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
             <preferred-size width="150" height="-1"/>
@@ -53,12 +40,20 @@
         </constraints>
         <properties/>
       </component>
-      <component id="94c91" class="javax.swing.JButton" binding="ACCEDIButton" default-binding="true">
+      <component id="94c91" class="javax.swing.JButton" binding="accediButton" default-binding="true">
         <constraints>
           <grid row="3" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <text value="Accedi"/>
+        </properties>
+      </component>
+      <component id="3a05c" class="javax.swing.JLabel">
+        <constraints>
+          <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value="Accesso utente"/>
         </properties>
       </component>
     </children>

@@ -2,6 +2,7 @@ package gui;
 
 import javax.swing.*;
 import controller.Controller;
+import model.Amministratore;
 
 public class RegistrazioneAmmGUI {
     private JPanel registrazioneAmmPanel;
@@ -26,7 +27,15 @@ public class RegistrazioneAmmGUI {
             }
 
             if(nome.equals("Marco") && cognome.equals("Rossi") && email.equals("marcorossi@gmail.com") && password.equals("12345")) {
-                new AreaPersonaleAmmGUI(controller);
+                Amministratore amministratore = new Amministratore(email, password, "Marco", "Rossi");
+                JFrame frame = new JFrame("Area Personale Amministratore");
+                frame.setContentPane(new AreaPersonaleAmmGUI(controller, amministratore).getAreaPersonaleAmmPanel());
+                frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                frame.pack();
+                frame.setLocationRelativeTo(null);
+                frame.setVisible(true);
+            } else {
+                JOptionPane.showMessageDialog(registrazioneAmmPanel, "Credenziali errate.");
             }
         });
     }
