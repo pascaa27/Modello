@@ -21,7 +21,7 @@ public class LoginGUI {
 
             JFrame nuovoFrame = new JFrame("Accesso Utente");
             nuovoFrame.setContentPane(new AccessoUtenteGUI(controller).getAccessoPanel()); // getPanel() deve restituire il JPanel della nuova GUI
-            nuovoFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            nuovoFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
             nuovoFrame.pack();
             nuovoFrame.setLocationRelativeTo(null);
             nuovoFrame.setVisible(true);
@@ -34,7 +34,7 @@ public class LoginGUI {
 
             JFrame nuovoFrame = new JFrame("Registrazione Utente");
             nuovoFrame.setContentPane(new RegistrazioneUtenteGUI(controller).getRegistrazionePanel());
-            nuovoFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            nuovoFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
             nuovoFrame.pack();
             nuovoFrame.setLocationRelativeTo(null);
             nuovoFrame.setVisible(true);
@@ -47,7 +47,7 @@ public class LoginGUI {
 
             JFrame nuovoFrame = new JFrame("Accesso Amministratore");
             nuovoFrame.setContentPane(new AccessoAmmGUI(controller).getAccessoAmmPanel());
-            nuovoFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            nuovoFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
             nuovoFrame.pack();
             nuovoFrame.setLocationRelativeTo(null);
             nuovoFrame.setVisible(true);
@@ -60,7 +60,7 @@ public class LoginGUI {
 
             JFrame nuovoFrame = new JFrame("Registrazione Amministratore");
             nuovoFrame.setContentPane(new RegistrazioneAmmGUI(controller).getRegistrazioneAmmPanel());
-            nuovoFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            nuovoFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
             nuovoFrame.pack();
             nuovoFrame.setLocationRelativeTo(null);
             nuovoFrame.setVisible(true);
@@ -76,7 +76,7 @@ public class LoginGUI {
             Controller controller = new Controller();
             JFrame frame = new JFrame("Area Login - Aeroporto");
             frame.setContentPane(new LoginGUI(controller).getLoginPanel());
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
             frame.pack();
             frame.setLocationRelativeTo(null);
             frame.setVisible(true);

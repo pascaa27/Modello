@@ -13,6 +13,7 @@ public class AreaPersonaleAmmGUI {
     private JTextField emailTextField;
     private JPanel areaPersonaleAmmPanel;
     private JButton mostraPasswordButton;
+    private Controller controller;
     private JPasswordField passwordField;
     private boolean passwordVisibile = false;
 
@@ -74,7 +75,7 @@ public class AreaPersonaleAmmGUI {
             Amministratore amm = new Amministratore("marcorossi@gmail.com", "12345", "Marco", "Rossi");
             JFrame frame = new JFrame("Area Personale Amministratore");
             frame.setContentPane(new AreaPersonaleAmmGUI(controller, amm).getAreaPersonaleAmmPanel());
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
             frame.pack();
             frame.setLocationRelativeTo(null);
             frame.setVisible(true);

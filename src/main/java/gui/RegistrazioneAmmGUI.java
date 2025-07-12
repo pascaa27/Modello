@@ -30,7 +30,7 @@ public class RegistrazioneAmmGUI {
                 Amministratore amministratore = new Amministratore(email, password, "Marco", "Rossi");
                 JFrame frame = new JFrame("Area Personale Amministratore");
                 frame.setContentPane(new AreaPersonaleAmmGUI(controller, amministratore).getAreaPersonaleAmmPanel());
-                frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
                 frame.pack();
                 frame.setLocationRelativeTo(null);
                 frame.setVisible(true);
@@ -49,7 +49,7 @@ public class RegistrazioneAmmGUI {
             Controller controller = new Controller();
             JFrame frame = new JFrame("Registrazione Amministratore");
             frame.setContentPane(new RegistrazioneAmmGUI(controller).registrazioneAmmPanel);
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
             frame.pack();
             frame.setLocationRelativeTo(null);
             frame.setVisible(true);

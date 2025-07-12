@@ -49,7 +49,7 @@ public class Controller {
         AreaPersonaleAmmGUI nuovaGUI = new AreaPersonaleAmmGUI(this, amministratore);
         JFrame frame = new JFrame("Area Personale Amministratore");
         frame.setContentPane(nuovaGUI.getAreaPersonaleAmmPanel());
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.pack();
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);

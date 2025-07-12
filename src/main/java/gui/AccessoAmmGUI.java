@@ -27,7 +27,7 @@ public class AccessoAmmGUI {
                 Amministratore amministratore = new Amministratore(email, password, "Marco", "Rossi");
                 JFrame frame = new JFrame("Area Personale Amministratore");
                 frame.setContentPane(new AreaPersonaleAmmGUI(controller, amministratore).getAreaPersonaleAmmPanel());
-                frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
                 frame.pack();
                 frame.setLocationRelativeTo(null);
                 frame.setVisible(true);
@@ -46,7 +46,7 @@ public class AccessoAmmGUI {
             Controller controller = new Controller();
             JFrame frame = new JFrame("Accesso amministratore");
             frame.setContentPane(new AccessoAmmGUI(controller).accessoAmmPanel);
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
             frame.pack();
             frame.setLocationRelativeTo(null);
             frame.setVisible(true);
