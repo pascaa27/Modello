@@ -8,7 +8,6 @@ public class LoginGUI {
     private JButton accediUtenteButton;
     private JButton registratiUtenteButton;
     private JButton accediAmmButton;
-    private JButton registratiAmmButton;
     private Controller controller;
 
     public LoginGUI(Controller controller) {
@@ -47,19 +46,6 @@ public class LoginGUI {
 
             JFrame nuovoFrame = new JFrame("Accesso Amministratore");
             nuovoFrame.setContentPane(new AccessoAmmGUI(controller).getAccessoAmmPanel());
-            nuovoFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-            nuovoFrame.pack();
-            nuovoFrame.setLocationRelativeTo(null);
-            nuovoFrame.setVisible(true);
-        });
-
-        registratiAmmButton.addActionListener(e -> {
-            JOptionPane.showMessageDialog(null, "Inserire le credenziali per la registrazione amministratore.");
-            JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(loginPanel);
-            frame.dispose();
-
-            JFrame nuovoFrame = new JFrame("Registrazione Amministratore");
-            nuovoFrame.setContentPane(new RegistrazioneAmmGUI(controller).getRegistrazioneAmmPanel());
             nuovoFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
             nuovoFrame.pack();
             nuovoFrame.setLocationRelativeTo(null);

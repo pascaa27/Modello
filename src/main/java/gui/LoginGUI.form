@@ -42,18 +42,10 @@
       </component>
       <component id="d901" class="javax.swing.JButton" binding="accediAmmButton">
         <constraints>
-          <grid row="1" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+          <grid row="1" column="2" row-span="2" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <text value="Accedi"/>
-        </properties>
-      </component>
-      <component id="9f1c0" class="javax.swing.JButton" binding="registratiAmmButton">
-        <constraints>
-          <grid row="2" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value="Registrati"/>
         </properties>
       </component>
     </children>
