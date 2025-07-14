@@ -1,6 +1,7 @@
 package gui;
 
 import controller.Controller;
+import model.Utente;
 
 import javax.swing.*;
 
@@ -10,20 +11,35 @@ public class AccessoUtenteGUI {
     private JButton accediButton;
     private JPanel accessoPanel;
     private Controller controller;
-    private String emailInserita;
-    private String passwordInserita;
-
 
     public AccessoUtenteGUI(Controller controller) {
         this.controller = controller;
-        emailInserita= emailTextField.getText().trim();
-        passwordInserita= passwordTextField.getText().trim();
 
         accediButton.addActionListener(e -> {
+            String emailInserita = emailTextField.getText().trim();
+            String passwordInserita = passwordTextField.getText().trim();
 
             if(emailInserita.isEmpty() || passwordInserita.isEmpty()) {
                 JOptionPane.showMessageDialog(null, "Inserisci le credenziali");
-                new AccessoUtenteGUI(controller);
+                return;
+            }
+
+            // Simulazione login: crea un utente finto (sostituisci con controller.login se ce l'hai)
+            Utente utente = new Utente(emailInserita, "Mario", "Rossi", passwordInserita);
+            // Se credenziali errate, utente = null
+
+            if (utente != null) {
+                JFrame frame = new JFrame("Area Personale Utente");
+                frame.setContentPane(new AreaPersonaleUtenteGUI(controller, utente).getPanel());
+                frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                frame.pack();
+                frame.setLocationRelativeTo(null);
+                frame.setVisible(true);
+
+                // Chiudi la finestra di accesso (prendi la finestra dal bottone)
+                SwingUtilities.getWindowAncestor(accessoPanel).dispose();
+            } else {
+                JOptionPane.showMessageDialog(null, "Credenziali non valide!");
             }
         });
     }
@@ -34,16 +50,13 @@ public class AccessoUtenteGUI {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-           Controller controller = new Controller();
-           JFrame frame = new JFrame("Accesso Utente");
-           frame.setContentPane(new AccessoUtenteGUI(controller).accessoPanel);
-           frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-           frame.pack();
-           frame.setLocationRelativeTo(null);
-           frame.setVisible(true);
+            Controller controller = new Controller();
+            JFrame frame = new JFrame("Accesso Utente");
+            frame.setContentPane(new AccessoUtenteGUI(controller).getAccessoPanel());
+            frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+            frame.pack();
+            frame.setLocationRelativeTo(null);
+            frame.setVisible(true);
         });
     }
-
-
-
 }

@@ -15,8 +15,8 @@ public class UtenteGenerico extends Utente {
     }
 
 
-    public UtenteGenerico(String login, String password, String nomeUtente, List<Prenotazione> prenotazioni, AreaPersonale areaPersonale) {
-        super(login, password);
+    public UtenteGenerico(String login, String password, String nomeUtente, String cognomeUtente, List<Prenotazione> prenotazioni, AreaPersonale areaPersonale) {
+        super(login, password, nomeUtente, cognomeUtente);
         this.nomeUtente = nomeUtente;
         this.prenotazioni = prenotazioni;
         this.areaPersonale = areaPersonale;

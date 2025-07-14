@@ -6,7 +6,6 @@ import model.Amministratore;
 
 import java.awt.*;
 
-
 public class AreaPersonaleAmmGUI {
     private JTextField nomeTextField;
     private JTextField cognomeTextField;
@@ -68,11 +67,19 @@ public class AreaPersonaleAmmGUI {
     public JPanel getAreaPersonaleAmmPanel() {
         return areaPersonaleAmmPanel;
     }
-
+    //da rivedere
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             Controller controller = new Controller();
-            Amministratore amm = new Amministratore("marcorossi@gmail.com", "12345", "Marco", "Rossi");
+            // Costruttore Amministratore con 6 parametri!
+            Amministratore amm = new Amministratore(
+                    "marcorossi@gmail.com",    // login
+                    "12345",                   // password
+                    "Marco",                   // nomeUtente
+                    "Rossi",                   // cognomeUtente
+                    "Marco",                   // nomeAdmin
+                    "Rossi"                    // cognome (admin)
+            );
             JFrame frame = new JFrame("Area Personale Amministratore");
             frame.setContentPane(new AreaPersonaleAmmGUI(controller, amm).getAreaPersonaleAmmPanel());
             frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);

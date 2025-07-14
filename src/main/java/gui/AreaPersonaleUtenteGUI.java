@@ -14,9 +14,11 @@ public class AreaPersonaleUtenteGUI {
     private JTextField emailUtenteTextField;
     private JPanel areaPersonaleUtentePanel;
     private Controller controller;
+    private Utente utente;
 
     public AreaPersonaleUtenteGUI(Controller controller, Utente utente) {
         this.controller = controller;
+        this.utente = utente;
 
         areaPersonaleUtentePanel = new JPanel(new GridLayout(5, 2, 10, 10));
 
@@ -60,7 +62,7 @@ public class AreaPersonaleUtenteGUI {
     // Metodo che apre la GUI Cerca/Modifica Prenotazione
     private void apriCercaModificaPrenotazione() {
         JFrame frame = new JFrame("Cerca/Modifica Prenotazione");
-        frame.setContentPane(new CercaModificaPrenotazioneGUI(controller).getPanel());
+        frame.setContentPane(new CercaModificaPrenotazioneGUI(controller, utente).getPanel());
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.pack();
         frame.setLocationRelativeTo(null);

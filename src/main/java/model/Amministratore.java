@@ -2,14 +2,15 @@ package model;
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class Amministratore extends Utente {
 
     private String nomeAdmin;
     private String cognome;
     private List<Volo> voliGestiti = new ArrayList<>();
 
-    public Amministratore(String login, String password, String nomeAdmin, String cognome) {
-        super(login, password);
+    public Amministratore(String login, String password, String nomeUtente, String cognomeUtente, String nomeAdmin, String cognome) {
+        super(login, password, nomeUtente, cognomeUtente);
         this.nomeAdmin = nomeAdmin;
         this.cognome = cognome;
     }

@@ -4,11 +4,13 @@ public class DatiPasseggero {
     private String nome;
     private String cognome;
     private String codiceFiscale;
+    private String email;
 
-    public DatiPasseggero(String nome, String cognome, String numeroDocumento) {
+    public DatiPasseggero(String nome, String cognome,  String codiceFiscale, String email) {
         this.nome = nome;
         this.cognome = cognome;
-        this.codiceFiscale = numeroDocumento;
+        this.codiceFiscale = codiceFiscale;
+        this.email = email;
     }
 
     public String getNome() {
@@ -30,6 +32,13 @@ public class DatiPasseggero {
     }
     public void setCodiceFiscale(String codiceFiscale) {
         this.codiceFiscale = codiceFiscale;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+    public void setEmail(String email) {
+        this.email = email;
     }
 
 }
