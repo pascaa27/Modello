@@ -70,20 +70,5 @@ public class GestionePrenotazioni {
         return panelPrenotazione;
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            Controller controller = new Controller();
-            // Devi avere un oggetto UtenteGenerico qui, ad esempio ottenuto dal login
-            UtenteGenerico utente = new UtenteGenerico(
-                    "login", "password", "Nome", "Cognome", null, null
-            ); // Sostituisci con dati reali
 
-            JFrame frame = new JFrame("Prenotazione");
-            frame.setContentPane(new GestionePrenotazioni(controller, utente).getPanelPrenotazione());
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            frame.pack();
-            frame.setLocationRelativeTo(null);
-            frame.setVisible(true);
-        });
-    }
 }

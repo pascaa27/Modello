@@ -39,20 +39,5 @@ public class RegistrazioneUtenteGUI {
         return registrazionePanel;
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            Controller controller = new Controller();
-            JFrame frame = new JFrame("Registrazione utente");
-            frame.setContentPane(new RegistrazioneUtenteGUI(controller).registrazionePanel);
-            frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-            frame.pack();
-            frame.setLocationRelativeTo(null);
-            frame.setVisible(true);
-        });
-
-    }
-
-
-
 
 }

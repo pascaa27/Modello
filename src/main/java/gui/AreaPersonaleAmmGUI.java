@@ -42,7 +42,7 @@ public class AreaPersonaleAmmGUI {
         mostraPasswordButton = new JButton("Show");
         mostraPasswordButton.setPreferredSize(new Dimension(60, 28));
         mostraPasswordButton.setFocusPainted(false);
-        mostraPasswordButton.setMargin(new Insets(2,2,2,2));
+        mostraPasswordButton.setMargin(new Insets(2, 2, 2, 2));
         mostraPasswordButton.setBorderPainted(false);
         mostraPasswordButton.addActionListener(e -> mostraNascondiPassword());
 
@@ -54,7 +54,7 @@ public class AreaPersonaleAmmGUI {
     }
 
     private void mostraNascondiPassword() {
-        if(passwordVisibile) {
+        if (passwordVisibile) {
             passwordField.setEchoChar('•');
             mostraPasswordButton.setText("Show");
         } else {
@@ -66,26 +66,5 @@ public class AreaPersonaleAmmGUI {
 
     public JPanel getAreaPersonaleAmmPanel() {
         return areaPersonaleAmmPanel;
-    }
-    //da rivedere
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            Controller controller = new Controller();
-            // Costruttore Amministratore con 6 parametri!
-            Amministratore amm = new Amministratore(
-                    "marcorossi@gmail.com",    // login
-                    "12345",                   // password
-                    "Marco",                   // nomeUtente
-                    "Rossi",                   // cognomeUtente
-                    "Marco",                   // nomeAdmin
-                    "Rossi"                    // cognome (admin)
-            );
-            JFrame frame = new JFrame("Area Personale Amministratore");
-            frame.setContentPane(new AreaPersonaleAmmGUI(controller, amm).getAreaPersonaleAmmPanel());
-            frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-            frame.pack();
-            frame.setLocationRelativeTo(null);
-            frame.setVisible(true);
-        });
     }
 }

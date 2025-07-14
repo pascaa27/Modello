@@ -41,15 +41,5 @@ public class AccessoAmmGUI {
         return accessoAmmPanel;
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            Controller controller = new Controller();
-            JFrame frame = new JFrame("Accesso amministratore");
-            frame.setContentPane(new AccessoAmmGUI(controller).accessoAmmPanel);
-            frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-            frame.pack();
-            frame.setLocationRelativeTo(null);
-            frame.setVisible(true);
-        });
-    }
+
 }

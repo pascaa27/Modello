@@ -48,15 +48,5 @@ public class AccessoUtenteGUI {
         return accessoPanel;
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            Controller controller = new Controller();
-            JFrame frame = new JFrame("Accesso Utente");
-            frame.setContentPane(new AccessoUtenteGUI(controller).getAccessoPanel());
-            frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-            frame.pack();
-            frame.setLocationRelativeTo(null);
-            frame.setVisible(true);
-        });
-    }
+
 }
