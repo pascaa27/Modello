@@ -41,5 +41,9 @@ public class GestioneVoli {
         aggiungiVoloButton.addActionListener(e -> aggiungiVolo());
     }
 
+    public JPanel getPanelDatiVolo() {
+        return panelDatiVolo;
+    }
+
 
 }

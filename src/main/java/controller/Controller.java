@@ -9,6 +9,8 @@ import java.util.*;
 public class Controller {
     private List<Volo> voliGestiti = new ArrayList<>();
     private List<Prenotazione> prenotazioni = new ArrayList<>();
+    private List<Bagaglio> bagagliGestiti = new ArrayList<>();
+    private List<Gate> gates = new ArrayList<>();
 
     public void aggiungiVolo(String codiceUnivoco, String compagniaAerea, String dataVolo, String orarioPrevisto, StatoVolo stato, Amministratore amministratore, TabellaOrario tabellaOrario) {
         Volo volo = new Volo(codiceUnivoco, compagniaAerea, dataVolo, orarioPrevisto, stato, amministratore, tabellaOrario);
@@ -92,6 +94,98 @@ public class Controller {
         }
         return false;
     }
+
+
+    public List<Object[]> ricercaVoli(String numeroVolo, String compagnia, String stato, String data) {
+        List<Object[]> risultati = new ArrayList<>();
+        for (Volo v : voliGestiti) {
+            boolean match = true;
+            if (numeroVolo != null && !numeroVolo.isEmpty() && !v.getCodiceUnivoco().contains(numeroVolo)) match = false;
+            if (compagnia != null && !compagnia.isEmpty() && !v.getCompagniaAerea().toLowerCase().contains(compagnia.toLowerCase())) match = false;
+            if (stato != null && !stato.isEmpty() && !v.getStato().toString().equalsIgnoreCase(stato)) match = false;
+            if (data != null && !data.isEmpty() && !v.getDataVolo().contains(data)) match = false;
+            if (match) {
+                risultati.add(new Object[]{
+                        v.getCodiceUnivoco(),
+                        v.getCompagniaAerea(),
+                        v.getStato().toString(),
+                        v.getDataVolo()
+                });
+            }
+        }
+        return risultati;
+    }
+
+    /**
+     * Ricerca passeggeri tra le prenotazioni
+     */
+    public List<Object[]> ricercaPasseggeri(String nome, String cognome, String numeroVolo, String numeroPrenotazione) {
+        List<Object[]> risultati = new ArrayList<>();
+        for (Prenotazione p : prenotazioni) {
+            boolean match = true;
+            DatiPasseggero dp = p.getDatiPasseggero();
+
+            if (nome != null && !nome.isEmpty() && !dp.getNome().toLowerCase().contains(nome.toLowerCase())) match = false;
+            if (cognome != null && !cognome.isEmpty() && !dp.getCognome().toLowerCase().contains(cognome.toLowerCase())) match = false;
+            if (numeroVolo != null && !numeroVolo.isEmpty() && !p.getVolo().getCodiceUnivoco().contains(numeroVolo)) match = false;
+            if (numeroPrenotazione != null && !numeroPrenotazione.isEmpty() && !p.getNumBiglietto().contains(numeroPrenotazione)) match = false;
+
+            if (match) {
+                risultati.add(new Object[]{
+                        dp.getNome(),
+                        dp.getCognome(),
+                        p.getVolo().getCodiceUnivoco(),
+                        p.getNumBiglietto()
+                });
+            }
+        }
+        return risultati;
+    }
+
+
+    public void aggiungiBagaglio(Bagaglio b) {
+        bagagliGestiti.add(b);
+    }
+
+    public List<Bagaglio> getBagagliGestiti() {
+        return bagagliGestiti;
+    }
+
+    /**
+     * Ricerca bagagli in base ai criteri (aggiungi la lista bagagliGestiti in questo Controller!)
+     */
+    public List<Object[]> ricercaBagagli(String codiceBagaglio, String stato) {
+        List<Object[]> risultati = new ArrayList<>();
+        for (Bagaglio b : bagagliGestiti) {
+            boolean match = true;
+            if (codiceBagaglio != null && !codiceBagaglio.isEmpty() && !b.getCodUnivoco().contains(codiceBagaglio))
+                match = false;
+            if (stato != null && !stato.isEmpty() && !b.getStato().toString().equalsIgnoreCase(stato)) match = false;
+
+            if (match) {
+                risultati.add(new Object[]{
+                        b.getCodUnivoco(),
+                        b.getStato().toString()
+                });
+            }
+        }
+        return risultati;
+    }
+
+        public void aggiungiGate(int numero) {
+            // Controllo se il gate esiste già (opzionale)
+            for (Gate g : gates) {
+                if (g.getNumero() == numero) {
+                    JOptionPane.showMessageDialog(null, "Esiste già un gate con questo numero!", "Errore", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+            }
+            gates.add(new Gate(numero));
+        }
+
+        public List<Gate> getGates() {
+            return gates;
+        }
 
 
 

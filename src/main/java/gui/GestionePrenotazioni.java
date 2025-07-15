@@ -4,6 +4,7 @@ import javax.swing.*;
 import controller.Controller;
 import model.DatiPasseggero;
 import model.StatoPrenotazione;
+import model.Utente;
 import model.UtenteGenerico;
 
 public class GestionePrenotazioni {
@@ -13,12 +14,12 @@ public class GestionePrenotazioni {
     private JComboBox<StatoPrenotazione> statoPrenotazioneComboBox;
     private JButton aggiungiPrenotazioneButton;
     private Controller controller;
-    private UtenteGenerico utenteGenerico; // campo utente
+    private Utente utente; // campo utente
     private DatiPasseggero datiPasseggero = null;
 
-    public GestionePrenotazioni(Controller controller, UtenteGenerico utenteGenerico) {
+    public GestionePrenotazioni(Controller controller, Utente utente) {
         this.controller = controller;
-        this.utenteGenerico = utenteGenerico;
+        this.utente = utente;
 
         for (StatoPrenotazione stato : StatoPrenotazione.values()) {
             statoPrenotazioneComboBox.addItem(stato);
@@ -51,7 +52,7 @@ public class GestionePrenotazioni {
                     numeroBiglietto,
                     posto,
                     stato,
-                    utenteGenerico,
+                    (UtenteGenerico) utente,
                     nome,
                     cognome,
                     codiceFiscale,
