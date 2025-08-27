@@ -15,7 +15,6 @@ public class LoginGUI {
     private JTextField emailTextField;
     private JTextField passwordTextField;
     private Controller controller;
-
     private static final String ADMIN_EMAIL = "admin@aeroporto.it";
     private static final String ADMIN_PASS = "12345";
 
@@ -28,8 +27,8 @@ public class LoginGUI {
             String email = emailTextField.getText().trim();
             String password = passwordTextField.getText().trim();
 
-            JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(loginPanel);
-            frame.dispose();
+            JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(loginPanel);  //Ottiene il frame padre del pannello di login
+            frame.dispose();  //e lo chiude
 
             if (email.equals(ADMIN_EMAIL) && password.equals(ADMIN_PASS)) {
                 // Area amministratore
@@ -85,9 +84,9 @@ public class LoginGUI {
                 return;
             }
 
-            // Costruttore corretto
+
             Utente nuovoUtente = new Utente(email, password, nome, cognome);
-            utentiRegistrati.add(nuovoUtente);
+            utentiRegistrati.add(nuovoUtente);  //aggiunge alla lista
             JOptionPane.showMessageDialog(null, "Registrazione avvenuta con successo! Ora puoi accedere.");
         });
     }

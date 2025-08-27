@@ -40,6 +40,7 @@ public class AreaPersonaleAmmGUI {
     private JButton gestionePrenotazioniButton;
     private JButton gestioneGateButton;
     private boolean passwordVisibile = false;
+    private TabellaOrarioGUI tabellaOrarioGUI;
 
     public AreaPersonaleAmmGUI(Controller controller, Amministratore amministratore) {
         this.controller = controller;
@@ -148,19 +149,19 @@ public class AreaPersonaleAmmGUI {
         statoComboBox = new JComboBox<>(new String[]{"", "In arrivo", "In partenza", "Ritardato", "Cancellato"});
         ricercaPanel.add(statoComboBox);
 
-
         ricercaPanel.add(new JLabel("Data:"));
         dataTextField = new JTextField(10);
         ricercaPanel.add(dataTextField);
 
+        panel.add(ricercaPanel);
+
         cercaVoloButton = new JButton("Cerca");
         cercaVoloButton.addActionListener(e -> ricercaVoli());
-        panel.add(ricercaPanel);
         panel.add(cercaVoloButton);
 
-        risultatiRicercaTable = new JTable();
-        JScrollPane scrollPane = new JScrollPane(risultatiRicercaTable);
-        panel.add(scrollPane);
+        // Integri TabellaOrarioGUI
+        tabellaOrarioGUI = new TabellaOrarioGUI(controller);
+        panel.add(tabellaOrarioGUI.getPanel());
 
         return panel;
     }
@@ -228,20 +229,23 @@ public class AreaPersonaleAmmGUI {
 
     // Azioni di ricerca (da collegare al Controller)
     private void ricercaVoli() {
-        String numeroVolo = numeroVoloTextField.getText();
-        String compagnia = compagniaTextField.getText();
-        String stato = (String) statoComboBox.getSelectedItem();
-        String data = dataTextField.getText();
+        String numeroVolo = numeroVoloTextField.getText().trim();
+        if (numeroVolo.isEmpty()) numeroVolo = null;
 
-        // chiama il controller
+        String compagnia = compagniaTextField.getText().trim();
+        if (compagnia.isEmpty()) compagnia = null;
+
+        String stato = (String) statoComboBox.getSelectedItem();
+        if (stato != null && stato.isBlank()) stato = null;
+
+        String data = dataTextField.getText().trim();
+        if (data.isEmpty()) data = null;
+
+        // Controller ritorna List<Object[]>
         List<Object[]> risultati = controller.ricercaVoli(numeroVolo, compagnia, stato, data);
 
-        // Aggiorna tabella
-        DefaultTableModel model = new DefaultTableModel(new String[]{"Numero Volo", "Compagnia", "Stato", "Aeroporto", "Data"}, 0);
-        for (Object[] r : risultati) {
-            model.addRow(r);
-        }
-        risultatiRicercaTable.setModel(model);
+        // Aggiorna la tabella orario
+        tabellaOrarioGUI.aggiornaVoli(risultati);
     }
 
     private void ricercaPasseggeri() {
