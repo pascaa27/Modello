@@ -15,8 +15,8 @@ public class LoginGUI {
     private JTextField emailTextField;
     private JTextField passwordTextField;
     private Controller controller;
-    private static final String ADMIN_EMAIL = "admin@aeroporto.it";
-    private static final String ADMIN_PASS = "12345";
+    private static final String ADMIN_EMAIL = "a";
+    private static final String ADMIN_PASS = "a";
 
     private List<Utente> utentiRegistrati = new ArrayList<>();
 
@@ -99,7 +99,7 @@ public class LoginGUI {
         SwingUtilities.invokeLater(() -> {
             Controller controller = new Controller();
             Amministratore amministratore = new Amministratore(
-                    "admin@aeroporto.it", "12345", "Mario", "Rossi"
+                    "a", "a", "a", "a"
             );
             JFrame frame = new JFrame("Area Login - Aeroporto");
             frame.setContentPane(new LoginGUI(controller, amministratore).getLoginPanel());

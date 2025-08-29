@@ -51,8 +51,9 @@ public class AreaPersonaleUtenteGUI {
 
     // Metodo che apre la GUI TabellaOrario
     private void apriTabellaOrario() {
+        TabellaOrarioGUI gui = new TabellaOrarioGUI(controller); // già carica dati
         JFrame frame = new JFrame("Tabella Orario");
-        frame.setContentPane(new TabellaOrarioGUI(controller).getPanel());
+        frame.setContentPane(gui.getPanel());
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.pack();
         frame.setLocationRelativeTo(null);
