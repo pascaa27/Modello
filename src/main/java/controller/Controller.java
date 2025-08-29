@@ -12,6 +12,7 @@ public class Controller {
     private List<Bagaglio> bagagliGestiti = new ArrayList<>();
     private List<Gate> gates = new ArrayList<>();
 
+    /* codice incompleto da modificare ulteriormente per l'esempio statico di Cerca/Modifica Prenotazione per l'utente
     // Costruttore del controller
     public Controller() {
         this.prenotazioni = new ArrayList<>();
@@ -43,6 +44,7 @@ public class Controller {
         prenotazioni.add(p1);
         prenotazioni.add(p2);
     }
+    */
 
 
     public void aggiungiVolo(String codiceUnivoco, String compagniaAerea, String dataVolo, String orarioPrevisto,
