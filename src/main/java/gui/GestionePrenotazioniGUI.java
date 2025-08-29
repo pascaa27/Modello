@@ -7,7 +7,7 @@ import model.StatoPrenotazione;
 import model.Utente;
 import model.UtenteGenerico;
 
-public class GestionePrenotazioni {
+public class GestionePrenotazioniGUI {
     private JPanel panelPrenotazione;
     private JTextField numeroBigliettoTextField;
     private JTextField postoTextField;
@@ -17,7 +17,7 @@ public class GestionePrenotazioni {
     private Utente utente; // campo utente
     private DatiPasseggero datiPasseggero = null;
 
-    public GestionePrenotazioni(Controller controller, Utente utente) {
+    public GestionePrenotazioniGUI(Controller controller, Utente utente) {
         this.controller = controller;
         this.utente = utente;
 

@@ -4,7 +4,7 @@ public class TabellaOrario {
     private String orarioPartenza;
     private String orarioArrivo;
 
-    public TabellaOrario(String orarioPartenza, String orarioArrivo) {
+    public TabellaOrario() {
         this.orarioPartenza = orarioPartenza;
         this.orarioArrivo = orarioArrivo;
     }

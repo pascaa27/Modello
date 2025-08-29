@@ -4,7 +4,7 @@ import javax.swing.*;
 import model.StatoVolo;
 import controller.Controller;
 
-public class GestioneVoli {
+public class GestioneVoliGUI {
     private JPanel panelDatiVolo;
     private JTextField codiceTextField;
     private JTextField compagniaTextField;
@@ -31,7 +31,7 @@ public class GestioneVoli {
         statoVoloComboBox.setSelectedIndex(0);
     }
 
-    public GestioneVoli(Controller controller) {
+    public GestioneVoliGUI(Controller controller) {
         this.controller = controller;
 
         for(StatoVolo stato : StatoVolo.values()) {

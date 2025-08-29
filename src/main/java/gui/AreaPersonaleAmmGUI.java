@@ -3,7 +3,6 @@ package gui;
 import javax.swing.*;
 import controller.Controller;
 import model.Amministratore;
-import model.UtenteGenerico;
 
 import java.awt.*;
 import java.util.List;
@@ -104,7 +103,7 @@ public class AreaPersonaleAmmGUI {
         areaPersonaleAmmPanel.add(bottoniPanel);
 
         gestioneVoliButton.addActionListener(e -> {
-            GestioneVoli gestioneVoli = new GestioneVoli(controller);
+            GestioneVoliGUI gestioneVoli = new GestioneVoliGUI(controller);
             JFrame frame = new JFrame("Gestione Voli");
             frame.setContentPane(gestioneVoli.getPanelDatiVolo());
             frame.pack();
@@ -113,7 +112,7 @@ public class AreaPersonaleAmmGUI {
         });
 
         gestionePrenotazioniButton.addActionListener(e -> {
-            GestionePrenotazioni gestionePrenotazioni = new GestionePrenotazioni(controller, amministratore);
+            GestionePrenotazioniGUI gestionePrenotazioni = new GestionePrenotazioniGUI(controller, amministratore);
             JFrame frame = new JFrame("Gestione Prenotazioni");
             frame.setContentPane(gestionePrenotazioni.getPanelPrenotazione());
             frame.pack();

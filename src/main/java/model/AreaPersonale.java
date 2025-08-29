@@ -7,7 +7,7 @@ public class AreaPersonale {
     private String variazioneVolo;
     private Utente utente;
 
-    public AreaPersonale(String ritardoVolo, String cancellazioneVolo, String variazioneVolo, Utente utente) {
+    public AreaPersonale() {
         this.ritardoVolo = ritardoVolo;
         this.cancellazioneVolo = cancellazioneVolo;
         this.variazioneVolo = variazioneVolo;

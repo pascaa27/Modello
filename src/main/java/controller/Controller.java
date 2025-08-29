@@ -12,6 +12,39 @@ public class Controller {
     private List<Bagaglio> bagagliGestiti = new ArrayList<>();
     private List<Gate> gates = new ArrayList<>();
 
+    // Costruttore del controller
+    public Controller() {
+        this.prenotazioni = new ArrayList<>();
+
+        AreaPersonale areaPersonale1 = new AreaPersonale();
+        AreaPersonale areaPersonale2 = new AreaPersonale();
+        // Utenti
+        UtenteGenerico u1 = new UtenteGenerico("luigiverdi@gmail.com", "54321", "Luigi", "Verdi", new ArrayList<>(), areaPersonale1);
+        UtenteGenerico u2 = new UtenteGenerico("lucabianchi@gmail.com", "56789", "Luca", "Bianchi", new ArrayList<>(), areaPersonale2);
+
+        // Oggetti fittizi per Amministratore e TabellaOrario (creali tu nelle rispettive classi)
+        Amministratore admin = new Amministratore("admin1", "pwd123", "", "");
+        TabellaOrario tabella = new TabellaOrario();
+
+        // Voli
+        Volo v1 = new Volo("VOLO1", "Alitalia", "2025-06-01", "10:00",
+                StatoVolo.PROGRAMMATO, admin, tabella);
+        Volo v2 = new Volo("VOLO2", "Lufthansa", "2025-07-10", "18:30",
+                StatoVolo.PROGRAMMATO, admin, tabella);
+
+        // Passeggeri
+        DatiPasseggero passeggero1 = new DatiPasseggero("Luigi", "Verdi", "ID12345", "luigiverdi@gmail.com");
+        DatiPasseggero passeggero2 = new DatiPasseggero("Luca", "Bianchi", "ID67890", "lucabianchi@gmail.com");
+
+        // Prenotazioni
+        Prenotazione p1 = new Prenotazione("ABC123", "12A", StatoPrenotazione.CONFERMATA, u1, passeggero1, v1);
+        Prenotazione p2 = new Prenotazione("ABC123", "12A", StatoPrenotazione.CONFERMATA, u2, passeggero1, v2);
+
+        prenotazioni.add(p1);
+        prenotazioni.add(p2);
+    }
+
+
     public void aggiungiVolo(String codiceUnivoco, String compagniaAerea, String dataVolo, String orarioPrevisto,
                              StatoVolo stato, Amministratore amministratore, TabellaOrario tabellaOrario) {
         Volo volo = new Volo(codiceUnivoco, compagniaAerea, dataVolo, orarioPrevisto, stato, amministratore, tabellaOrario);
