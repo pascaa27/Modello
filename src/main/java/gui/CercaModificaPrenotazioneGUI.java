@@ -30,7 +30,12 @@ public class CercaModificaPrenotazioneGUI {
         this.controller = controller;
         this.utente = utente;
 
-        // Disabilita i campi finché non si trova una prenotazione
+        // Popola la comboBox con tutti gli stati disponibili
+        statoVoloComboBox.removeAllItems();
+        for (StatoPrenotazione stato : StatoPrenotazione.values()) {
+            statoVoloComboBox.addItem(stato.name());
+        }
+
         setCampiPrenotazioneAbilitati(false);
 
         cercaButton.addActionListener(e -> cercaPrenotazione());
@@ -74,14 +79,26 @@ public class CercaModificaPrenotazioneGUI {
         prenotazioneCorrente.getDatiPasseggero().setNome(nomeTextField.getText());
         prenotazioneCorrente.getDatiPasseggero().setCognome(cognomeTextField.getText());
         prenotazioneCorrente.getDatiPasseggero().setEmail(emailTextField.getText());
-        Volo volo = controller.cercaVolo(voloTextField.getText());
+
+        String codiceVolo = voloTextField.getText().trim();
+        Volo volo = controller.cercaVolo(codiceVolo);
+        if (volo == null) {
+            messaggioTextArea.setText("Volo non trovato.");
+            return;
+        }
         prenotazioneCorrente.setVolo(volo);
+
         String statoString = (String) statoVoloComboBox.getSelectedItem();
-        StatoPrenotazione stato = StatoPrenotazione.valueOf(statoString.toUpperCase());
+        StatoPrenotazione stato;
+        try {
+            stato = StatoPrenotazione.valueOf(statoString.toUpperCase());
+        } catch (Exception e) {
+            messaggioTextArea.setText("Stato non valido.");
+            return;
+        }
         prenotazioneCorrente.setStato(stato);
 
-        // Salva tramite controller
-        boolean successo = controller.salvaPrenotazione(prenotazioneCorrente); // implementa questo nel Controller!
+        boolean successo = controller.salvaPrenotazione(prenotazioneCorrente);
         if (successo) {
             messaggioTextArea.setText("Modifiche salvate con successo!");
         } else {
@@ -130,7 +147,4 @@ public class CercaModificaPrenotazioneGUI {
     public JPanel getPanel() {
         return panelCercaModificaPrenotazione;
     }
-
-
-
 }

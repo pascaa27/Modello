@@ -109,5 +109,4 @@ public class LoginGUI {
             frame.setVisible(true);
         });
     }
-
 }

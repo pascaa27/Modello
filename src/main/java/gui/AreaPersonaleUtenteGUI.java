@@ -73,6 +73,4 @@ public class AreaPersonaleUtenteGUI {
     public JPanel getPanel() {
         return areaPersonaleUtentePanel;
     }
-
 }
-

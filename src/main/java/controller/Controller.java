@@ -12,7 +12,6 @@ public class Controller {
     private List<Bagaglio> bagagliGestiti = new ArrayList<>();
     private List<Gate> gates = new ArrayList<>();
 
-    /* codice incompleto da modificare ulteriormente per l'esempio statico di Cerca/Modifica Prenotazione per l'utente
     // Costruttore del controller
     public Controller() {
         this.prenotazioni = new ArrayList<>();
@@ -33,18 +32,22 @@ public class Controller {
         Volo v2 = new Volo("VOLO2", "Lufthansa", "2025-07-10", "18:30",
                 StatoVolo.PROGRAMMATO, admin, tabella);
 
+        // Aggiungere tali voli alla lista dei voli gestiti
+        voliGestiti.add(v1);
+        voliGestiti.add(v2);
+
         // Passeggeri
         DatiPasseggero passeggero1 = new DatiPasseggero("Luigi", "Verdi", "ID12345", "luigiverdi@gmail.com");
         DatiPasseggero passeggero2 = new DatiPasseggero("Luca", "Bianchi", "ID67890", "lucabianchi@gmail.com");
 
         // Prenotazioni
         Prenotazione p1 = new Prenotazione("ABC123", "12A", StatoPrenotazione.CONFERMATA, u1, passeggero1, v1);
-        Prenotazione p2 = new Prenotazione("ABC123", "12A", StatoPrenotazione.CONFERMATA, u2, passeggero1, v2);
+        Prenotazione p2 = new Prenotazione("DEF456", "12B", StatoPrenotazione.CONFERMATA, u2, passeggero2, v2);
 
         prenotazioni.add(p1);
         prenotazioni.add(p2);
     }
-    */
+
 
 
     public void aggiungiVolo(String codiceUnivoco, String compagniaAerea, String dataVolo, String orarioPrevisto,

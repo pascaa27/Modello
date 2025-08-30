@@ -41,7 +41,6 @@ public class GestioneGateGUI {
         aggiungiGateButton.addActionListener(e -> aggiungiGate());
     }
 
-
     public JPanel getPanelGate() {
         return panelGate;
     }

@@ -70,6 +70,4 @@ public class GestionePrenotazioniGUI {
     public JPanel getPanelPrenotazione() {
         return panelPrenotazione;
     }
-
-
 }
