@@ -11,15 +11,15 @@ public class TabellaOrarioGUI {
     private JTable tabellaOrarioTable;   // creato dal .form (dentro lo JScrollPane)
     private final Controller controller;
 
-    private static final String[] COLONNE = {"Numero Volo", "Compagnia", "Stato", "Data"};
+    private static final String[] COLONNE = {"Numero Volo", "Compagnia", "Stato", "Data", "Orario"};
 
     private static final Object[][] DATI_ESEMPIO = {
-            {"AZ123", "ITA Airways", "IN ARRIVO", "2025-09-05 08:15"},
-            {"FR987", "Ryanair", "IN PARTENZA", "2025-09-05 08:40"},
-            {"LH455", "Lufthansa", "IN ORARIO", "2025-09-05 08:55"},
-            {"U23610", "easyJet", "CANCELLATO", "2025-09-05 09:05"},
-            {"AF101", "Air France", "IN ARRIVO", "2025-09-05 09:20"},
-            {"EK092", "Emirates", "IN PARTENZA", "2025-09-05 09:35"}
+            {"AZ123", "ITA Airways", "IN ARRIVO", "2025-09-05", "08:15"},
+            {"FR987", "Ryanair", "IN PARTENZA", "2025-09-05", "08:40"},
+            {"LH455", "Lufthansa", "IN ORARIO", "2025-09-05", "08:55"},
+            {"U23610", "easyJet", "CANCELLATO", "2025-09-05", "09:05"},
+            {"AF101", "Air France", "IN ARRIVO", "2025-09-05", "09:20"},
+            {"EK092", "Emirates", "IN PARTENZA", "2025-09-05", "09:35"}
     };
 
     public TabellaOrarioGUI(Controller controller) {

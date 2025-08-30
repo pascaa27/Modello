@@ -9,6 +9,7 @@ public class GestioneGateGUI {
     private JButton aggiungiGateButton;
     private JButton eliminaGateButton;
     private JTable gateEsistentiTable;
+    private JLabel numeroGate;
     private Controller controller;
 
     private void aggiungiGate() {

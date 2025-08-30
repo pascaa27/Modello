@@ -38,6 +38,7 @@ public class AreaPersonaleAmmGUI {
     private JButton gestioneVoliButton;
     private JButton gestionePrenotazioniButton;
     private JButton gestioneGateButton;
+    private JTextField orarioTextField;
     private boolean passwordVisibile = false;
     private TabellaOrarioGUI tabellaOrarioGUI;
 
@@ -130,39 +131,51 @@ public class AreaPersonaleAmmGUI {
         });
     }
 
-    // Tab Voli
     private JPanel creaTabVoli() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-        JPanel ricercaPanel = new JPanel(new GridLayout(2, 5, 8, 8));
-        ricercaPanel.add(new JLabel("Numero volo:"));
-        numeroVoloTextField = new JTextField(10);
-        ricercaPanel.add(numeroVoloTextField);
+        int GAP_COPPIE = 28;
+        int GAP_LABEL_CAMPO = 4;
 
-        ricercaPanel.add(new JLabel("Compagnia:"));
+        JPanel ricercaPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, GAP_COPPIE, 4));
+
+        numeroVoloTextField = new JTextField(8);
         compagniaTextField = new JTextField(10);
-        ricercaPanel.add(compagniaTextField);
-
-        ricercaPanel.add(new JLabel("Stato:"));
         statoComboBox = new JComboBox<>(new String[]{"", "In arrivo", "In partenza", "Ritardato", "Cancellato"});
-        ricercaPanel.add(statoComboBox);
+        dataTextField = new JTextField(8);
+        orarioTextField = new JTextField(6);
 
-        ricercaPanel.add(new JLabel("Data:"));
-        dataTextField = new JTextField(10);
-        ricercaPanel.add(dataTextField);
+        ricercaPanel.add(creaPair("Numero volo:", numeroVoloTextField, GAP_LABEL_CAMPO));
+        ricercaPanel.add(creaPair("Compagnia:", compagniaTextField, GAP_LABEL_CAMPO));
+        ricercaPanel.add(creaPair("Stato:", statoComboBox, GAP_LABEL_CAMPO));
+        ricercaPanel.add(creaPair("Data:", dataTextField, GAP_LABEL_CAMPO));
+        ricercaPanel.add(creaPair("Orario:", orarioTextField, GAP_LABEL_CAMPO));
 
         panel.add(ricercaPanel);
 
         cercaVoloButton = new JButton("Cerca");
         cercaVoloButton.addActionListener(e -> ricercaVoli());
-        panel.add(cercaVoloButton);
 
-        // Integri TabellaOrarioGUI
+
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        btnPanel.add(cercaVoloButton);
+        ricercaPanel.add(creaPair("", cercaVoloButton, GAP_LABEL_CAMPO));
+
         tabellaOrarioGUI = new TabellaOrarioGUI(controller);
         panel.add(tabellaOrarioGUI.getPanel());
 
         return panel;
+    }
+
+    private JPanel creaPair(String labelText, JComponent campo, int gapLabelCampo) {
+        JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, gapLabelCampo, 0));
+        p.setOpaque(false);
+        if (labelText != null && !labelText.isEmpty()) {
+            p.add(new JLabel(labelText));
+        }
+        p.add(campo);
+        return p;
     }
 
     // Tab Passeggeri
@@ -209,7 +222,6 @@ public class AreaPersonaleAmmGUI {
         codiceBagaglioTextField = new JTextField(10);
         ricercaPanel.add(codiceBagaglioTextField);
 
-
         ricercaPanel.add(new JLabel("Stato:"));
         statoBagaglioComboBox = new JComboBox<>(new String[]{"", "Caricato", "Smarrito", "Trovato"});
         ricercaPanel.add(statoBagaglioComboBox);
@@ -226,7 +238,7 @@ public class AreaPersonaleAmmGUI {
         return panel;
     }
 
-    // Azioni di ricerca (da collegare al Controller)
+    // Azioni di ricerca
     private void ricercaVoli() {
         String numeroVolo = numeroVoloTextField.getText().trim();
         if (numeroVolo.isEmpty()) numeroVolo = null;
@@ -240,10 +252,7 @@ public class AreaPersonaleAmmGUI {
         String data = dataTextField.getText().trim();
         if (data.isEmpty()) data = null;
 
-        // Controller ritorna List<Object[]>
         List<Object[]> risultati = controller.ricercaVoli(numeroVolo, compagnia, stato, data);
-
-        // Aggiorna la tabella orario
         tabellaOrarioGUI.aggiornaVoli(risultati);
     }
 

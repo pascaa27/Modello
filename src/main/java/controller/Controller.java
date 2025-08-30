@@ -53,6 +53,16 @@ public class Controller {
         voliGestiti.add(volo);
     }
 
+    // OVERLOAD aggiunto per la nuova GUI (direzione + otherAirport)
+    public void aggiungiVolo(String codiceUnivoco, String compagniaAerea, String dataVolo, String orarioPrevisto,
+                             StatoVolo stato, String direzione, String otherAirport) {
+        Volo volo = new Volo(codiceUnivoco, compagniaAerea, dataVolo, orarioPrevisto, stato, null, null);
+        // Se in futuro aggiungi campi in Volo:
+        // volo.setDirezione(direzione);      // <-- decommenta se esiste il metodo
+        // volo.setAltroAeroporto(otherAirport);
+        voliGestiti.add(volo);
+    }
+
     public List<Volo> getVoliGestiti() {
         return voliGestiti;
     }
@@ -162,8 +172,6 @@ public class Controller {
                 match = false;
 
             if (stato != null) {
-                // Se la combo ti dà "In partenza" ma l'enum è IN_PARTENZA devi mappare.
-                // Qui confronto con name() grezzo:
                 if (v.getStato() == null ||
                         !(v.getStato().name().equalsIgnoreCase(stato) ||
                                 v.getStato().toString().equalsIgnoreCase(stato))) {
