@@ -12,43 +12,38 @@ public class Controller {
     private List<Bagaglio> bagagliGestiti = new ArrayList<>();
     private List<Gate> gates = new ArrayList<>();
 
-    // Costruttore del controller
     public Controller() {
         this.prenotazioni = new ArrayList<>();
 
         AreaPersonale areaPersonale1 = new AreaPersonale();
         AreaPersonale areaPersonale2 = new AreaPersonale();
-        // Utenti
+
         UtenteGenerico u1 = new UtenteGenerico("luigiverdi@gmail.com", "54321", "Luigi", "Verdi", new ArrayList<>(), areaPersonale1);
         UtenteGenerico u2 = new UtenteGenerico("lucabianchi@gmail.com", "56789", "Luca", "Bianchi", new ArrayList<>(), areaPersonale2);
 
-        // Oggetti fittizi per Amministratore e TabellaOrario (creali tu nelle rispettive classi)
         Amministratore admin = new Amministratore("admin1", "pwd123", "", "");
         TabellaOrario tabella = new TabellaOrario();
 
-        // Voli
         Volo v1 = new Volo("VOLO1", "Alitalia", "2025-06-01", "10:00",
                 StatoVolo.PROGRAMMATO, admin, tabella);
         Volo v2 = new Volo("VOLO2", "Lufthansa", "2025-07-10", "18:30",
                 StatoVolo.PROGRAMMATO, admin, tabella);
 
-        // Aggiungere tali voli alla lista dei voli gestiti
         voliGestiti.add(v1);
         voliGestiti.add(v2);
 
-        // Passeggeri
         DatiPasseggero passeggero1 = new DatiPasseggero("Luigi", "Verdi", "ID12345", "luigiverdi@gmail.com");
         DatiPasseggero passeggero2 = new DatiPasseggero("Luca", "Bianchi", "ID67890", "lucabianchi@gmail.com");
 
-        // Prenotazioni
         Prenotazione p1 = new Prenotazione("ABC123", "12A", StatoPrenotazione.CONFERMATA, u1, passeggero1, v1);
         Prenotazione p2 = new Prenotazione("DEF456", "12B", StatoPrenotazione.CONFERMATA, u2, passeggero2, v2);
 
         prenotazioni.add(p1);
         prenotazioni.add(p2);
+
+        // Bagagli dimostrativi (se esiste il costruttore)
+        // bagagliGestiti.add(new Bagaglio("BAG001", StatoBagaglio.REGISTRATO, ...));
     }
-
-
 
     public void aggiungiVolo(String codiceUnivoco, String compagniaAerea, String dataVolo, String orarioPrevisto,
                              StatoVolo stato, Amministratore amministratore, TabellaOrario tabellaOrario) {
@@ -56,13 +51,9 @@ public class Controller {
         voliGestiti.add(volo);
     }
 
-    // OVERLOAD aggiunto per la nuova GUI (direzione + otherAirport)
     public void aggiungiVolo(String codiceUnivoco, String compagniaAerea, String dataVolo, String orarioPrevisto,
                              StatoVolo stato, String direzione, String otherAirport) {
         Volo volo = new Volo(codiceUnivoco, compagniaAerea, dataVolo, orarioPrevisto, stato, null, null);
-        // Se in futuro aggiungi campi in Volo:
-        // volo.setDirezione(direzione);      // <-- decommenta se esiste il metodo
-        // volo.setAltroAeroporto(otherAirport);
         voliGestiti.add(volo);
     }
 
@@ -108,7 +99,6 @@ public class Controller {
         frame.setVisible(true);
     }
 
-    // Prenotazioni
     public Prenotazione cercaPrenotazione(String numeroBiglietto) {
         for (Prenotazione p : prenotazioni) {
             if (p.getNumBiglietto().equals(numeroBiglietto)) {
@@ -136,24 +126,14 @@ public class Controller {
         return false;
     }
 
-    // ------------------- RICERCA VOLI (STEP A) -------------------
+    // --- Ricerca voli (già presente) ---
 
-    /**
-     * Normalizza stringa: trim e converte "" in null
-     */
     private String norm(String s) {
         if (s == null) return null;
         s = s.trim();
         return s.isEmpty() ? null : s;
     }
 
-    /**
-     * Versione "raw" che restituisce la lista di Volo filtrata.
-     * I parametri null significano "non filtrare".
-     * Per codice e compagnia viene usato un match parziale (contains case-insensitive).
-     * Per stato si confronta l'enum (name) ignorando maiuscole/minuscole oppure direttamente lo toString se preferisci.
-     * Per data uso contains (parziale) dato che la tieni come stringa (puoi cambiare).
-     */
     public List<Volo> ricercaVoliRaw(String numeroVolo, String compagnia, String stato, String data) {
         numeroVolo = norm(numeroVolo);
         compagnia = norm(compagnia);
@@ -192,11 +172,6 @@ public class Controller {
         return out;
     }
 
-    /**
-     * Versione legacy per le GUI che si aspettano List<Object[]>
-     * ORDINE COLONNE PROPOSTO: Codice, Compagnia, Data, Orario, Stato
-     * (Allinea la JTable della GUI a questo ordine!)
-     */
     public List<Object[]> ricercaVoli(String numeroVolo, String compagnia, String stato, String data) {
         List<Volo> trovati = ricercaVoliRaw(numeroVolo, compagnia, stato, data);
         List<Object[]> righe = new ArrayList<>();
@@ -216,9 +191,7 @@ public class Controller {
         return s == null ? "" : s;
     }
 
-    // ------------------------------------------------------------
-
-    // Passeggeri
+    // --- Passeggeri ---
     public List<Object[]> ricercaPasseggeri(String nome, String cognome, String numeroVolo, String numeroPrenotazione) {
         List<Object[]> risultati = new ArrayList<>();
         for (Prenotazione p : prenotazioni) {
@@ -247,7 +220,12 @@ public class Controller {
         return risultati;
     }
 
-    // Bagagli
+    // Utility per GUI: tutte le righe senza filtro
+    public List<Object[]> tuttiPasseggeri() {
+        return ricercaPasseggeri(null, null, null, null);
+    }
+
+    // --- Bagagli ---
     public void aggiungiBagaglio(Bagaglio b) {
         bagagliGestiti.add(b);
     }
@@ -277,7 +255,14 @@ public class Controller {
         return risultati;
     }
 
-    // Gate
+    /*
+    public List<Object[]> tuttiBagagliRows() {
+        return ricercaBagagli(null, null);
+    }
+
+     */
+
+    // --- Gate ---
     public void aggiungiGate(int numero) {
         for (Gate g : gates) {
             if (g.getNumero() == numero) {

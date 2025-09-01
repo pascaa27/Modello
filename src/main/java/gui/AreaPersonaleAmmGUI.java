@@ -8,6 +8,9 @@ import java.awt.*;
 import java.util.List;
 import javax.swing.table.DefaultTableModel;
 
+/**
+ * Versione modificata per integrare TabellaPasseggeroGUI come componente della tab "Passeggeri".
+ */
 public class AreaPersonaleAmmGUI {
     private JTextField nomeTextField;
     private JTextField cognomeTextField;
@@ -21,31 +24,34 @@ public class AreaPersonaleAmmGUI {
     private JTextField compagniaTextField;
     private JComboBox<String> statoComboBox;
     private JTextField dataTextField;
-    private JTable risultatiRicercaTable;
     private JTextField nomePasseggeroTextField;
     private JTextField cognomePasseggeroTextField;
     private JTextField numeroVoloPasseggeroTextField;
     private JTextField numeroPrenotazionePasseggeroTextField;
     private JButton cercaVoloButton;
     private JButton cercaPasseggeroButton;
-    private JTable risultatiRicercaPasseggeroable;
     private JTextField codiceBagaglioTextField;
-    private JTextField numeroVoloBagaglioTextField;
-    private JTextField nomePasseggeroBagaglioTextField;
+    private JTextField numeroVoloBagaglioTextField; // (non utilizzato attualmente nella ricerca bagagli)
+    private JTextField nomePasseggeroBagaglioTextField; // (non utilizzato attualmente)
     private JComboBox<String> statoBagaglioComboBox;
     private JButton cercaBagaglioButton;
-    private JTable risultatiRicercaBagaglioTable;
     private JButton gestioneVoliButton;
     private JButton gestionePrenotazioniButton;
     private JButton gestioneGateButton;
     private JTextField orarioTextField;
     private boolean passwordVisibile = false;
     private TabellaOrarioGUI tabellaOrarioGUI;
+    private JTable risultatiRicercaTable;
+    private JTable risultatiRicercaPasseggeroTable;
+
+    // NUOVO: componente tabella passeggeri
+    private TabellaPasseggeroGUI tabellaPasseggeroGUI;
+    // NUOVO: tabella bagagli (manteniamo JTable diretta o potresti farne un pannello analogo)
+    private JTable risultatiRicercaBagaglioTable;
 
     public AreaPersonaleAmmGUI(Controller controller, Amministratore amministratore) {
         this.controller = controller;
 
-        // Pannello principale
         areaPersonaleAmmPanel = new JPanel();
         areaPersonaleAmmPanel.setLayout(new BoxLayout(areaPersonaleAmmPanel, BoxLayout.Y_AXIS));
 
@@ -85,7 +91,7 @@ public class AreaPersonaleAmmGUI {
 
         areaPersonaleAmmPanel.add(datiPanel);
 
-        // TabbedPane con i 3 pannelli
+        // Tabs
         tabbedPane1 = new JTabbedPane();
         tabbedPane1.addTab("Voli", creaTabVoli());
         tabbedPane1.addTab("Passeggeri", creaTabPasseggeri());
@@ -131,6 +137,7 @@ public class AreaPersonaleAmmGUI {
         });
     }
 
+    // ---- TAB VOLI ----
     private JPanel creaTabVoli() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -152,15 +159,11 @@ public class AreaPersonaleAmmGUI {
         ricercaPanel.add(creaPair("Data:", dataTextField, GAP_LABEL_CAMPO));
         ricercaPanel.add(creaPair("Orario:", orarioTextField, GAP_LABEL_CAMPO));
 
-        panel.add(ricercaPanel);
-
         cercaVoloButton = new JButton("Cerca");
         cercaVoloButton.addActionListener(e -> ricercaVoli());
-
-
-        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        btnPanel.add(cercaVoloButton);
         ricercaPanel.add(creaPair("", cercaVoloButton, GAP_LABEL_CAMPO));
+
+        panel.add(ricercaPanel);
 
         tabellaOrarioGUI = new TabellaOrarioGUI(controller);
         panel.add(tabellaOrarioGUI.getPanel());
@@ -178,7 +181,7 @@ public class AreaPersonaleAmmGUI {
         return p;
     }
 
-    // Tab Passeggeri
+    // ---- TAB PASSEGGERI ----
     private JPanel creaTabPasseggeri() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -200,24 +203,40 @@ public class AreaPersonaleAmmGUI {
         numeroPrenotazionePasseggeroTextField = new JTextField(10);
         ricercaPanel.add(numeroPrenotazionePasseggeroTextField);
 
-        cercaPasseggeroButton = new JButton("Cerca");
-        cercaPasseggeroButton.addActionListener(e -> ricercaPasseggeri());
         panel.add(ricercaPanel);
-        panel.add(cercaPasseggeroButton);
 
-        risultatiRicercaPasseggeroable = new JTable();
-        JScrollPane scrollPane = new JScrollPane(risultatiRicercaPasseggeroable);
-        panel.add(scrollPane);
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
+        cercaPasseggeroButton = new JButton("Cerca");
+        JButton mostraTuttiBtn = new JButton("Mostra tutti");
+        JButton resetBtn = new JButton("Reset");
+
+        cercaPasseggeroButton.addActionListener(e -> ricercaPasseggeri());
+        mostraTuttiBtn.addActionListener(e -> caricaTuttiPasseggeri());
+        resetBtn.addActionListener(e -> {
+            nomePasseggeroTextField.setText("");
+            cognomePasseggeroTextField.setText("");
+            numeroVoloPasseggeroTextField.setText("");
+            numeroPrenotazionePasseggeroTextField.setText("");
+            tabellaPasseggeroGUI.setRows(java.util.Collections.emptyList());
+        });
+
+        btnPanel.add(cercaPasseggeroButton);
+        btnPanel.add(mostraTuttiBtn);
+        btnPanel.add(resetBtn);
+        panel.add(btnPanel);
+
+        tabellaPasseggeroGUI = new TabellaPasseggeroGUI();
+        panel.add(tabellaPasseggeroGUI.getPanel());
 
         return panel;
     }
 
-    // Tab Bagagli
+    // ---- TAB BAGAGLI ----
     private JPanel creaTabBagagli() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-        JPanel ricercaPanel = new JPanel(new GridLayout(2, 4, 8, 8));
+        JPanel ricercaPanel = new JPanel(new GridLayout(1, 4, 8, 8));
         ricercaPanel.add(new JLabel("Codice bagaglio:"));
         codiceBagaglioTextField = new JTextField(10);
         ricercaPanel.add(codiceBagaglioTextField);
@@ -226,31 +245,47 @@ public class AreaPersonaleAmmGUI {
         statoBagaglioComboBox = new JComboBox<>(new String[]{"", "Caricato", "Smarrito", "Trovato"});
         ricercaPanel.add(statoBagaglioComboBox);
 
-        cercaBagaglioButton = new JButton("Cerca");
-        cercaBagaglioButton.addActionListener(e -> ricercaBagagli());
         panel.add(ricercaPanel);
-        panel.add(cercaBagaglioButton);
 
-        risultatiRicercaBagaglioTable = new JTable();
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
+        cercaBagaglioButton = new JButton("Cerca");
+        JButton mostraTuttiBagagliBtn = new JButton("Mostra tutti");
+        JButton resetBagagliBtn = new JButton("Reset");
+        btnPanel.add(cercaBagaglioButton);
+        btnPanel.add(mostraTuttiBagagliBtn);
+        btnPanel.add(resetBagagliBtn);
+        panel.add(btnPanel);
+
+        /*
+        cercaBagaglioButton.addActionListener(e -> ricercaBagagli());
+        mostraTuttiBagagliBtn.addActionListener(e -> caricaTuttiBagagli());
+        resetBagagliBtn.addActionListener(e -> {
+            codiceBagaglioTextField.setText("");
+            statoBagaglioComboBox.setSelectedIndex(0);
+            // Svuota tabella
+            if (risultatiRicercaBagaglioTable != null && risultatiRicercaBagaglioTable.getModel() instanceof DefaultTableModel m) {
+                m.setRowCount(0);
+            }
+        });
+
+         */
+
+        risultatiRicercaBagaglioTable = new JTable(new DefaultTableModel(new String[]{"Codice Bagaglio", "Stato"}, 0) {
+            @Override public boolean isCellEditable(int r, int c) { return false; }
+        });
+        risultatiRicercaBagaglioTable.setAutoCreateRowSorter(true);
         JScrollPane scrollPane = new JScrollPane(risultatiRicercaBagaglioTable);
         panel.add(scrollPane);
 
         return panel;
     }
 
-    // Azioni di ricerca
+    // ---- AZIONI RICERCA ----
     private void ricercaVoli() {
-        String numeroVolo = numeroVoloTextField.getText().trim();
-        if (numeroVolo.isEmpty()) numeroVolo = null;
-
-        String compagnia = compagniaTextField.getText().trim();
-        if (compagnia.isEmpty()) compagnia = null;
-
-        String stato = (String) statoComboBox.getSelectedItem();
-        if (stato != null && stato.isBlank()) stato = null;
-
-        String data = dataTextField.getText().trim();
-        if (data.isEmpty()) data = null;
+        String numeroVolo = trimOrNull(numeroVoloTextField.getText());
+        String compagnia = trimOrNull(compagniaTextField.getText());
+        String stato = trimOrNull((String) statoComboBox.getSelectedItem());
+        String data = trimOrNull(dataTextField.getText());
 
         List<Object[]> risultati = controller.ricercaVoli(numeroVolo, compagnia, stato, data);
         tabellaOrarioGUI.aggiornaVoli(risultati);
@@ -263,25 +298,41 @@ public class AreaPersonaleAmmGUI {
         String numeroPrenotazione = numeroPrenotazionePasseggeroTextField.getText();
 
         List<Object[]> risultati = controller.ricercaPasseggeri(nome, cognome, numeroVolo, numeroPrenotazione);
+        tabellaPasseggeroGUI.setRows(risultati);
+    }
 
-        DefaultTableModel model = new DefaultTableModel(new String[]{"Nome", "Cognome", "Numero Volo", "Numero Prenotazione"}, 0);
-        for (Object[] r : risultati) {
-            model.addRow(r);
-        }
-        risultatiRicercaPasseggeroable.setModel(model);
+    private void caricaTuttiPasseggeri() {
+        tabellaPasseggeroGUI.setRows(controller.tuttiPasseggeri());
     }
 
     private void ricercaBagagli() {
         String codiceBagaglio = codiceBagaglioTextField.getText();
         String stato = (String) statoBagaglioComboBox.getSelectedItem();
-
         List<Object[]> risultati = controller.ricercaBagagli(codiceBagaglio, stato);
 
-        DefaultTableModel model = new DefaultTableModel(new String[]{"Codice Bagaglio", "Stato"}, 0);
+        DefaultTableModel model = (DefaultTableModel) risultatiRicercaBagaglioTable.getModel();
+        model.setRowCount(0);
         for (Object[] r : risultati) {
             model.addRow(r);
         }
-        risultatiRicercaBagaglioTable.setModel(model);
+    }
+
+    /*
+    private void caricaTuttiBagagli() {
+        List<Object[]> risultati = controller.tuttiBagagliRows();
+        DefaultTableModel model = (DefaultTableModel) risultatiRicercaBagaglioTable.getModel();
+        model.setRowCount(0);
+        for (Object[] r : risultati) {
+            model.addRow(r);
+        }
+    }
+
+     */
+
+    private String trimOrNull(String s) {
+        if (s == null) return null;
+        s = s.trim();
+        return s.isEmpty() ? null : s;
     }
 
     private void mostraNascondiPassword() {
