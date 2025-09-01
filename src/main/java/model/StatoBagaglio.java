@@ -2,5 +2,7 @@ package model;
 
 public enum StatoBagaglio {
     CARICATO,
-    RITIRABILE,
+    SMARRITO,
+    REGISTRATO,
+    TROVATO,
 }

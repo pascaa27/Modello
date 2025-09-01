@@ -242,7 +242,7 @@ public class AreaPersonaleAmmGUI {
         ricercaPanel.add(codiceBagaglioTextField);
 
         ricercaPanel.add(new JLabel("Stato:"));
-        statoBagaglioComboBox = new JComboBox<>(new String[]{"", "Caricato", "Smarrito", "Trovato"});
+        statoBagaglioComboBox = new JComboBox<>(new String[]{"", "Caricato", "Smarrito"});
         ricercaPanel.add(statoBagaglioComboBox);
 
         panel.add(ricercaPanel);
@@ -256,7 +256,7 @@ public class AreaPersonaleAmmGUI {
         btnPanel.add(resetBagagliBtn);
         panel.add(btnPanel);
 
-        /*
+
         cercaBagaglioButton.addActionListener(e -> ricercaBagagli());
         mostraTuttiBagagliBtn.addActionListener(e -> caricaTuttiBagagli());
         resetBagagliBtn.addActionListener(e -> {
@@ -268,7 +268,7 @@ public class AreaPersonaleAmmGUI {
             }
         });
 
-         */
+
 
         risultatiRicercaBagaglioTable = new JTable(new DefaultTableModel(new String[]{"Codice Bagaglio", "Stato"}, 0) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
@@ -317,7 +317,7 @@ public class AreaPersonaleAmmGUI {
         }
     }
 
-    /*
+
     private void caricaTuttiBagagli() {
         List<Object[]> risultati = controller.tuttiBagagliRows();
         DefaultTableModel model = (DefaultTableModel) risultatiRicercaBagaglioTable.getModel();
@@ -327,7 +327,7 @@ public class AreaPersonaleAmmGUI {
         }
     }
 
-     */
+
 
     private String trimOrNull(String s) {
         if (s == null) return null;

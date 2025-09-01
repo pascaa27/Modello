@@ -22,11 +22,12 @@ public class TabellaPasseggeroGUI {
         inizializzaModel();
     }
 
-    // Costruttore vuoto se vuoi istanziarla senza controller
+     //Costruttore vuoto se vuoi istanziarla senza controller
     public TabellaPasseggeroGUI() {
         $$$setupUI$$$();
         inizializzaModel();
     }
+
 
     private void inizializzaModel() {
         model = new DefaultTableModel(COLONNE, 0) {

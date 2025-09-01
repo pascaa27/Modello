@@ -41,8 +41,11 @@ public class Controller {
         prenotazioni.add(p1);
         prenotazioni.add(p2);
 
-        // Bagagli dimostrativi (se esiste il costruttore)
-        // bagagliGestiti.add(new Bagaglio("BAG001", StatoBagaglio.REGISTRATO, ...));
+        bagagliGestiti.add(new Bagaglio("BAG001", 18.3, StatoBagaglio.SMARRITO, p1));
+        bagagliGestiti.add(new Bagaglio("BAG002", 19.1, StatoBagaglio.CARICATO, p1));
+        bagagliGestiti.add(new Bagaglio("BAG003", 13.4, StatoBagaglio.SMARRITO, p2));
+        bagagliGestiti.add(new Bagaglio("BAG004", 22.0, StatoBagaglio.CARICATO, p2));
+
     }
 
     public void aggiungiVolo(String codiceUnivoco, String compagniaAerea, String dataVolo, String orarioPrevisto,
@@ -255,12 +258,12 @@ public class Controller {
         return risultati;
     }
 
-    /*
+
     public List<Object[]> tuttiBagagliRows() {
         return ricercaBagagli(null, null);
     }
 
-     */
+
 
     // --- Gate ---
     public void aggiungiGate(int numero) {
