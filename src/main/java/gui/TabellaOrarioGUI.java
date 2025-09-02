@@ -11,15 +11,15 @@ public class TabellaOrarioGUI {
     private JTable tabellaOrarioTable;   // creato dal .form (dentro lo JScrollPane)
     private final Controller controller;
 
-    private static final String[] COLONNE = {"Numero Volo", "Compagnia", "Stato", "Data", "Orario"};
+    private static final String[] COLONNE = {"Numero Volo", "Compagnia", "Stato", "Data", "Orario previsto", "Aeroporto Destinazione", "GATE", "ARRIVO/PARTENZA"};
 
     private static final Object[][] DATI_ESEMPIO = {
-            {"AZ123", "ITA Airways", "IN ARRIVO", "2025-09-05", "08:15"},
-            {"FR987", "Ryanair", "IN PARTENZA", "2025-09-05", "08:40"},
-            {"LH455", "Lufthansa", "IN ORARIO", "2025-09-05", "08:55"},
-            {"U23610", "easyJet", "CANCELLATO", "2025-09-05", "09:05"},
-            {"AF101", "Air France", "IN ARRIVO", "2025-09-05", "09:20"},
-            {"EK092", "Emirates", "IN PARTENZA", "2025-09-05", "09:35"}
+            {"AZ123", "ITA Airways", "PROGRAMMATO", "2025-09-05", "08:15", "MIL", "3", "in arrivo"},
+            {"FR987", "Ryanair", "IMBARCO", "2025-09-05", "08:40", "BAR", "21", "in arrivo"},
+            {"LH455", "Lufthansa", "DECOLLATO", "2025-09-05", "08:55", "MAD", "15", "in partenza"},
+            {"U23610", "easyJet", "CANCELLATO", "2025-09-05", "09:05", "LDN", "9", "in arrivo"},
+            {"AF101", "Air France", "INRITARDO", "2025-09-05", "09:20", "MYK", "5", "in partenza"},
+            {"EK092", "Emirates", "ATTERRATO", "2025-09-05", "09:35", "PAR", "12", "in partenza"}
     };
 
     public TabellaOrarioGUI(Controller controller) {

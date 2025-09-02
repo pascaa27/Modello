@@ -13,8 +13,12 @@ public class Volo {
     private Amministratore amministratore;
     private TabellaOrario tabellaOrario;
     private List<Prenotazione> prenotazioni = new ArrayList<>();
+    private String aeroporto;
+    private String gate;
+    private String arrivoPartenza;
 
-    public Volo(String codiceUnivoco, String compagniaAerea, String dataVolo, String orarioPrevisto, StatoVolo stato, Amministratore amministratore, TabellaOrario tabellaOrario) {
+    public Volo(String codiceUnivoco, String compagniaAerea, String dataVolo, String orarioPrevisto, StatoVolo stato, Amministratore amministratore, TabellaOrario tabellaOrario,
+                String aeroporto, String gate, String arrivoPartenza) {
         this.codiceUnivoco = codiceUnivoco;
         this.compagniaAerea = compagniaAerea;
         this.dataVolo = dataVolo;
@@ -22,6 +26,14 @@ public class Volo {
         this.stato = stato;
         this.amministratore = amministratore;
         this.tabellaOrario = tabellaOrario;
+        this.aeroporto = aeroporto;
+        this.gate = gate;
+        this.arrivoPartenza = arrivoPartenza;
+    }
+
+    //
+    public Volo(String codiceUnivoco, String compagniaAerea, String dataVolo, String orarioPrevisto, StatoVolo stato, Amministratore amministratore, TabellaOrario tabellaOrario) {
+        this(codiceUnivoco, compagniaAerea, dataVolo, orarioPrevisto, stato, amministratore, tabellaOrario, null, null, null);
     }
 
     public List<Prenotazione> getPrenotazioni() {
@@ -56,6 +68,19 @@ public class Volo {
         return stato;
     }
 
+
+    public String getAeroporto() {
+        return aeroporto;
+    }
+
+    public String getGate() {
+        return gate;
+    }
+
+    public String getArrivoPartenza() {
+        return arrivoPartenza;
+    }
+
     public void setPrenotazioni(List<Prenotazione> prenotazioni) {
         this.prenotazioni = prenotazioni;
     }
@@ -86,5 +111,18 @@ public class Volo {
 
     public void setStato(StatoVolo stato) {
         this.stato = stato;
+    }
+
+
+    public void setAeroporto(String aeroporto) {
+        this.aeroporto = aeroporto;
+    }
+
+    public void setGate(String gate) {
+        this.gate = gate;
+    }
+
+    public void setArrivoPartenza(String arrivoPartenza) {
+        this.arrivoPartenza = arrivoPartenza;
     }
 }

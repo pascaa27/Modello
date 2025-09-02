@@ -49,10 +49,11 @@ public class GestioneVoliGUI {
         partenzaRadioButton.addActionListener(e -> toggleDirezione());
         toggleDirezione();
 
-        // Pulsante aggiungi
+        //Pulsante aggiungi
         if (aggiungiVoloButton != null) {
             aggiungiVoloButton.addActionListener(e -> aggiungiVolo());
         }
+
     }
 
     private void setDirezioneDefault() {
@@ -75,7 +76,7 @@ public class GestioneVoliGUI {
         String data = safeText(dataTextField);
         String otherAirport = safeText(altroAeroportoTextField).toUpperCase();
         if (!otherAirport.isEmpty()) {
-            altroAeroportoTextField.setText(otherAirport); // aggiorna visualmente a uppercase
+            altroAeroportoTextField.setText(otherAirport);
         }
 
         String orarioPrevisto = orarioPrevistoTextField != null ? safeText(orarioPrevistoTextField) : null;
@@ -103,8 +104,7 @@ public class GestioneVoliGUI {
         }
 
         try {
-            // TODO: aggiorna il controller quando sarà pronto
-            controller.aggiungiVolo(codice, compagnia, data, orarioPrevisto, stato, direzione, otherAirport);
+                        controller.aggiungiVolo(codice, compagnia, data, orarioPrevisto, stato, direzione, otherAirport);
             JOptionPane.showMessageDialog(gestioneVoliPanel, "Volo aggiunto con successo!");
             pulisci();
         } catch (Exception ex) {

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="gui.GestioneVoliGUI">
-  <grid id="27dc6" binding="gestioneVoliPanel" layout-manager="GridLayoutManager" row-count="10" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+  <grid id="27dc6" binding="gestioneVoliPanel" layout-manager="GridLayoutManager" row-count="11" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="0" left="0" bottom="0" right="0"/>
     <constraints>
       <xy x="31" y="48" width="819" height="521"/>
@@ -104,9 +104,12 @@
         </constraints>
         <properties>
           <model>
-            <item value="IN ORARIO"/>
-            <item value="IN RITARDO"/>
+            <item value="PROGRAMMATO"/>
             <item value="IMBARCO"/>
+            <item value="DECOLLATO"/>
+            <item value="INRITARDO"/>
+            <item value="ATTERRATO"/>
+            <item value="CANCELLATO"/>
           </model>
         </properties>
       </component>
@@ -157,6 +160,14 @@
           </grid>
         </constraints>
         <properties/>
+      </component>
+      <component id="64a48" class="javax.swing.JButton" binding="aggiungiVoloButton">
+        <constraints>
+          <grid row="10" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value="Aggiungi Volo"/>
+        </properties>
       </component>
     </children>
   </grid>

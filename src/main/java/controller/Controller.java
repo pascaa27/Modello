@@ -137,11 +137,16 @@ public class Controller {
         return s.isEmpty() ? null : s;
     }
 
-    public List<Volo> ricercaVoliRaw(String numeroVolo, String compagnia, String stato, String data) {
+    public List<Volo> ricercaVoliRaw(String numeroVolo, String compagnia, String stato, String data,
+                                     String orario, String aeroporto, String gate, String arrivoPartenza) {
         numeroVolo = norm(numeroVolo);
         compagnia = norm(compagnia);
         stato = norm(stato);
         data = norm(data);
+        orario = norm(orario);
+        aeroporto = norm(aeroporto);
+        gate = norm(gate);
+        arrivoPartenza = norm(arrivoPartenza);
 
         List<Volo> out = new ArrayList<>();
         for (Volo v : voliGestiti) {
@@ -170,13 +175,35 @@ public class Controller {
                             !v.getDataVolo().toLowerCase().contains(data.toLowerCase())))
                 match = false;
 
+            // --- Nuovi filtri ---
+            if (orario != null &&
+                    (v.getOrarioPrevisto() == null ||
+                            !v.getOrarioPrevisto().toLowerCase().contains(orario.toLowerCase())))
+                match = false;
+
+            if (aeroporto != null &&
+                    (v.getAeroporto() == null ||
+                            !v.getAeroporto().toLowerCase().contains(aeroporto.toLowerCase())))
+                match = false;
+
+            if (gate != null &&
+                    (v.getGate() == null ||
+                            !v.getGate().toLowerCase().contains(gate.toLowerCase())))
+                match = false;
+
+            if (arrivoPartenza != null &&
+                    (v.getArrivoPartenza() == null ||
+                            !v.getArrivoPartenza().toLowerCase().contains(arrivoPartenza.toLowerCase())))
+                match = false;
+
             if (match) out.add(v);
         }
         return out;
     }
 
-    public List<Object[]> ricercaVoli(String numeroVolo, String compagnia, String stato, String data) {
-        List<Volo> trovati = ricercaVoliRaw(numeroVolo, compagnia, stato, data);
+    public List<Object[]> ricercaVoli(String numeroVolo, String compagnia, String stato, String data,
+                                      String orario, String aeroporto, String gate, String arrivoPartenza) {
+        List<Volo> trovati = ricercaVoliRaw(numeroVolo, compagnia, stato, data, orario, aeroporto, gate, arrivoPartenza);
         List<Object[]> righe = new ArrayList<>();
         for (Volo v : trovati) {
             righe.add(new Object[]{
@@ -184,6 +211,9 @@ public class Controller {
                     safe(v.getCompagniaAerea()),
                     safe(v.getDataVolo()),
                     safe(v.getOrarioPrevisto()),
+                    safe(v.getAeroporto()),
+                    safe(v.getGate()),
+                    safe(v.getArrivoPartenza()),
                     v.getStato() != null ? v.getStato().name() : ""
             });
         }

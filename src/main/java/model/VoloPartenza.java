@@ -1,11 +1,12 @@
+
 package model;
 
 public class VoloPartenza extends Volo {
 
     private String aeroportoDestinazione;
-    private Gate gate;
+    private String gate;
 
-    public VoloPartenza(String codiceUnivoco, String compagniaAerea, String dataVolo, String orarioPrevisto, StatoVolo stato, Amministratore amministratore, TabellaOrario tabellaOrario, String aeroportoDestinazione, Gate gate) {
+    public VoloPartenza(String codiceUnivoco, String compagniaAerea, String dataVolo, String orarioPrevisto, StatoVolo stato, Amministratore amministratore, TabellaOrario tabellaOrario, String aeroportoDestinazione, String gate) {
         super(codiceUnivoco, compagniaAerea, dataVolo, orarioPrevisto, stato, amministratore, tabellaOrario);
         this.aeroportoDestinazione = aeroportoDestinazione;
         this.gate = gate;
@@ -15,7 +16,7 @@ public class VoloPartenza extends Volo {
         return "Napoli";
     }
 
-    public Gate getGate() {
+    public String getGate() {
         return gate;
     }
 
@@ -23,7 +24,7 @@ public class VoloPartenza extends Volo {
         this.aeroportoDestinazione = aeroportoDestinazione;
     }
 
-    public void setGate(Gate gate) {
+    public void setGate(String gate) {
         this.gate = gate;
     }
 }

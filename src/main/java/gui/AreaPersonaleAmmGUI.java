@@ -48,6 +48,9 @@ public class AreaPersonaleAmmGUI {
     private TabellaPasseggeroGUI tabellaPasseggeroGUI;
     // NUOVO: tabella bagagli (manteniamo JTable diretta o potresti farne un pannello analogo)
     private JTable risultatiRicercaBagaglioTable;
+    private JTextField aeroportoTextField;
+    private JTextField gateTextField;
+    private JComboBox arrivoPartenzaComboBox;
 
     public AreaPersonaleAmmGUI(Controller controller, Amministratore amministratore) {
         this.controller = controller;
@@ -152,12 +155,18 @@ public class AreaPersonaleAmmGUI {
         statoComboBox = new JComboBox<>(new String[]{"", "In arrivo", "In partenza", "Ritardato", "Cancellato"});
         dataTextField = new JTextField(8);
         orarioTextField = new JTextField(6);
+        aeroportoTextField = new JTextField(10);
+        gateTextField = new JTextField(10);
+
 
         ricercaPanel.add(creaPair("Numero volo:", numeroVoloTextField, GAP_LABEL_CAMPO));
         ricercaPanel.add(creaPair("Compagnia:", compagniaTextField, GAP_LABEL_CAMPO));
         ricercaPanel.add(creaPair("Stato:", statoComboBox, GAP_LABEL_CAMPO));
         ricercaPanel.add(creaPair("Data:", dataTextField, GAP_LABEL_CAMPO));
         ricercaPanel.add(creaPair("Orario:", orarioTextField, GAP_LABEL_CAMPO));
+        ricercaPanel.add(creaPair("Aeroporto:", aeroportoTextField, GAP_LABEL_CAMPO));
+        ricercaPanel.add(creaPair("Gate:", gateTextField, GAP_LABEL_CAMPO));
+        ricercaPanel.add(creaPair("Arrivo/Partenza:", arrivoPartenzaComboBox, GAP_LABEL_CAMPO));
 
         cercaVoloButton = new JButton("Cerca");
         cercaVoloButton.addActionListener(e -> ricercaVoli());
@@ -286,8 +295,13 @@ public class AreaPersonaleAmmGUI {
         String compagnia = trimOrNull(compagniaTextField.getText());
         String stato = trimOrNull((String) statoComboBox.getSelectedItem());
         String data = trimOrNull(dataTextField.getText());
+        String orario = trimOrNull(orarioTextField.getText());
+        String aeroporto = trimOrNull(aeroportoTextField.getText());
+        String gate = trimOrNull(gateTextField.getText());
+        String arrivoPartenza = trimOrNull((String) arrivoPartenzaComboBox.getSelectedItem());
 
-        List<Object[]> risultati = controller.ricercaVoli(numeroVolo, compagnia, stato, data);
+        // Aggiorna la chiamata al controller aggiungendo i nuovi parametri:
+        List<Object[]> risultati = controller.ricercaVoli(numeroVolo, compagnia, stato, data, orario, aeroporto, gate, arrivoPartenza);
         tabellaOrarioGUI.aggiornaVoli(risultati);
     }
 

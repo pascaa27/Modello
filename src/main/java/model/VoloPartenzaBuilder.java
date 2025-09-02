@@ -1,3 +1,4 @@
+
 package model;
 
 public class VoloPartenzaBuilder {
@@ -9,7 +10,7 @@ public class VoloPartenzaBuilder {
     private Amministratore amministratore;
     private TabellaOrario tabellaOrario;
     private String aeroportoDestinazione;
-    private Gate gate;
+    private String gate;
 
     public VoloPartenzaBuilder setCodiceUnivoco(String codiceUnivoco) {
         this.codiceUnivoco = codiceUnivoco;
@@ -51,7 +52,7 @@ public class VoloPartenzaBuilder {
         return this;
     }
 
-    public VoloPartenzaBuilder setGate(Gate gate) {
+    public VoloPartenzaBuilder setGate(String gate) {
         this.gate = gate;
         return this;
     }
