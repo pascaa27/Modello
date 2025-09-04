@@ -296,14 +296,24 @@ public class Controller {
 
 
     // --- Gate ---
-    public void aggiungiGate(int numero) {
+    public boolean aggiungiGate(int numero) {
         for (Gate g : gates) {
             if (g.getNumero() == numero) {
-                JOptionPane.showMessageDialog(null, "Esiste già un gate con questo numero!", "Errore", JOptionPane.ERROR_MESSAGE);
-                return;
+                // RIMOSSO JOptionPane: la GUI gestisce i messaggi
+                return false;
             }
         }
         gates.add(new Gate(numero));
+        return true;
+    }
+
+    /**
+     * Elimina un gate con il numero indicato.
+     * @param numero numero del gate
+     * @return true se eliminato, false se non trovato
+     */
+    public boolean eliminaGate(int numero) {
+        return gates.removeIf(g -> g.getNumero() == numero);
     }
 
     public List<Gate> getGates() {
