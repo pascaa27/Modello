@@ -85,7 +85,4 @@ public class TabellaBagaglioGUI {
     public DefaultTableModel getModel() {
         return model;
     }
-
-
-
 }

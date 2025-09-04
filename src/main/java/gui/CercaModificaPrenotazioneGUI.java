@@ -129,7 +129,7 @@ public class CercaModificaPrenotazioneGUI {
         cognomeTextField.setEnabled(abilitati);
         emailTextField.setEnabled(abilitati);
         voloTextField.setEnabled(abilitati);
-        statoVoloComboBox.setEnabled(abilitati);
+        statoVoloComboBox.setEnabled(false);
         salvaModificheButton.setEnabled(abilitati);
         annullaPrenotazioneButton.setEnabled(abilitati);
     }
