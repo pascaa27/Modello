@@ -49,12 +49,6 @@ public class Controller {
     }
 
     public void aggiungiVolo(String codiceUnivoco, String compagniaAerea, String dataVolo, String orarioPrevisto,
-                             StatoVolo stato, Amministratore amministratore, TabellaOrario tabellaOrario) {
-        Volo volo = new Volo(codiceUnivoco, compagniaAerea, dataVolo, orarioPrevisto, stato, amministratore, tabellaOrario);
-        voliGestiti.add(volo);
-    }
-
-    public void aggiungiVolo(String codiceUnivoco, String compagniaAerea, String dataVolo, String orarioPrevisto,
                              StatoVolo stato, String direzione, String otherAirport) {
         Volo volo = new Volo(codiceUnivoco, compagniaAerea, dataVolo, orarioPrevisto, stato, null, null);
         voliGestiti.add(volo);

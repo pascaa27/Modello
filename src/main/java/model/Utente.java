@@ -14,6 +14,11 @@ public class Utente {
         this.cognomeUtente = cognomeUtente;
     }
 
+    // costruttore vuoto per il binding automatico (anche nella classe padre (Utente))
+    public Utente() {
+        // vuoto, necessario per il framework nel controller
+    }
+
     public String getLogin() {
         return login;
     }

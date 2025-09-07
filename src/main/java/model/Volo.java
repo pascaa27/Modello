@@ -31,9 +31,13 @@ public class Volo {
         this.arrivoPartenza = arrivoPartenza;
     }
 
-    //
     public Volo(String codiceUnivoco, String compagniaAerea, String dataVolo, String orarioPrevisto, StatoVolo stato, Amministratore amministratore, TabellaOrario tabellaOrario) {
         this(codiceUnivoco, compagniaAerea, dataVolo, orarioPrevisto, stato, amministratore, tabellaOrario, null, null, null);
+    }
+
+    // costruttore vuoto per il binding automatico in PrenotazioneDAOPostgres
+    public Volo() {
+        // vuoto, necessario per il framework nel controller
     }
 
     public List<Prenotazione> getPrenotazioni() {

@@ -20,6 +20,11 @@ public class Prenotazione {
         this.volo = volo;
     }
 
+    // costruttore vuoto per il binding automatico per l'esempio statico nel controller
+    public Prenotazione() {
+        // vuoto, necessario per il framework nel controller
+    }
+
     public Volo getVolo() {
         return volo;
     }

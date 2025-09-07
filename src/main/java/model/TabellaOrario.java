@@ -4,9 +4,14 @@ public class TabellaOrario {
     private String orarioPartenza;
     private String orarioArrivo;
 
-    public TabellaOrario() {
+    public TabellaOrario(String orarioPartenza, String orarioArrivo) {
         this.orarioPartenza = orarioPartenza;
         this.orarioArrivo = orarioArrivo;
+    }
+
+    // costruttore vuoto per il binding automatico per l'esempio statico nel controller
+    public TabellaOrario() {
+        // vuoto, necessario per il framework nel controller
     }
 
     public String getOrarioPartenza() {

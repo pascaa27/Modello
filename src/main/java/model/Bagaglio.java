@@ -6,7 +6,6 @@ public class Bagaglio {
     private Prenotazione prenotazione;
     private Double pesoKg;
 
-
     public Bagaglio(String codUnivoco, double pesoKg, StatoBagaglio stato, Prenotazione prenotazione) {
         this.codUnivoco = codUnivoco;
         this.pesoKg = pesoKg;

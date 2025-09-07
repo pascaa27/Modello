@@ -22,6 +22,11 @@ public class UtenteGenerico extends Utente {
         this.areaPersonale = areaPersonale;
     }
 
+    // costruttore vuoto per il binding automatico in PrenotazioneDAOPostgres
+    public UtenteGenerico() {
+        // vuoto, necessario per il framework nel controller
+    }
+
     public String getNomeUtente() {
         return nomeUtente;
     }

@@ -7,23 +7,27 @@ public class AreaPersonale {
     private String variazioneVolo;
     private Utente utente;
 
-    public AreaPersonale() {
+    public AreaPersonale(String ritardoVolo, String cancellazioneVolo, String variazioneVolo, Utente utente) {
         this.ritardoVolo = ritardoVolo;
         this.cancellazioneVolo = cancellazioneVolo;
         this.variazioneVolo = variazioneVolo;
         this.utente = utente;
     }
 
+    // costruttore vuoto per il binding automatico per l'esempio statico nel controller
+    public AreaPersonale() {
+        // vuoto, necessario per il framework nel controller
+    }
 
-    public String getritardoVolo() {
+    public String getRitardoVolo() {
         return ritardoVolo;
     }
 
-    public String getcancellazioneVolo() {
+    public String getCancellazioneVolo() {
         return cancellazioneVolo;
     }
 
-    public String getvariazioneVolo() {
+    public String getVariazioneVolo() {
         return variazioneVolo;
     }
 
@@ -32,16 +36,16 @@ public class AreaPersonale {
     }
 
 
-    public void setutente(Utente utente) {
+    public void setUtente(Utente utente) {
         this.utente = utente;
     }
-    public void setritardoVolo(String ritardoVolo) {
+    public void setRitardoVolo(String ritardoVolo) {
         this.ritardoVolo = ritardoVolo;
     }
-    public void setcancellazioneVolo(String cancellazioneVolo) {
+    public void setCancellazioneVolo(String cancellazioneVolo) {
         this.cancellazioneVolo = cancellazioneVolo;
     }
-    public void setvariazioneVolo(String variazioneVolo) {
+    public void setVariazioneVolo(String variazioneVolo) {
         this.variazioneVolo = variazioneVolo;
     }
 
