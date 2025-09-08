@@ -5,6 +5,7 @@ public class DatiPasseggero {
     private String cognome;
     private String codiceFiscale;
     private String email;
+    private String id;
 
     public DatiPasseggero(String nome, String cognome,  String codiceFiscale, String email) {
         this.nome = nome;

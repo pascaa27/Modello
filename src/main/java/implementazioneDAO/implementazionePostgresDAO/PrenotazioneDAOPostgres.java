@@ -3,7 +3,6 @@ package implementazioneDAO.implementazionePostgresDAO;
 import implementazioneDAO.PrenotazioneDAO;
 import model.*;
 import database.ConnessioneDatabase;
-
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
