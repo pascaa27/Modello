@@ -40,6 +40,8 @@ public class Controller {
         utentiDAO.setController(this);
 
 
+        Amministratore a = adminDAO.findByEmail("admin1@gmail.com ");
+
         AreaPersonale areaPersonale1 = new AreaPersonale();
         AreaPersonale areaPersonale2 = new AreaPersonale();
 
@@ -367,7 +369,7 @@ public class Controller {
         return null;
     }
 
-    Amministratore a = adminDAO.findByEmail("admin1@gmail.com ");
+
 
     public DatiPasseggero creaDatiPasseggero(String nome, String cognome, String codiceFiscale, String email) {
         DatiPasseggero dp = new DatiPasseggero(nome, cognome, codiceFiscale, email);
