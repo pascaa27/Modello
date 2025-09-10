@@ -1,5 +1,6 @@
 package implementazioneDAO.implementazionePostgresDAO;
 
+import controller.Controller;
 import implementazioneDAO.DatiPasseggeroDAO;
 import model.DatiPasseggero;
 import database.ConnessioneDatabase;
@@ -8,6 +9,7 @@ import java.sql.*;
 public class DatiPasseggeroDAOPostgres implements DatiPasseggeroDAO {
 
     private Connection conn;
+    private Controller controller;
 
     public DatiPasseggeroDAOPostgres() {
         try {
@@ -15,6 +17,10 @@ public class DatiPasseggeroDAOPostgres implements DatiPasseggeroDAO {
         } catch(SQLException e) {
             throw new RuntimeException("Errore nella connessione al database", e);
         }
+    }
+
+    public void setController(Controller controller) {
+        this.controller = controller;
     }
 
     @Override
@@ -74,13 +80,13 @@ public class DatiPasseggeroDAOPostgres implements DatiPasseggeroDAO {
         return false;
     }
 
-    // Mapping da ResultSet al model DatiPasseggero
+    // Mapping da ResultSet al model DatiPasseggero passando per il Controller
     private DatiPasseggero mapResultSetToDatiPasseggero(ResultSet rs) throws SQLException {
-        return new DatiPasseggero(
-                rs.getString("nome"),
-                rs.getString("cognome"),
-                rs.getString("codiceFiscale"),
-                rs.getString("email")
-        );
+        String nome = rs.getString("nome");
+        String cognome = rs.getString("cognome");
+        String codiceFiscale = rs.getString("codiceFiscale");
+        String email = rs.getString("email");
+
+        return controller.creaDatiPasseggero(nome, cognome, codiceFiscale, email);
     }
 }

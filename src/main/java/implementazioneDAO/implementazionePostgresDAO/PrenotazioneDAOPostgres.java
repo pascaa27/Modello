@@ -3,6 +3,7 @@ package implementazioneDAO.implementazionePostgresDAO;
 import implementazioneDAO.PrenotazioneDAO;
 import model.*;
 import database.ConnessioneDatabase;
+import controller.Controller;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,6 +11,7 @@ import java.util.List;
 public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
 
     private Connection conn;
+    private Controller controller;
 
     public PrenotazioneDAOPostgres() {
         try {
@@ -17,6 +19,10 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
         } catch(SQLException e) {
             throw new RuntimeException("Errore nella connessione al database", e);
         }
+    }
+
+    public void setController(Controller controller) {
+        this.controller = controller;
     }
 
     @Override
@@ -94,21 +100,33 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
         return false;
     }
 
-    // Mapping da ResultSet al model Prenotazione
+    // Mapping da ResultSet al model Prenotazione passando per il Controller
     private Prenotazione mapResultSetToPrenotazione(ResultSet rs) throws SQLException {
-        Prenotazione p = new Prenotazione();
-        p.setNumBiglietto(rs.getString("numBiglietto"));
-        p.setPostoAssegnato(rs.getString("postoAssegnato"));
-        p.setStato(StatoPrenotazione.valueOf(rs.getString("stato")));
+        String numBiglietto = rs.getString("numBiglietto");
+        String posto = rs.getString("postoAssegnato");
+        StatoPrenotazione stato = StatoPrenotazione.valueOf(rs.getString("stato"));
+        String emailUtente = rs.getString("emailUtente");
+        String codiceVolo = rs.getString("idVolo");
 
-        UtenteGenerico utente = new UtenteGenerico();
-        utente.setNomeUtente(rs.getString("emailUtente"));
-        p.setUtenteGenerico(utente);
+        // Creo oggetti tramite controller
+        UtenteGenerico utente = controller.getUtenteByEmail(emailUtente);
+        if(utente == null) {
+            utente = controller.creaUtenteGenerico(emailUtente); // factory da implementare
+        }
 
-        Volo volo = new Volo();
-        volo.setCodiceUnivoco(rs.getString("idVolo"));
-        p.setVolo(volo);
+        Volo volo = controller.getVoloByCodice(codiceVolo);
+        if(volo == null) {
+            volo = controller.creaVolo(codiceVolo); // factory da implementare
+        }
 
-        return p;
+        // Per i datiPasseggero, chiamiamo il DAO relativo tramite controller
+        DatiPasseggero dp = controller.getDatiPasseggeroByEmailUtente(emailUtente);
+        if(dp == null) {
+            // fallback: se non esiste, il DAO datiPasseggeri crea e registra l'oggetto
+            dp = controller.getDatiPasseggeroDAO().findByCodiceFiscale(emailUtente);
+        }
+
+        // Creo Prenotazione tramite controller
+        return controller.creaPrenotazione(numBiglietto, posto, stato, utente, dp, volo);
     }
 }

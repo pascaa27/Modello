@@ -1,5 +1,6 @@
 package implementazioneDAO.implementazionePostgresDAO;
 
+import controller.Controller;
 import implementazioneDAO.VoloDAO;
 import model.Volo;
 import model.StatoVolo;
@@ -9,6 +10,7 @@ import java.sql.*;
 public class VoloDAOPostgres implements VoloDAO {
 
     private Connection conn;
+    private Controller controller;
 
     public VoloDAOPostgres() {
         try {
@@ -16,6 +18,10 @@ public class VoloDAOPostgres implements VoloDAO {
         } catch(SQLException e) {
             throw new RuntimeException("Errore nella connessione al database", e);
         }
+    }
+
+    public void setController(Controller controller) {
+        this.controller = controller;
     }
 
     @Override
@@ -83,19 +89,28 @@ public class VoloDAOPostgres implements VoloDAO {
         return false;
     }
 
-    // Mapping da ResultSet al model Volo
+    // Mapping da ResultSet al model Volo passando per il Controller
     private Volo mapResultSetToVolo(ResultSet rs) throws SQLException {
-        Volo v = new Volo();
-        v.setCodiceUnivoco(rs.getString("codiceUnivoco"));
-        v.setCompagniaAerea(rs.getString("compagniaAerea"));
-        v.setDataVolo(rs.getString("dataVolo"));
-        v.setOrarioPrevisto(rs.getString("orarioPrevisto"));
-        v.setStato(StatoVolo.valueOf(rs.getString("stato")));
-        v.setAeroporto(rs.getString("aeroporto"));
-        v.setGate(rs.getString("gate"));
-        v.setArrivoPartenza(rs.getString("arrivoPartenza"));
+        String codice = rs.getString("codiceUnivoco");
 
-        // lascio amministratore, tabellaOrario e prenotazioni null/vuoti per ora
-        return v;
+        Volo volo = controller.getVoloByCodice(codice);
+
+        // Se non esiste il volo, lo creo tramite il Controller
+        if(volo == null) {
+            volo = controller.creaVolo(codice);
+        }
+
+        // Aggiorno i campi dal ResultSet
+        volo.setCompagniaAerea(rs.getString("compagniaAerea"));
+        volo.setDataVolo(rs.getString("dataVolo"));
+        volo.setOrarioPrevisto(rs.getString("orarioPrevisto"));
+        volo.setStato(rs.getString("stato") != null ? StatoVolo.valueOf(rs.getString("stato")) : null);
+        volo.setAeroporto(rs.getString("aeroporto"));
+        volo.setGate(rs.getString("gate"));
+        volo.setArrivoPartenza(rs.getString("arrivoPartenza"));
+
+        // Lascio amministratore, tabellaOrario e prenotazioni come già gestiti dal Controller
+
+        return volo;
     }
 }

@@ -1,6 +1,7 @@
 package controller;
 
 import gui.AreaPersonaleAmmGUI;
+import implementazioneDAO.implementazionePostgresDAO.*;
 import model.*;
 
 import javax.swing.*;
@@ -11,9 +12,33 @@ public class Controller {
     private List<Prenotazione> prenotazioni = new ArrayList<>();
     private List<Bagaglio> bagagliGestiti = new ArrayList<>();
     private List<Gate> gates = new ArrayList<>();
+    private List<Amministratore> amministratori;
+    private List<DatiPasseggero> datiPasseggeri = new ArrayList<>();
+    private List<UtenteGenerico> utenti = new ArrayList<>();
+    private AmministratoreDAOPostgres adminDAO;
+    private BagaglioDAOPostgres bagaglioDAO;
+    private DatiPasseggeroDAOPostgres datiPasseggeroDAO;
+    private PrenotazioneDAOPostgres prenotazioneDAO;
+    private UtenteGenericoDAOPostgres utentiDAO;
+    private VoloDAOPostgres voloDAO;
+
 
     public Controller() {
         this.prenotazioni = new ArrayList<>();
+        this.amministratori = new ArrayList<>();
+        this.adminDAO = new AmministratoreDAOPostgres();
+        this.bagaglioDAO = new BagaglioDAOPostgres();
+        this.datiPasseggeroDAO = new DatiPasseggeroDAOPostgres();
+        this.prenotazioneDAO = new PrenotazioneDAOPostgres();
+        this.utentiDAO = new UtenteGenericoDAOPostgres();
+        this.voloDAO = new VoloDAOPostgres();
+
+        adminDAO.setController(this);
+        bagaglioDAO.setController(this);
+        datiPasseggeroDAO.setController(this);
+        prenotazioneDAO.setController(this);
+        utentiDAO.setController(this);
+
 
         AreaPersonale areaPersonale1 = new AreaPersonale();
         AreaPersonale areaPersonale2 = new AreaPersonale();
@@ -143,44 +168,44 @@ public class Controller {
         arrivoPartenza = norm(arrivoPartenza);
 
         List<Volo> out = new ArrayList<>();
-        for (Volo v : voliGestiti) {
+        for(Volo v : voliGestiti) {
             boolean match = true;
 
-            if (numeroVolo != null &&
+            if(numeroVolo != null &&
                     (v.getCodiceUnivoco() == null ||
                             !v.getCodiceUnivoco().toLowerCase().contains(numeroVolo.toLowerCase())))
                 match = false;
 
-            if (compagnia != null &&
+            if(compagnia != null &&
                     (v.getCompagniaAerea() == null ||
                             !v.getCompagniaAerea().toLowerCase().contains(compagnia.toLowerCase())))
                 match = false;
 
-            if (stato != null) {
-                if (v.getStato() == null ||
+            if(stato != null) {
+                if(v.getStato() == null ||
                         !(v.getStato().name().equalsIgnoreCase(stato) ||
                                 v.getStato().toString().equalsIgnoreCase(stato))) {
                     match = false;
                 }
             }
 
-            if (data != null &&
+            if(data != null &&
                     (v.getDataVolo() == null ||
                             !v.getDataVolo().toLowerCase().contains(data.toLowerCase())))
                 match = false;
 
             // --- Nuovi filtri ---
-            if (orario != null &&
+            if(orario != null &&
                     (v.getOrarioPrevisto() == null ||
                             !v.getOrarioPrevisto().toLowerCase().contains(orario.toLowerCase())))
                 match = false;
 
-            if (aeroporto != null &&
+            if(aeroporto != null &&
                     (v.getAeroporto() == null ||
                             !v.getAeroporto().toLowerCase().contains(aeroporto.toLowerCase())))
                 match = false;
 
-            if (gate != null &&
+            if(gate != null &&
                     (v.getGate() == null ||
                             !v.getGate().toLowerCase().contains(gate.toLowerCase())))
                 match = false;
@@ -190,7 +215,7 @@ public class Controller {
                             !v.getArrivoPartenza().toLowerCase().contains(arrivoPartenza.toLowerCase())))
                 match = false;
 
-            if (match) out.add(v);
+            if(match) out.add(v);
         }
         return out;
     }
@@ -199,7 +224,7 @@ public class Controller {
                                       String orario, String aeroporto, String gate, String arrivoPartenza) {
         List<Volo> trovati = ricercaVoliRaw(numeroVolo, compagnia, stato, data, orario, aeroporto, gate, arrivoPartenza);
         List<Object[]> righe = new ArrayList<>();
-        for (Volo v : trovati) {
+        for(Volo v : trovati) {
             righe.add(new Object[]{
                     safe(v.getCodiceUnivoco()),
                     safe(v.getCompagniaAerea()),
@@ -221,21 +246,21 @@ public class Controller {
     // --- Passeggeri ---
     public List<Object[]> ricercaPasseggeri(String nome, String cognome, String numeroVolo, String numeroPrenotazione) {
         List<Object[]> risultati = new ArrayList<>();
-        for (Prenotazione p : prenotazioni) {
+        for(Prenotazione p : prenotazioni) {
             boolean match = true;
             DatiPasseggero dp = p.getDatiPasseggero();
 
-            if (nome != null && !nome.isEmpty() && (dp.getNome() == null ||
+            if(nome != null && !nome.isEmpty() && (dp.getNome() == null ||
                     !dp.getNome().toLowerCase().contains(nome.toLowerCase()))) match = false;
-            if (cognome != null && !cognome.isEmpty() && (dp.getCognome() == null ||
+            if(cognome != null && !cognome.isEmpty() && (dp.getCognome() == null ||
                     !dp.getCognome().toLowerCase().contains(cognome.toLowerCase()))) match = false;
-            if (numeroVolo != null && !numeroVolo.isEmpty() &&
+            if(numeroVolo != null && !numeroVolo.isEmpty() &&
                     (p.getVolo() == null || p.getVolo().getCodiceUnivoco() == null ||
                             !p.getVolo().getCodiceUnivoco().contains(numeroVolo))) match = false;
-            if (numeroPrenotazione != null && !numeroPrenotazione.isEmpty() &&
+            if(numeroPrenotazione != null && !numeroPrenotazione.isEmpty() &&
                     (p.getNumBiglietto() == null || !p.getNumBiglietto().contains(numeroPrenotazione))) match = false;
 
-            if (match) {
+            if(match) {
                 risultati.add(new Object[]{
                         safe(dp.getNome()),
                         safe(dp.getCognome()),
@@ -255,6 +280,7 @@ public class Controller {
     // --- Bagagli ---
     public void aggiungiBagaglio(Bagaglio b) {
         bagagliGestiti.add(b);
+        bagaglioDAO.insert(b);
     }
 
     public List<Bagaglio> getBagagliGestiti() {
@@ -263,16 +289,16 @@ public class Controller {
 
     public List<Object[]> ricercaBagagli(String codiceBagaglio, String stato) {
         List<Object[]> risultati = new ArrayList<>();
-        for (Bagaglio b : bagagliGestiti) {
+        for(Bagaglio b : bagagliGestiti) {
             boolean match = true;
-            if (codiceBagaglio != null && !codiceBagaglio.isEmpty() &&
+            if(codiceBagaglio != null && !codiceBagaglio.isEmpty() &&
                     (b.getCodUnivoco() == null || !b.getCodUnivoco().contains(codiceBagaglio)))
                 match = false;
-            if (stato != null && !stato.isEmpty() &&
+            if(stato != null && !stato.isEmpty() &&
                     (b.getStato() == null || !b.getStato().toString().equalsIgnoreCase(stato)))
                 match = false;
 
-            if (match) {
+            if(match) {
                 risultati.add(new Object[]{
                         safe(b.getCodUnivoco()),
                         b.getStato() != null ? b.getStato().toString() : ""
@@ -291,8 +317,8 @@ public class Controller {
 
     // --- Gate ---
     public boolean aggiungiGate(int numero) {
-        for (Gate g : gates) {
-            if (g.getNumero() == numero) {
+        for(Gate g : gates) {
+            if(g.getNumero() == numero) {
                 // RIMOSSO JOptionPane: la GUI gestisce i messaggi
                 return false;
             }
@@ -312,5 +338,112 @@ public class Controller {
 
     public List<Gate> getGates() {
         return gates;
+    }
+
+
+    // AGGIUNGO METODI PER IL COLLEGAMENTO DAO - CONTROLLER
+    //
+    //
+
+    // Factory method per creare amministratori dal DAO
+    public Amministratore creaAmministratore(String login, String password, String nome, String cognome) {
+        Amministratore admin = new Amministratore(login, password, nome, cognome);
+        amministratori.add(admin);
+        return admin;
+    }
+
+    // Recupera tutti gli amministratori
+    public List<Amministratore> getAmministratori() {
+        return amministratori;
+    }
+
+    // Trova un amministratore già caricato
+    public Amministratore getAmministratoreByLogin(String login) {
+        for (Amministratore a : amministratori) {
+            if (a.getLogin().equals(login)) {
+                return a;
+            }
+        }
+        return null;
+    }
+
+    Amministratore a = adminDAO.findByEmail("admin1@gmail.com ");
+
+    public DatiPasseggero creaDatiPasseggero(String nome, String cognome, String codiceFiscale, String email) {
+        DatiPasseggero dp = new DatiPasseggero(nome, cognome, codiceFiscale, email);
+        datiPasseggeri.add(dp);
+        return dp;
+    }
+
+    // per trovare un passeggero già caricato (utile se DAO vuole cercare oggetti in memoria)
+    public DatiPasseggero getDatiPasseggeroByCodiceFiscale(String codiceFiscale) {
+        for(DatiPasseggero d : datiPasseggeri) {
+            if(codiceFiscale != null && codiceFiscale.equals(d.getCodiceFiscale())) {
+                return d;
+            }
+        }
+        return null;
+    }
+
+
+    // factory per creare Prenotazione (usata dal DAO)
+    public Prenotazione creaPrenotazione(String numBiglietto, String posto, StatoPrenotazione stato,
+                                         UtenteGenerico utente, DatiPasseggero dp, Volo volo) {
+        Prenotazione p = new Prenotazione(numBiglietto, posto, stato, utente, dp, volo);
+        prenotazioni.add(p);
+        return p;
+    }
+
+    public List<UtenteGenerico> getTuttiUtenti() {
+        return utenti;
+    }
+
+    // recupero UtenteGenerico da email
+    public UtenteGenerico getUtenteByEmail(String email) {
+        for(UtenteGenerico u : getTuttiUtenti()) { // implementa getTuttiUtenti()
+            if(email != null && email.equals(u.getNomeUtente())) {
+                return u;
+            }
+        }
+        return null;
+    }
+
+    // factory per creare UtenteGenerico
+    public UtenteGenerico creaUtenteGenerico(String emailUtente) {
+        UtenteGenerico u = new UtenteGenerico(emailUtente, "", "", "", new ArrayList<>(), new AreaPersonale());
+        utenti.add(u);
+        return u;
+    }
+
+    // recupero Volo da codice
+    public Volo getVoloByCodice(String codiceVolo) {
+        for(Volo v : voliGestiti) {
+            if(v.getCodiceUnivoco() != null && v.getCodiceUnivoco().equals(codiceVolo)) {
+                return v;
+            }
+        }
+        return null;
+    }
+
+    // factory per creare Volo minimale
+    public Volo creaVolo(String codiceVolo) {
+        Volo v = new Volo(codiceVolo, "", "", "", null, null, null);
+        voliGestiti.add(v);
+        return v;
+    }
+
+    public DatiPasseggero getDatiPasseggeroByEmailUtente(String emailUtente) {
+        for (Prenotazione p : prenotazioni) {
+            if (p.getDatiPasseggero() != null &&
+                    p.getDatiPasseggero().getEmail().equalsIgnoreCase(emailUtente)) {
+                return p.getDatiPasseggero();
+            }
+        }
+        return null; // se non trovato
+    }
+
+    // helper per DAO DatiPasseggero
+    public DatiPasseggeroDAOPostgres getDatiPasseggeroDAO() {
+        return datiPasseggeroDAO;
     }
 }

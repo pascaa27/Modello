@@ -3,11 +3,13 @@ package implementazioneDAO.implementazionePostgresDAO;
 import implementazioneDAO.AmministratoreDAO;
 import model.Amministratore;
 import database.ConnessioneDatabase;
+import controller.Controller;
 import java.sql.*;
 
 public class AmministratoreDAOPostgres implements AmministratoreDAO {
 
     private Connection conn;
+    private Controller controller;
 
     public AmministratoreDAOPostgres() {
         try {
@@ -15,6 +17,10 @@ public class AmministratoreDAOPostgres implements AmministratoreDAO {
         } catch(SQLException e) {
             throw new RuntimeException("Errore nella connessione al database", e);
         }
+    }
+
+    public void setController(Controller controller) {
+        this.controller = controller;
     }
 
     @Override
@@ -25,30 +31,23 @@ public class AmministratoreDAOPostgres implements AmministratoreDAO {
             ResultSet rs = ps.executeQuery();
 
             if(rs.next()) {
+
                 return mapResultSetToAmministratore(rs);
             }
 
         } catch(SQLException e) {
             e.printStackTrace();
         }
-
         return null; // se non trovato
     }
 
-    // Mapping da ResultSet al model Amministratore
+    // Mapping da ResultSet al model Amministratore passando per il Controller
     private Amministratore mapResultSetToAmministratore(ResultSet rs) throws SQLException {
-        // supponendo che la tabella amministratori abbia colonne: login, password, nome, cognome, email
         String login = rs.getString("login");
         String password = rs.getString("password");
         String nome = rs.getString("nome");
         String cognome = rs.getString("cognome");
 
-        Amministratore admin = new Amministratore(login, password, nome, cognome);
-
-        // per i voli gestiti creare una query separata
-        // altrimenti lasciare la lista vuota per ora
-        // esempio: admin.setVoliGestiti(...);
-
-        return admin;
+        return controller.creaAmministratore(login, password, nome, cognome);
     }
 }

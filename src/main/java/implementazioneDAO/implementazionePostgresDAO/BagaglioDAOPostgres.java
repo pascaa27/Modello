@@ -2,9 +2,10 @@ package implementazioneDAO.implementazionePostgresDAO;
 
 import implementazioneDAO.BagaglioDAO;
 import model.Bagaglio;
-import model.Prenotazione;
 import model.StatoBagaglio;
+import model.Prenotazione;
 import database.ConnessioneDatabase;
+import controller.Controller;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,13 +13,18 @@ import java.util.List;
 public class BagaglioDAOPostgres implements BagaglioDAO {
 
     private Connection conn;
+    private Controller controller;
 
     public BagaglioDAOPostgres() {
         try {
             this.conn = ConnessioneDatabase.getInstance().getConnection();
-        } catch (SQLException e) {
+        } catch(SQLException e) {
             throw new RuntimeException("Errore nella connessione al database", e);
         }
+    }
+
+    public void setController(Controller controller) {
+        this.controller = controller;
     }
 
     @Override
@@ -81,16 +87,26 @@ public class BagaglioDAOPostgres implements BagaglioDAO {
         return false;
     }
 
-    // Mapping da ResultSet al model Bagaglio
+    // Mapping da ResultSet al model Bagaglio passando per il Controller
     private Bagaglio mapResultSetToBagaglio(ResultSet rs) throws SQLException {
         String codUnivoco = rs.getString("codUnivoco");
         double pesoKg = rs.getDouble("pesoKg");
         StatoBagaglio stato = StatoBagaglio.valueOf(rs.getString("stato"));
+        String numBiglietto = rs.getString("numBiglietto");
 
-        // creo una Prenotazione solo con il codice biglietto
-        Prenotazione pren = new Prenotazione();
-        pren.setNumBiglietto(rs.getString("numBiglietto"));
+        // Recupera prenotazione già caricata dal Controller
+        Prenotazione pren = controller.cercaPrenotazione(numBiglietto);
 
-        return new Bagaglio(codUnivoco, pesoKg, stato, pren);
+        // Se la prenotazione non è ancora in memoria, gestire un fallback
+        if(pren == null) {
+            System.err.println("Prenotazione non trovata per biglietto " + numBiglietto);
+            return null; // oppure lancio eccezione
+        }
+
+        // Usa il Controller per aggiungere il bagaglio alla lista centrale
+        Bagaglio b = new Bagaglio(codUnivoco, pesoKg, stato, pren);
+        controller.aggiungiBagaglio(b);
+
+        return b;
     }
 }

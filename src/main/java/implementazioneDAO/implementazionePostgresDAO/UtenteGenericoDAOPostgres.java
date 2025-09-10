@@ -1,5 +1,6 @@
 package implementazioneDAO.implementazionePostgresDAO;
 
+import controller.Controller;
 import model.UtenteGenerico;
 import database.ConnessioneDatabase;
 import implementazioneDAO.UtenteGenericoDAO;
@@ -9,6 +10,7 @@ import java.util.ArrayList;
 public class UtenteGenericoDAOPostgres implements UtenteGenericoDAO {
 
     private Connection conn;
+    private Controller controller;
 
     public UtenteGenericoDAOPostgres() {
         try {
@@ -16,6 +18,10 @@ public class UtenteGenericoDAOPostgres implements UtenteGenericoDAO {
         } catch(SQLException e) {
             throw new RuntimeException("Errore nella connessione al database", e);
         }
+    }
+
+    public void setController(Controller controller) {
+        this.controller = controller;
     }
 
     @Override
@@ -76,17 +82,20 @@ public class UtenteGenericoDAOPostgres implements UtenteGenericoDAO {
         return false;
     }
 
-    // Mapping da ResultSet al model UtenteGenerico
+    // Mapping da ResultSet al model UtenteGenerico passando per il Controller
     private UtenteGenerico mapResultSetToUtenteGenerico(ResultSet rs) throws SQLException {
-        UtenteGenerico utente = new UtenteGenerico();  // costruttore vuoto
-        utente.setLogin(rs.getString("login"));
+        String email = rs.getString("login");
+
+        UtenteGenerico utente = controller.getUtenteByEmail(email);
+
+        // Se l'utente non esiste ancora, lo creo tramite il Controller
+        if(utente == null) {
+            utente = controller.creaUtenteGenerico(email);
+        }
+
         utente.setPassword(rs.getString("password"));
         utente.setNomeUtente(rs.getString("nomeUtente"));
         utente.setCognomeUtente(rs.getString("cognomeUtente"));
-
-        // inizializziamo lista vuota e areaPersonale come null per ora
-        utente.setPrenotazioni(new ArrayList<>());
-        utente.setAreaPersonale(null);
 
         return utente;
     }
