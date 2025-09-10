@@ -25,7 +25,27 @@ public class GestionePrenotazioniGUI {
             statoPrenotazioneComboBox.addItem(stato);
         }
 
+        UtenteGenerico utenteGenerico;
+        if (controller.getUtenteByEmail(utente.getNomeUtente()) == null) {
+            utenteGenerico = controller.creaUtenteGenerico(utente.getNomeUtente());
+        } else {
+            utenteGenerico = controller.getUtenteByEmail(utente.getNomeUtente());
+        }
+
+
         aggiungiPrenotazioneButton.addActionListener(e -> {
+            String numeroBiglietto = numeroBigliettoTextField.getText().trim();
+            String posto = postoTextField.getText().trim();
+
+            if(numeroBiglietto.isEmpty() || posto.isEmpty()) {
+                JOptionPane.showMessageDialog(null,
+                        "Compila prima tutti i campi obbligatori (Numero biglietto e Posto).",
+                        "Errore",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // Finestra per inserire i dati passeggero
             JOptionPane.showMessageDialog(null, "Per effettuare la prenotazione, inserire i seguenti dati:");
             JDialog dialog = new JDialog((JFrame) SwingUtilities.getWindowAncestor(panelPrenotazione), "Inserisci dati passeggero", true);
             DatiPasseggeroGUI datiGUI = new DatiPasseggeroGUI(dialog);
@@ -38,36 +58,42 @@ public class GestionePrenotazioniGUI {
             String cognome = datiGUI.getCognomeInserito();
             String codiceFiscale = datiGUI.getCodiceFiscaleInserito();
 
-            if (nome == null || cognome == null || codiceFiscale == null ||
+            // 🔴 Controllo dei campi passeggero
+            if(nome == null || cognome == null || codiceFiscale == null ||
                     nome.isEmpty() || cognome.isEmpty() || codiceFiscale.isEmpty()) {
-                JOptionPane.showMessageDialog(null, "Dati passeggero non validi. Prenotazione annullata.");
+                JOptionPane.showMessageDialog(null,
+                        "Compila correttamente tutti i dati del passeggero.",
+                        "Errore",
+                        JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
-            String numeroBiglietto = numeroBigliettoTextField.getText();
-            String posto = postoTextField.getText();
             StatoPrenotazione stato = (StatoPrenotazione) statoPrenotazioneComboBox.getSelectedItem();
 
             controller.aggiungiPrenotazione(
                     numeroBiglietto,
                     posto,
                     stato,
-                    (UtenteGenerico) utente,
+                    utenteGenerico,
                     nome,
                     cognome,
                     codiceFiscale,
-                    null, // email
-                    null  // altro campo
+                    null,
+                    null
             );
+
             JOptionPane.showMessageDialog(null, "Prenotazione completata con successo!");
 
+            // reset campi
             numeroBigliettoTextField.setText("");
             postoTextField.setText("");
             statoPrenotazioneComboBox.setSelectedIndex(0);
+
         });
     }
 
-    public JPanel getPanelPrenotazione() {
-        return panelPrenotazione;
-    }
+
+        public JPanel getPanelPrenotazione() {
+            return panelPrenotazione;
+        }
 }

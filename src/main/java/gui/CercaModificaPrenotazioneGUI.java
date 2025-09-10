@@ -46,19 +46,21 @@ public class CercaModificaPrenotazioneGUI {
     // Logica per la ricerca prenotazione
     private void cercaPrenotazione() {
         String codice = codiceInserimentoTextField.getText().trim();
-        if (codice.isEmpty()) {
+        if(codice.isEmpty()) {
             messaggioTextArea.setText("Inserisci un codice prenotazione.");
             setCampiPrenotazioneAbilitati(false);
             return;
         }
 
         prenotazioneCorrente = controller.cercaPrenotazione(codice);
-        if (prenotazioneCorrente != null) {
+        if(prenotazioneCorrente != null) {
             nomeTextField.setText(prenotazioneCorrente.getDatiPasseggero().getNome());
             cognomeTextField.setText(prenotazioneCorrente.getDatiPasseggero().getCognome());
             emailTextField.setText(prenotazioneCorrente.getDatiPasseggero().getEmail());
             voloTextField.setText(prenotazioneCorrente.getVolo().getCodiceUnivoco());
             statoVoloComboBox.setSelectedItem(prenotazioneCorrente.getStato());
+
+            codiceInserimentoTextField.setEditable(false);
 
             messaggioTextArea.setText("Prenotazione trovata!\nPuoi modificarla oppure annullarla.");
             setCampiPrenotazioneAbilitati(true);
@@ -71,7 +73,7 @@ public class CercaModificaPrenotazioneGUI {
 
     // Logica per il salvataggio delle modifiche
     private void salvaModifiche() {
-        if (prenotazioneCorrente == null) {
+        if(prenotazioneCorrente == null) {
             messaggioTextArea.setText("Nessuna prenotazione da modificare.");
             return;
         }
@@ -82,7 +84,7 @@ public class CercaModificaPrenotazioneGUI {
 
         String codiceVolo = voloTextField.getText().trim();
         Volo volo = controller.cercaVolo(codiceVolo);
-        if (volo == null) {
+        if(volo == null) {
             messaggioTextArea.setText("Volo non trovato.");
             return;
         }
@@ -92,15 +94,20 @@ public class CercaModificaPrenotazioneGUI {
         StatoPrenotazione stato;
         try {
             stato = StatoPrenotazione.valueOf(statoString.toUpperCase());
-        } catch (Exception e) {
+        } catch(Exception e) {
             messaggioTextArea.setText("Stato non valido.");
             return;
         }
         prenotazioneCorrente.setStato(stato);
 
         boolean successo = controller.salvaPrenotazione(prenotazioneCorrente);
-        if (successo) {
+        if(successo) {
             messaggioTextArea.setText("Modifiche salvate con successo!");
+
+            pulisciCampiPrenotazione();
+            setCampiPrenotazioneAbilitati(false);
+            codiceInserimentoTextField.setText("");
+            codiceInserimentoTextField.setEditable(true);
         } else {
             messaggioTextArea.setText("Errore nel salvataggio delle modifiche.");
         }
@@ -108,16 +115,18 @@ public class CercaModificaPrenotazioneGUI {
 
     // Logica per annullare la prenotazione
     private void annullaPrenotazione() {
-        if (prenotazioneCorrente == null) {
+        if(prenotazioneCorrente == null) {
             messaggioTextArea.setText("Nessuna prenotazione da annullare.");
             return;
         }
 
         boolean successo = controller.annullaPrenotazione(prenotazioneCorrente); // implementa questo nel Controller!
-        if (successo) {
+        if(successo) {
             messaggioTextArea.setText("Prenotazione annullata!");
             pulisciCampiPrenotazione();
             setCampiPrenotazioneAbilitati(false);
+
+            codiceInserimentoTextField.setEditable(true);
         } else {
             messaggioTextArea.setText("Errore nell'annullamento.");
         }
@@ -128,7 +137,7 @@ public class CercaModificaPrenotazioneGUI {
         nomeTextField.setEnabled(abilitati);
         cognomeTextField.setEnabled(abilitati);
         emailTextField.setEnabled(abilitati);
-        voloTextField.setEnabled(abilitati);
+        voloTextField.setEnabled(false);
         statoVoloComboBox.setEnabled(false);
         salvaModificheButton.setEnabled(abilitati);
         annullaPrenotazioneButton.setEnabled(abilitati);

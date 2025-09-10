@@ -157,7 +157,7 @@ public class AreaPersonaleAmmGUI {
         orarioTextField = new JTextField(6);
         aeroportoTextField = new JTextField(10);
         gateTextField = new JTextField(10);
-
+        arrivoPartenzaComboBox = new JComboBox<>(new String[]{"", "In arrivo", "In partenza"}); // ✅ FIX
 
         ricercaPanel.add(creaPair("Numero volo:", numeroVoloTextField, GAP_LABEL_CAMPO));
         ricercaPanel.add(creaPair("Compagnia:", compagniaTextField, GAP_LABEL_CAMPO));
@@ -168,11 +168,18 @@ public class AreaPersonaleAmmGUI {
         ricercaPanel.add(creaPair("Gate:", gateTextField, GAP_LABEL_CAMPO));
         ricercaPanel.add(creaPair("Arrivo/Partenza:", arrivoPartenzaComboBox, GAP_LABEL_CAMPO));
 
+        // 🔽 qui togli il vecchio aggiungi al ricercaPanel
+
+        // pannello separato per il bottone
         cercaVoloButton = new JButton("Cerca");
         cercaVoloButton.addActionListener(e -> ricercaVoli());
-        ricercaPanel.add(creaPair("", cercaVoloButton, GAP_LABEL_CAMPO));
 
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        btnPanel.add(cercaVoloButton);
+
+        // aggiungi entrambi al panel principale
         panel.add(ricercaPanel);
+        panel.add(btnPanel);
 
         tabellaOrarioGUI = new TabellaOrarioGUI(controller);
         panel.add(tabellaOrarioGUI.getPanel());

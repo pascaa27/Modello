@@ -31,7 +31,6 @@ public class AmministratoreDAOPostgres implements AmministratoreDAO {
             ResultSet rs = ps.executeQuery();
 
             if(rs.next()) {
-
                 return mapResultSetToAmministratore(rs);
             }
 

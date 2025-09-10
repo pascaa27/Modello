@@ -39,8 +39,8 @@ public class Controller {
         prenotazioneDAO.setController(this);
         utentiDAO.setController(this);
 
-
         Amministratore a = adminDAO.findByEmail("admin1@gmail.com ");
+
 
         AreaPersonale areaPersonale1 = new AreaPersonale();
         AreaPersonale areaPersonale2 = new AreaPersonale();
