@@ -151,7 +151,7 @@ public class AreaPersonaleAmmGUI {
 
         numeroVoloTextField = new JTextField(8);
         compagniaTextField = new JTextField(10);
-        statoComboBox = new JComboBox<>(new String[]{"", "In arrivo", "In partenza", "Ritardato", "Cancellato"});
+        statoComboBox = new JComboBox<>(new String[]{"", "PROGRAMMATO", "IMBARCO", "DECOLLATO", "CANCELLATO", "INRITARDO", "ATTERRATO"});
         dataTextField = new JTextField(8);
         orarioTextField = new JTextField(6);
         aeroportoTextField = new JTextField(10);
