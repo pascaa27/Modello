@@ -38,7 +38,7 @@ public class Controller {
         prenotazioneDAO.setController(this);
         utentiDAO.setController(this);
 
-        Amministratore a = adminDAO.findByEmail("admin1@gmail.com ");
+        Amministratore a = adminDAO.findByEmail("admin1@gmail.com");
 
 
         AreaPersonale areaPersonale1 = new AreaPersonale();
@@ -50,13 +50,15 @@ public class Controller {
         Amministratore admin = new Amministratore("admin1", "pwd123", "", "");
         TabellaOrario tabella = new TabellaOrario();
 
+        System.out.println("DEBUG Costruttore Controller - prima creazione voli, size=" + voliGestiti.size());
         Volo v1 = new Volo("VOLO1", "Alitalia", "2025-06-01", "10:00",
-                StatoVolo.PROGRAMMATO, admin, tabella);
+                StatoVolo.PROGRAMMATO, null, null, "MIL", "3", "in arrivo");
         Volo v2 = new Volo("VOLO2", "Lufthansa", "2025-07-10", "18:30",
-                StatoVolo.PROGRAMMATO, admin, tabella);
-
+                StatoVolo.PROGRAMMATO, null, null, "FRA", "12", "in partenza");
         voliGestiti.add(v1);
         voliGestiti.add(v2);
+        System.out.println("DEBUG Dopo aggiunta voli, size=" + voliGestiti.size());
+
 
         DatiPasseggero passeggero1 = new DatiPasseggero("Luigi", "Verdi", "ID12345", "luigiverdi@gmail.com");
         DatiPasseggero passeggero2 = new DatiPasseggero("Luca", "Bianchi", "ID67890", "lucabianchi@gmail.com");
@@ -71,6 +73,10 @@ public class Controller {
         bagagliGestiti.add(new Bagaglio("BAG002", 19.1, StatoBagaglio.CARICATO, p1));
         bagagliGestiti.add(new Bagaglio("BAG003", 13.4, StatoBagaglio.SMARRITO, p2));
         bagagliGestiti.add(new Bagaglio("BAG004", 22.0, StatoBagaglio.CARICATO, p2));
+    }
+
+    public List<Object[]> tuttiVoli() {
+        return ricercaVoli(null, null, null, null, null, null, null, null);
     }
 
     public void aggiungiVolo(String codiceUnivoco, String compagniaAerea, String dataVolo, String orarioPrevisto,
@@ -167,80 +173,86 @@ public class Controller {
         gate = norm(gate);
         arrivoPartenza = norm(arrivoPartenza);
 
+        System.out.printf("DEBUG ricercaVoliRaw parametri: num=%s comp=%s stato=%s data=%s orario=%s aero=%s gate=%s ap=%s%n",
+                numeroVolo, compagnia, stato, data, orario, aeroporto, gate, arrivoPartenza);
+        System.out.println("DEBUG voliGestiti size attuale = " + voliGestiti.size());
+
         List<Volo> out = new ArrayList<>();
-        for(Volo v : voliGestiti) {
+        for (Volo v : voliGestiti) {
             boolean match = true;
 
-            if(numeroVolo != null &&
+            if (numeroVolo != null &&
                     (v.getCodiceUnivoco() == null ||
                             !v.getCodiceUnivoco().toLowerCase().contains(numeroVolo.toLowerCase())))
                 match = false;
 
-            if(compagnia != null &&
+            if (compagnia != null &&
                     (v.getCompagniaAerea() == null ||
                             !v.getCompagniaAerea().toLowerCase().contains(compagnia.toLowerCase())))
                 match = false;
 
-            if(stato != null) {
-                if(v.getStato() == null ||
-                        !(v.getStato().name().equalsIgnoreCase(stato) ||
-                                v.getStato().toString().equalsIgnoreCase(stato))) {
-                    match = false;
-                }
+            if (stato != null) {
+                if (v.getStato() == null || !v.getStato().name().equalsIgnoreCase(stato)) match = false;
             }
 
-            if(data != null &&
+            if (data != null &&
                     (v.getDataVolo() == null ||
                             !v.getDataVolo().toLowerCase().contains(data.toLowerCase())))
                 match = false;
 
-            // --- Nuovi filtri ---
-            if(orario != null &&
+            if (orario != null &&
                     (v.getOrarioPrevisto() == null ||
                             !v.getOrarioPrevisto().toLowerCase().contains(orario.toLowerCase())))
                 match = false;
 
-            if(aeroporto != null &&
+            if (aeroporto != null &&
                     (v.getAeroporto() == null ||
                             !v.getAeroporto().toLowerCase().contains(aeroporto.toLowerCase())))
                 match = false;
 
-            if(gate != null &&
+            if (gate != null &&
                     (v.getGate() == null ||
                             !v.getGate().toLowerCase().contains(gate.toLowerCase())))
                 match = false;
 
-            if(arrivoPartenza != null &&
+            if (arrivoPartenza != null &&
                     (v.getArrivoPartenza() == null ||
-                            !v.getArrivoPartenza().toLowerCase().contains(arrivoPartenza.toLowerCase())))
+                            !v.getArrivoPartenza().equalsIgnoreCase(arrivoPartenza)))
                 match = false;
 
-            if(match) out.add(v);
+            if (match) out.add(v);
         }
+        System.out.println("DEBUG ricercaVoliRaw -> trovati=" + out.size());
         return out;
     }
 
+    private String safe(String s) { return s == null ? "" : s; }
+
     public List<Object[]> ricercaVoli(String numeroVolo, String compagnia, String stato, String data,
                                       String orario, String aeroporto, String gate, String arrivoPartenza) {
+
+        if (arrivoPartenza != null) {
+            String ap = arrivoPartenza.trim().toLowerCase();
+            if (ap.equals("in arrivo")) arrivoPartenza = "in arrivo";
+            else if (ap.equals("in partenza")) arrivoPartenza = "in partenza";
+        }
+
         List<Volo> trovati = ricercaVoliRaw(numeroVolo, compagnia, stato, data, orario, aeroporto, gate, arrivoPartenza);
         List<Object[]> righe = new ArrayList<>();
-        for(Volo v : trovati) {
+        for (Volo v : trovati) {
             righe.add(new Object[]{
                     safe(v.getCodiceUnivoco()),
                     safe(v.getCompagniaAerea()),
+                    v.getStato() != null ? v.getStato().name() : "",
                     safe(v.getDataVolo()),
                     safe(v.getOrarioPrevisto()),
                     safe(v.getAeroporto()),
                     safe(v.getGate()),
-                    safe(v.getArrivoPartenza()),
-                    v.getStato() != null ? v.getStato().name() : ""
+                    safe(v.getArrivoPartenza())
             });
         }
+        System.out.println("DEBUG ricercaVoli() -> righe=" + righe.size());
         return righe;
-    }
-
-    private String safe(String s) {
-        return s == null ? "" : s;
     }
 
     // --- Passeggeri ---

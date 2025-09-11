@@ -56,15 +56,16 @@ public class TabellaOrarioGUI {
     public void aggiornaVoli(List<Object[]> righe) {
         DefaultTableModel model = (DefaultTableModel) tabellaOrarioTable.getModel();
         model.setRowCount(0);
-        if(righe != null) {
-            for(Object[] r : righe) {
-                if(r != null && r.length >= COLONNE.length) model.addRow(r);
+        if (righe != null) {
+            for (Object[] r : righe) {
+                if (r != null) model.addRow(r);
             }
         }
     }
 
-    public void aggiungiVolo(String numero, String compagnia, String stato, String data) {
+    public void aggiungiVolo(String numero, String compagnia, String stato, String data,
+                             String orario, String aeroporto, String gate, String arrivoPartenza) {
         ((DefaultTableModel) tabellaOrarioTable.getModel())
-                .addRow(new Object[]{numero, compagnia, stato, data});
+                .addRow(new Object[]{numero, compagnia, stato, data, orario, aeroporto, gate, arrivoPartenza});
     }
 }

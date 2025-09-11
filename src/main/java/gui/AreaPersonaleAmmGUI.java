@@ -4,6 +4,7 @@ import javax.swing.*;
 import controller.Controller;
 import model.Amministratore;
 import java.awt.*;
+import java.util.Collections;
 import java.util.List;
 import javax.swing.table.DefaultTableModel;
 
@@ -50,6 +51,7 @@ public class AreaPersonaleAmmGUI {
     private JTextField aeroportoTextField;
     private JTextField gateTextField;
     private JComboBox arrivoPartenzaComboBox;
+    private JButton tabellaOrarioButton;
 
     public AreaPersonaleAmmGUI(Controller controller, Amministratore amministratore) {
         this.controller = controller;
@@ -93,6 +95,7 @@ public class AreaPersonaleAmmGUI {
 
         areaPersonaleAmmPanel.add(datiPanel);
 
+
         // Tabs
         tabbedPane1 = new JTabbedPane();
         tabbedPane1.addTab("Voli", creaTabVoli());
@@ -105,11 +108,15 @@ public class AreaPersonaleAmmGUI {
         gestioneVoliButton = new JButton("Gestione Voli");
         gestionePrenotazioniButton = new JButton("Gestione Prenotazioni");
         gestioneGateButton = new JButton("Gestione Gate");
+        tabellaOrarioButton = new JButton("Tabella Orario");
+        bottoniPanel.add(tabellaOrarioButton);
         bottoniPanel.add(gestioneVoliButton);
         bottoniPanel.add(gestionePrenotazioniButton);
         bottoniPanel.add(gestioneGateButton);
 
         areaPersonaleAmmPanel.add(bottoniPanel);
+
+        tabellaOrarioButton.addActionListener(e -> apriTabellaOrario());
 
         gestioneVoliButton.addActionListener(e -> {
             GestioneVoliGUI gestioneVoli = new GestioneVoliGUI(controller);
@@ -137,6 +144,16 @@ public class AreaPersonaleAmmGUI {
             frame.setLocationRelativeTo(null);
             frame.setVisible(true);
         });
+    }
+
+    private void apriTabellaOrario() {
+        TabellaOrarioGUI gui = new TabellaOrarioGUI(controller); // già carica dati
+        JFrame frame = new JFrame("Tabella Orario");
+        frame.setContentPane(gui.getPanel());
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        frame.pack();
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
     }
 
     // ---- TAB VOLI ----
@@ -173,18 +190,49 @@ public class AreaPersonaleAmmGUI {
         cercaVoloButton = new JButton("Cerca");
         cercaVoloButton.addActionListener(e -> ricercaVoli());
 
+
+        JButton resetFiltriButton = new JButton("Reset");
+        resetFiltriButton.addActionListener(e -> {
+            resetFiltriVoli();                       // pulisce i campi
+            tabellaOrarioGUI.aggiornaVoli(Collections.emptyList()); // svuota la tabella
+        });
+
+        JButton tuttiButton = new JButton("Tutti");
+        tuttiButton.addActionListener(e -> {
+            List<Object[]> tutti = controller.tuttiVoli();
+            tabellaOrarioGUI.aggiornaVoli(tutti);
+        });
+
+
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         btnPanel.add(cercaVoloButton);
+        btnPanel.add(tuttiButton);
+        btnPanel.add(resetFiltriButton);
 
         // aggiungi entrambi al panel principale
         panel.add(ricercaPanel);
         panel.add(btnPanel);
 
-        tabellaOrarioGUI = new TabellaOrarioGUI(controller);
+       tabellaOrarioGUI = new TabellaOrarioGUI(controller);
         panel.add(tabellaOrarioGUI.getPanel());
+
+
 
         return panel;
     }
+
+    private void resetFiltriVoli() {
+        numeroVoloTextField.setText("");
+        compagniaTextField.setText("");
+        statoComboBox.setSelectedIndex(0);
+        dataTextField.setText("");
+        orarioTextField.setText("");
+        aeroportoTextField.setText("");
+        gateTextField.setText("");
+        arrivoPartenzaComboBox.setSelectedIndex(0);
+    }
+
+
 
     private JPanel creaPair(String labelText, JComponent campo, int gapLabelCampo) {
         JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, gapLabelCampo, 0));
@@ -301,10 +349,18 @@ public class AreaPersonaleAmmGUI {
         String orario = trimOrNull(orarioTextField.getText());
         String aeroporto = trimOrNull(aeroportoTextField.getText());
         String gate = trimOrNull(gateTextField.getText());
-        String arrivoPartenza = trimOrNull((String) arrivoPartenzaComboBox.getSelectedItem());
+        String arrivoPartenzaUI = trimOrNull((String) arrivoPartenzaComboBox.getSelectedItem());
 
-        // Aggiorna la chiamata al controller aggiungendo i nuovi parametri:
-        List<Object[]> risultati = controller.ricercaVoli(numeroVolo, compagnia, stato, data, orario, aeroporto, gate, arrivoPartenza);
+        String arrivoPartenza = null;
+        if (arrivoPartenzaUI != null) {
+            if (arrivoPartenzaUI.equalsIgnoreCase("In arrivo")) arrivoPartenza = "in arrivo";
+            else if (arrivoPartenzaUI.equalsIgnoreCase("In partenza")) arrivoPartenza = "in partenza";
+        }
+
+        List<Object[]> risultati = controller.ricercaVoli(
+                numeroVolo, compagnia, stato, data, orario, aeroporto, gate, arrivoPartenza
+        );
+        System.out.println("DEBUG GUI ricerca -> risultati=" + risultati.size());
         tabellaOrarioGUI.aggiornaVoli(risultati);
     }
 
