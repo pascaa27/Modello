@@ -9,7 +9,6 @@ import java.util.regex.Pattern;
 public class GestioneVoliGUI {
 
     private JPanel gestioneVoliPanel;
-
     private JTextField codiceUnivocoTextField;
     private JTextField compagniaTextField;
     private JTextField dataTextField;
@@ -17,13 +16,10 @@ public class GestioneVoliGUI {
     private JTextField orarioPrevistoTextField;
     private JTextField orarioStimatoTextField;
     private JTextField gateTextField;
-
     private JRadioButton arrivoRadioButton;
     private JRadioButton partenzaRadioButton;
-
     private JComboBox<StatoVolo> statoVoloComboBox;
     private JButton aggiungiVoloButton;
-
     private final Controller controller;
     private static final String AEROPORTO_LOCALE = "NAP";
 
@@ -37,9 +33,9 @@ public class GestioneVoliGUI {
         setDirezioneDefault();
 
         // Popola combo stato se presente
-        if (statoVoloComboBox != null) {
+        if(statoVoloComboBox != null) {
             statoVoloComboBox.removeAllItems();
-            for (StatoVolo sv : StatoVolo.values()) {
+            for(StatoVolo sv : StatoVolo.values()) {
                 statoVoloComboBox.addItem(sv);
             }
         }
@@ -50,23 +46,23 @@ public class GestioneVoliGUI {
         toggleDirezione();
 
         //Pulsante aggiungi
-        if (aggiungiVoloButton != null) {
+        if(aggiungiVoloButton != null) {
             aggiungiVoloButton.addActionListener(e -> aggiungiVolo());
         }
 
     }
 
     private void setDirezioneDefault() {
-        if (partenzaRadioButton != null) {
+        if(partenzaRadioButton != null) {
             partenzaRadioButton.setSelected(true);
         }
     }
 
     private void toggleDirezione() {
         boolean isArrivo = arrivoRadioButton.isSelected();
-        if (gateTextField != null) {
+        if(gateTextField != null) {
             gateTextField.setEnabled(!isArrivo);
-            if (isArrivo) gateTextField.setText("");
+            if(isArrivo) gateTextField.setText("");
         }
     }
 
@@ -75,21 +71,21 @@ public class GestioneVoliGUI {
         String compagnia = safeText(compagniaTextField);
         String data = safeText(dataTextField);
         String otherAirport = safeText(altroAeroportoTextField).toUpperCase();
-        if (!otherAirport.isEmpty()) {
+        if(!otherAirport.isEmpty()) {
             altroAeroportoTextField.setText(otherAirport);
         }
 
         String orarioPrevisto = orarioPrevistoTextField != null ? safeText(orarioPrevistoTextField) : null;
         String orarioStimato = orarioStimatoTextField != null ? safeText(orarioStimatoTextField) : null;
-        if (orarioStimato != null && orarioStimato.isEmpty()) orarioStimato = null;
+        if(orarioStimato != null && orarioStimato.isEmpty()) orarioStimato = null;
 
         String gate = gateTextField != null ? safeText(gateTextField) : null;
-        if (gate != null && gate.isEmpty()) gate = null;
+        if(gate != null && gate.isEmpty()) gate = null;
 
         String direzione = arrivoRadioButton.isSelected() ? "A" : "P";
         StatoVolo stato = statoVoloComboBox != null ? (StatoVolo) statoVoloComboBox.getSelectedItem() : null;
 
-        if (statoVoloComboBox == null) {
+        if(statoVoloComboBox == null) {
             JOptionPane.showMessageDialog(gestioneVoliPanel,
                     "Il componente statoVoloComboBox non è stato associato nel form.",
                     "Configurazione incompleta", JOptionPane.ERROR_MESSAGE);
@@ -98,16 +94,16 @@ public class GestioneVoliGUI {
 
         String err = valida(codice, compagnia, data, otherAirport,
                 orarioPrevisto, orarioStimato, gate, direzione, stato);
-        if (err != null) {
+        if(err != null) {
             JOptionPane.showMessageDialog(gestioneVoliPanel, err, "Errore", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
         try {
-                        controller.aggiungiVolo(codice, compagnia, data, orarioPrevisto, stato, direzione, otherAirport);
+            controller.aggiungiVolo(codice, compagnia, data, orarioPrevisto, stato, direzione, otherAirport);
             JOptionPane.showMessageDialog(gestioneVoliPanel, "Volo aggiunto con successo!");
             pulisci();
-        } catch (Exception ex) {
+        } catch(Exception ex) {
             JOptionPane.showMessageDialog(gestioneVoliPanel,
                     "Errore inserimento: " + ex.getMessage(), "Errore", JOptionPane.ERROR_MESSAGE);
         }
@@ -123,20 +119,28 @@ public class GestioneVoliGUI {
                           String direzione,
                           StatoVolo stato) {
 
-        if (codice.isEmpty()) return "Codice volo obbligatorio.";
-        if (compagnia.isEmpty()) return "Compagnia obbligatoria.";
-        if (!Pattern.matches("\\d{4}-\\d{2}-\\d{2}", data))
+        if(codice.isEmpty()) return "Codice volo obbligatorio.";
+
+        if(compagnia.isEmpty()) return "Compagnia obbligatoria.";
+
+        if(!Pattern.matches("\\d{4}-\\d{2}-\\d{2}", data))
             return "Data deve essere nel formato yyyy-MM-dd.";
-        if (!Pattern.matches("[A-Za-z]{3}", otherAirport))
+
+        if(!Pattern.matches("[A-Za-z]{3}", otherAirport))
             return "Altro aeroporto deve essere un codice IATA (3 lettere).";
-        if (otherAirport.equalsIgnoreCase(AEROPORTO_LOCALE))
+
+        if(otherAirport.equalsIgnoreCase(AEROPORTO_LOCALE))
             return "Altro aeroporto deve essere diverso da " + AEROPORTO_LOCALE + ".";
-        if (orarioPrevisto == null || !Pattern.matches("\\d{2}:\\d{2}", orarioPrevisto))
+
+        if(orarioPrevisto == null || !Pattern.matches("\\d{2}:\\d{2}", orarioPrevisto))
             return "Orario previsto (HH:mm) obbligatorio.";
-        if (orarioStimato != null && !orarioStimato.isEmpty() && !Pattern.matches("\\d{2}:\\d{2}", orarioStimato))
+
+        if(orarioStimato != null && !orarioStimato.isEmpty() && !Pattern.matches("\\d{2}:\\d{2}", orarioStimato))
             return "Orario stimato deve essere HH:mm oppure vuoto.";
-        if ("P".equals(direzione) && stato == StatoVolo.IMBARCO && (gate == null || gate.isEmpty()))
+
+        if("P".equals(direzione) && stato == StatoVolo.IMBARCO && (gate == null || gate.isEmpty()))
             return "Gate obbligatorio per una partenza in IMBARCO.";
+
         return null;
     }
 
@@ -145,10 +149,12 @@ public class GestioneVoliGUI {
         compagniaTextField.setText("");
         dataTextField.setText("");
         altroAeroportoTextField.setText("");
-        if (orarioPrevistoTextField != null) orarioPrevistoTextField.setText("");
-        if (orarioStimatoTextField != null) orarioStimatoTextField.setText("");
-        if (gateTextField != null) gateTextField.setText("");
-        if (statoVoloComboBox != null) statoVoloComboBox.setSelectedIndex(0);
+
+        if(orarioPrevistoTextField != null) orarioPrevistoTextField.setText("");
+        if(orarioStimatoTextField != null) orarioStimatoTextField.setText("");
+        if(gateTextField != null) gateTextField.setText("");
+        if(statoVoloComboBox != null) statoVoloComboBox.setSelectedIndex(0);
+
         partenzaRadioButton.setSelected(true);
         toggleDirezione();
     }

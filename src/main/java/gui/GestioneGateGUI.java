@@ -14,7 +14,6 @@ public class GestioneGateGUI {
     private JButton eliminaGateButton;
     private JTable gateEsistentiTable;
     private JLabel numeroGate;
-
     private final Controller controller;
 
     public GestioneGateGUI(Controller controller) {
@@ -30,7 +29,7 @@ public class GestioneGateGUI {
     }
 
     private void setupTabellaGate() {
-        if (gateEsistentiTable != null) {
+        if(gateEsistentiTable != null) {
             gateEsistentiTable.setModel(new DefaultTableModel(new Object[]{"Numero Gate"}, 0) {
                 @Override public boolean isCellEditable(int r, int c) { return false; }  //rendo la tabella non editabile
             });
@@ -39,11 +38,11 @@ public class GestioneGateGUI {
     }
 
     private void refreshTabellaGate() {
-        if (gateEsistentiTable == null) return;
+        if(gateEsistentiTable == null) return;
         DefaultTableModel model = (DefaultTableModel) gateEsistentiTable.getModel();
         model.setRowCount(0);
         List<Gate> gates = controller.getGates();
-        for (Gate g : gates) {
+        for(Gate g : gates) {
             model.addRow(new Object[]{g.getNumero()});
         }
     }
@@ -51,7 +50,7 @@ public class GestioneGateGUI {
     private void aggiungiGate() {
         String numeroStr = numeroGateTextField.getText();
 
-        if (numeroStr == null || numeroStr.trim().isEmpty()) {
+        if(numeroStr == null || numeroStr.trim().isEmpty()) {
             JOptionPane.showMessageDialog(panelGate, "Inserisci il numero del gate!");
             return;
         }
@@ -59,13 +58,13 @@ public class GestioneGateGUI {
         int numero;
         try {
             numero = Integer.parseInt(numeroStr.trim());
-        } catch (NumberFormatException e) {
+        } catch(NumberFormatException e) {
             JOptionPane.showMessageDialog(panelGate, "Il numero del gate deve essere un intero!");
             return;
         }
 
         boolean added = controller.aggiungiGate(numero);
-        if (added) {
+        if(added) {
             JOptionPane.showMessageDialog(panelGate, "Gate aggiunto con successo!");
             numeroGateTextField.setText("");
             refreshTabellaGate();
@@ -80,23 +79,23 @@ public class GestioneGateGUI {
         Integer numero = null;
 
         // Se c'è una riga selezionata nella tabella, uso quella
-        if (gateEsistentiTable != null && gateEsistentiTable.getSelectedRow() >= 0) {
+        if(gateEsistentiTable != null && gateEsistentiTable.getSelectedRow() >= 0) {
             Object val = gateEsistentiTable.getValueAt(gateEsistentiTable.getSelectedRow(), 0);
-            if (val instanceof Integer) numero = (Integer) val;
-            else if (val instanceof String) {
+            if(val instanceof Integer) numero = (Integer) val;
+            else if(val instanceof String) {
                 try { numero = Integer.parseInt((String) val); } catch (Exception ignored) {}
             }
         }
 
         // Se non c'è selezione, provo a prendere dal text field
-        if (numero == null) {
-            if (numeroStr == null || numeroStr.trim().isEmpty()) {
+        if(numero == null) {
+            if(numeroStr == null || numeroStr.trim().isEmpty()) {
                 JOptionPane.showMessageDialog(panelGate, "Seleziona un gate dalla tabella o inserisci il numero nel campo.");
                 return;
             }
             try {
                 numero = Integer.parseInt(numeroStr.trim());
-            } catch (NumberFormatException e) {
+            } catch(NumberFormatException e) {
                 JOptionPane.showMessageDialog(panelGate, "Il numero del gate deve essere un intero.");
                 return;
             }
@@ -107,10 +106,10 @@ public class GestioneGateGUI {
                 "Conferma eliminazione",
                 JOptionPane.YES_NO_OPTION);
 
-        if (conferma != JOptionPane.YES_OPTION) return;
+        if(conferma != JOptionPane.YES_OPTION) return;
 
         boolean removed = controller.eliminaGate(numero);
-        if (removed) {
+        if(removed) {
             JOptionPane.showMessageDialog(panelGate, "Gate eliminato.");
             refreshTabellaGate();
         } else {

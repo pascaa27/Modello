@@ -5,7 +5,6 @@ import model.UtenteGenerico;
 import database.ConnessioneDatabase;
 import implementazioneDAO.UtenteGenericoDAO;
 import java.sql.*;
-import java.util.ArrayList;
 
 public class UtenteGenericoDAOPostgres implements UtenteGenericoDAO {
 

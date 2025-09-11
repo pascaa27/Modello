@@ -3,7 +3,6 @@ package gui;
 import javax.swing.*;
 import controller.Controller;
 import model.Amministratore;
-
 import java.awt.*;
 import java.util.List;
 import javax.swing.table.DefaultTableModel;
@@ -168,7 +167,7 @@ public class AreaPersonaleAmmGUI {
         ricercaPanel.add(creaPair("Gate:", gateTextField, GAP_LABEL_CAMPO));
         ricercaPanel.add(creaPair("Arrivo/Partenza:", arrivoPartenzaComboBox, GAP_LABEL_CAMPO));
 
-        // 🔽 qui togli il vecchio aggiungi al ricercaPanel
+        // qui togli il vecchio aggiungi al ricercaPanel
 
         // pannello separato per il bottone
         cercaVoloButton = new JButton("Cerca");
@@ -190,7 +189,7 @@ public class AreaPersonaleAmmGUI {
     private JPanel creaPair(String labelText, JComponent campo, int gapLabelCampo) {
         JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, gapLabelCampo, 0));
         p.setOpaque(false);
-        if (labelText != null && !labelText.isEmpty()) {
+        if(labelText != null && !labelText.isEmpty()) {
             p.add(new JLabel(labelText));
         }
         p.add(campo);
@@ -272,19 +271,16 @@ public class AreaPersonaleAmmGUI {
         btnPanel.add(resetBagagliBtn);
         panel.add(btnPanel);
 
-
         cercaBagaglioButton.addActionListener(e -> ricercaBagagli());
         mostraTuttiBagagliBtn.addActionListener(e -> caricaTuttiBagagli());
         resetBagagliBtn.addActionListener(e -> {
             codiceBagaglioTextField.setText("");
             statoBagaglioComboBox.setSelectedIndex(0);
             // Svuota tabella
-            if (risultatiRicercaBagaglioTable != null && risultatiRicercaBagaglioTable.getModel() instanceof DefaultTableModel m) {
+            if(risultatiRicercaBagaglioTable != null && risultatiRicercaBagaglioTable.getModel() instanceof DefaultTableModel m) {
                 m.setRowCount(0);
             }
         });
-
-
 
         risultatiRicercaBagaglioTable = new JTable(new DefaultTableModel(new String[]{"Codice Bagaglio", "Stato"}, 0) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
@@ -333,31 +329,28 @@ public class AreaPersonaleAmmGUI {
 
         DefaultTableModel model = (DefaultTableModel) risultatiRicercaBagaglioTable.getModel();
         model.setRowCount(0);
-        for (Object[] r : risultati) {
+        for(Object[] r : risultati) {
             model.addRow(r);
         }
     }
-
 
     private void caricaTuttiBagagli() {
         List<Object[]> risultati = controller.tuttiBagagliRows();
         DefaultTableModel model = (DefaultTableModel) risultatiRicercaBagaglioTable.getModel();
         model.setRowCount(0);
-        for (Object[] r : risultati) {
+        for(Object[] r : risultati) {
             model.addRow(r);
         }
     }
 
-
-
     private String trimOrNull(String s) {
-        if (s == null) return null;
+        if(s == null) return null;
         s = s.trim();
         return s.isEmpty() ? null : s;
     }
 
     private void mostraNascondiPassword() {
-        if (passwordVisibile) {
+        if(passwordVisibile) {
             passwordField.setEchoChar('•');
             mostraPasswordButton.setText("Show");
         } else {

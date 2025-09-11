@@ -29,7 +29,7 @@ public class TabellaOrarioGUI {
     }
 
     private void inizializzaModello() {
-        if (tabellaOrarioTable == null) {
+        if(tabellaOrarioTable == null) {
             System.err.println("ERRORE: tabellaOrarioTable è null (binding errato nel form).");
             // fallback d’emergenza (non dovrebbe accadere se il form è a posto):
             tabellaOrarioTable = new JTable();
@@ -50,15 +50,15 @@ public class TabellaOrarioGUI {
     public void caricaDatiEsempio() {
         DefaultTableModel model = (DefaultTableModel) tabellaOrarioTable.getModel();
         model.setRowCount(0);
-        for (Object[] r : DATI_ESEMPIO) model.addRow(r);
+        for(Object[] r : DATI_ESEMPIO) model.addRow(r);
     }
 
     public void aggiornaVoli(List<Object[]> righe) {
         DefaultTableModel model = (DefaultTableModel) tabellaOrarioTable.getModel();
         model.setRowCount(0);
-        if (righe != null) {
-            for (Object[] r : righe) {
-                if (r != null && r.length >= COLONNE.length) model.addRow(r);
+        if(righe != null) {
+            for(Object[] r : righe) {
+                if(r != null && r.length >= COLONNE.length) model.addRow(r);
             }
         }
     }

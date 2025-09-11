@@ -39,8 +39,8 @@ public class TabellaPasseggeroGUI {
 
     public void setRows(List<Object[]> rows) {
         model.setRowCount(0);
-        if (rows != null) {
-            for (Object[] r : rows) {
+        if(rows != null) {
+            for(Object[] r : rows) {
                 model.addRow(r);
             }
         }
@@ -56,10 +56,7 @@ public class TabellaPasseggeroGUI {
 
     // Metodo creato automaticamente dal Designer (placeholder se non presente):
     private void $$$setupUI$$$() {
-
     }
-
-
 
     // Se vuoi usare il Designer per generare componenti custom, puoi usare createUIComponents().
     private void createUIComponents() {

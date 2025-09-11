@@ -20,7 +20,6 @@ public class CercaModificaPrenotazioneGUI {
     private JButton salvaModificheButton;
     private JButton annullaPrenotazioneButton;
     private JTextArea messaggioTextArea;
-
     private Controller controller;
     private Prenotazione prenotazioneCorrente;
     private Utente utente;
@@ -32,7 +31,7 @@ public class CercaModificaPrenotazioneGUI {
 
         // Popola la comboBox con tutti gli stati disponibili
         statoVoloComboBox.removeAllItems();
-        for (StatoPrenotazione stato : StatoPrenotazione.values()) {
+        for(StatoPrenotazione stato : StatoPrenotazione.values()) {
             statoVoloComboBox.addItem(stato.name());
         }
 

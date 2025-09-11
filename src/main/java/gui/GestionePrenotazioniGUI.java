@@ -21,17 +21,16 @@ public class GestionePrenotazioniGUI {
         this.controller = controller;
         this.utente = utente;
 
-        for (StatoPrenotazione stato : StatoPrenotazione.values()) {
+        for(StatoPrenotazione stato : StatoPrenotazione.values()) {
             statoPrenotazioneComboBox.addItem(stato);
         }
 
         UtenteGenerico utenteGenerico;
-        if (controller.getUtenteByEmail(utente.getNomeUtente()) == null) {
+        if(controller.getUtenteByEmail(utente.getNomeUtente()) == null) {
             utenteGenerico = controller.creaUtenteGenerico(utente.getNomeUtente());
         } else {
             utenteGenerico = controller.getUtenteByEmail(utente.getNomeUtente());
         }
-
 
         aggiungiPrenotazioneButton.addActionListener(e -> {
             String numeroBiglietto = numeroBigliettoTextField.getText().trim();
@@ -88,12 +87,10 @@ public class GestionePrenotazioniGUI {
             numeroBigliettoTextField.setText("");
             postoTextField.setText("");
             statoPrenotazioneComboBox.setSelectedIndex(0);
-
         });
     }
 
-
-        public JPanel getPanelPrenotazione() {
+    public JPanel getPanelPrenotazione() {
             return panelPrenotazione;
         }
 }

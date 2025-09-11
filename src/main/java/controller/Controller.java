@@ -3,7 +3,6 @@ package controller;
 import gui.AreaPersonaleAmmGUI;
 import implementazioneDAO.implementazionePostgresDAO.*;
 import model.*;
-
 import javax.swing.*;
 import java.util.*;
 
@@ -72,7 +71,6 @@ public class Controller {
         bagagliGestiti.add(new Bagaglio("BAG002", 19.1, StatoBagaglio.CARICATO, p1));
         bagagliGestiti.add(new Bagaglio("BAG003", 13.4, StatoBagaglio.SMARRITO, p2));
         bagagliGestiti.add(new Bagaglio("BAG004", 22.0, StatoBagaglio.CARICATO, p2));
-
     }
 
     public void aggiungiVolo(String codiceUnivoco, String compagniaAerea, String dataVolo, String orarioPrevisto,
@@ -86,8 +84,8 @@ public class Controller {
     }
 
     public void aggiornaVolo(String codiceUnivoco, StatoVolo nuovoStato, String nuovoOrario) {
-        for (Volo volo : voliGestiti) {
-            if (volo.getCodiceUnivoco().equals(codiceUnivoco)) {
+        for(Volo volo : voliGestiti) {
+            if(volo.getCodiceUnivoco().equals(codiceUnivoco)) {
                 volo.setStato(nuovoStato);
                 volo.setOrarioPrevisto(nuovoOrario);
                 break;
@@ -96,8 +94,8 @@ public class Controller {
     }
 
     public Volo cercaVolo(String codiceUnivoco) {
-        for (Volo volo : voliGestiti) {
-            if (volo.getCodiceUnivoco().equals(codiceUnivoco)) {
+        for(Volo volo : voliGestiti) {
+            if(volo.getCodiceUnivoco().equals(codiceUnivoco)) {
                 return volo;
             }
         }
@@ -124,8 +122,8 @@ public class Controller {
     }
 
     public Prenotazione cercaPrenotazione(String numeroBiglietto) {
-        for (Prenotazione p : prenotazioni) {
-            if (p.getNumBiglietto().equals(numeroBiglietto)) {
+        for(Prenotazione p : prenotazioni) {
+            if(p.getNumBiglietto().equals(numeroBiglietto)) {
                 return p;
             }
         }
@@ -133,8 +131,8 @@ public class Controller {
     }
 
     public boolean salvaPrenotazione(Prenotazione prenotazione) {
-        for (int i = 0; i < prenotazioni.size(); i++) {
-            if (prenotazioni.get(i).getNumBiglietto().equals(prenotazione.getNumBiglietto())) {
+        for(int i = 0; i < prenotazioni.size(); i++) {
+            if(prenotazioni.get(i).getNumBiglietto().equals(prenotazione.getNumBiglietto())) {
                 prenotazioni.set(i, prenotazione);
                 return true;
             }
@@ -143,7 +141,7 @@ public class Controller {
     }
 
     public boolean annullaPrenotazione(Prenotazione prenotazione) {
-        if (prenotazione != null) {
+        if(prenotazione != null) {
             prenotazione.setStato(StatoPrenotazione.CANCELLATA);
             return salvaPrenotazione(prenotazione);
         }
@@ -153,7 +151,7 @@ public class Controller {
     // --- Ricerca voli (già presente) ---
 
     private String norm(String s) {
-        if (s == null) return null;
+        if(s == null) return null;
         s = s.trim();
         return s.isEmpty() ? null : s;
     }
@@ -212,7 +210,7 @@ public class Controller {
                             !v.getGate().toLowerCase().contains(gate.toLowerCase())))
                 match = false;
 
-            if (arrivoPartenza != null &&
+            if(arrivoPartenza != null &&
                     (v.getArrivoPartenza() == null ||
                             !v.getArrivoPartenza().toLowerCase().contains(arrivoPartenza.toLowerCase())))
                 match = false;
@@ -315,8 +313,6 @@ public class Controller {
         return ricercaBagagli(null, null);
     }
 
-
-
     // --- Gate ---
     public boolean aggiungiGate(int numero) {
         for(Gate g : gates) {
@@ -341,7 +337,6 @@ public class Controller {
     public List<Gate> getGates() {
         return gates;
     }
-
 
     // AGGIUNGO METODI PER IL COLLEGAMENTO DAO - CONTROLLER
     //
@@ -369,8 +364,6 @@ public class Controller {
         return null;
     }
 
-
-
     public DatiPasseggero creaDatiPasseggero(String nome, String cognome, String codiceFiscale, String email) {
         DatiPasseggero dp = new DatiPasseggero(nome, cognome, codiceFiscale, email);
         datiPasseggeri.add(dp);
@@ -386,7 +379,6 @@ public class Controller {
         }
         return null;
     }
-
 
     // factory per creare Prenotazione (usata dal DAO)
     public Prenotazione creaPrenotazione(String numBiglietto, String posto, StatoPrenotazione stato,

@@ -35,18 +35,19 @@ public class AreaPersonale {
         return utente;
     }
 
-
     public void setUtente(Utente utente) {
         this.utente = utente;
     }
+
     public void setRitardoVolo(String ritardoVolo) {
         this.ritardoVolo = ritardoVolo;
     }
+
     public void setCancellazioneVolo(String cancellazioneVolo) {
         this.cancellazioneVolo = cancellazioneVolo;
     }
+
     public void setVariazioneVolo(String variazioneVolo) {
         this.variazioneVolo = variazioneVolo;
     }
-
 }

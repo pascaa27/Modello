@@ -72,7 +72,6 @@ public class Volo {
         return stato;
     }
 
-
     public String getAeroporto() {
         return aeroporto;
     }
@@ -116,7 +115,6 @@ public class Volo {
     public void setStato(StatoVolo stato) {
         this.stato = stato;
     }
-
 
     public void setAeroporto(String aeroporto) {
         this.aeroporto = aeroporto;

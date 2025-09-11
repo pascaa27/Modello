@@ -10,8 +10,8 @@ public class TestInsertVolo {
         Volo volo = new Volo();
         volo.setCodiceUnivoco("AZ123");
         volo.setCompagniaAerea("ITA Airways");
-        volo.setDataVolo("2025-09-15"); // tipo DATE nel db
-        volo.setOrarioPrevisto("14:30"); // tipo TIME nel db
+        volo.setDataVolo("2025-09-15");
+        volo.setOrarioPrevisto("14:30");
         volo.setStato(StatoVolo.INRITARDO);
         volo.setAeroporto("Fiumicino");
         volo.setGate("A12");

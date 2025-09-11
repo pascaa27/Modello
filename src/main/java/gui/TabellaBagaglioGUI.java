@@ -21,8 +21,6 @@ public class TabellaBagaglioGUI {
         inizializzaModel();
     }
 
-
-
     private void inizializzaModel() {
         model = new DefaultTableModel(COLONNE, 0) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
@@ -31,9 +29,8 @@ public class TabellaBagaglioGUI {
         tabellaBagaglioTable.setAutoCreateRowSorter(true);
     }
 
-
     public void setRows(List<Object[]> rows) {
-        if (model == null) return;
+        if(model == null) return;
         model.setRowCount(0);
         if(rows != null) {
             for(Object[] r : rows) model.addRow(r);
@@ -44,11 +41,11 @@ public class TabellaBagaglioGUI {
      * Carica tutti i bagagli dal controller (richiede metodo tuttiBagagliRows()).
      */
     public void caricaTuttiBagagli() {
-        if (controller == null) return;
+        if(controller == null) return;
         try {
             List<Object[]> rows = controller.tuttiBagagliRows();
             setRows(rows);
-        } catch (Exception ignored) {
+        } catch(Exception ignored) {
         }
     }
 
@@ -63,12 +60,12 @@ public class TabellaBagaglioGUI {
      * Restituisce l'array di valori della riga selezionata (null se nessuna selezione).
      */
     public Object[] getSelectedRow() {
-        if (tabellaBagaglioTable == null) return null;
+        if(tabellaBagaglioTable == null) return null;
         int viewRow = tabellaBagaglioTable.getSelectedRow();
-        if (viewRow < 0) return null;
+        if(viewRow < 0) return null;
         int modelRow = tabellaBagaglioTable.convertRowIndexToModel(viewRow);
         Object[] out = new Object[model.getColumnCount()];
-        for (int c = 0; c < model.getColumnCount(); c++) {
+        for(int c = 0; c < model.getColumnCount(); c++) {
             out[c] = model.getValueAt(modelRow, c);
         }
         return out;

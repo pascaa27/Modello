@@ -9,11 +9,9 @@ public class UtenteGenerico extends Utente {
     private List<Prenotazione> prenotazioni= new ArrayList<>();     //attributo che rappresenta tutte le prenotazioni fatte da questo utente
     private AreaPersonale areaPersonale;
 
-
     public void aggiungiPrenotazione(Prenotazione p) {
         prenotazioni.add(p);        //aggiunge alla lista le prenotazioni p
     }
-
 
     public UtenteGenerico(String login, String password, String nomeUtente, String cognomeUtente, List<Prenotazione> prenotazioni, AreaPersonale areaPersonale) {
         super(login, password, nomeUtente, cognomeUtente);

@@ -30,7 +30,7 @@ public class LoginGUI {
             JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(loginPanel);  //Ottiene il frame padre del pannello di login
             frame.dispose();  //e lo chiude
 
-            if (email.equals(ADMIN_EMAIL) && password.equals(ADMIN_PASS)) {
+            if(email.equals(ADMIN_EMAIL) && password.equals(ADMIN_PASS)) {
                 // Area amministratore
                 JFrame nuovoFrame = new JFrame("Area Personale Amministratore");
                 nuovoFrame.setContentPane(new AreaPersonaleAmmGUI(controller, amministratore).getAreaPersonaleAmmPanel());
@@ -41,13 +41,13 @@ public class LoginGUI {
             } else {
                 // Cerca utente tra i registrati
                 Utente utenteTrovato = null;
-                for (Utente u : utentiRegistrati) {
-                    if (u.getLogin().equals(email) && u.getPassword().equals(password)) {
+                for(Utente u : utentiRegistrati) {
+                    if(u.getLogin().equals(email) && u.getPassword().equals(password)) {
                         utenteTrovato = u;
                         break;
                     }
                 }
-                if (utenteTrovato != null) {
+                if(utenteTrovato != null) {
                     JFrame nuovoFrame = new JFrame("Area Personale Utente");
                     nuovoFrame.setContentPane(new AreaPersonaleUtenteGUI(controller, utenteTrovato).getPanel());
                     nuovoFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -67,23 +67,22 @@ public class LoginGUI {
             String email = emailTextField.getText().trim();
             String password = passwordTextField.getText().trim();
 
-            if (nome.isEmpty() || cognome.isEmpty() || email.isEmpty() || password.isEmpty()) {
+            if(nome.isEmpty() || cognome.isEmpty() || email.isEmpty() || password.isEmpty()) {
                 JOptionPane.showMessageDialog(null, "Compila tutti i campi per la registrazione!");
                 return;
             }
 
             boolean esiste = false;
-            for (Utente u : utentiRegistrati) {
-                if (u.getLogin().equals(email)) {
+            for(Utente u : utentiRegistrati) {
+                if(u.getLogin().equals(email)) {
                     esiste = true;
                     break;
                 }
             }
-            if (esiste || email.equals(ADMIN_EMAIL)) {
+            if(esiste || email.equals(ADMIN_EMAIL)) {
                 JOptionPane.showMessageDialog(null, "Email già registrata!");
                 return;
             }
-
 
             Utente nuovoUtente = new Utente(email, password, nome, cognome);
             utentiRegistrati.add(nuovoUtente);  //aggiunge alla lista
