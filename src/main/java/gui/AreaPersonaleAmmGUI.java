@@ -360,7 +360,7 @@ public class AreaPersonaleAmmGUI {
         List<Object[]> risultati = controller.ricercaVoli(
                 numeroVolo, compagnia, stato, data, orario, aeroporto, gate, arrivoPartenza
         );
-        System.out.println("DEBUG GUI ricerca -> risultati=" + risultati.size());
+        //System.out.println("DEBUG GUI ricerca -> risultati=" + risultati.size());
         tabellaOrarioGUI.aggiornaVoli(risultati);
     }
 

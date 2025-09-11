@@ -50,14 +50,14 @@ public class Controller {
         Amministratore admin = new Amministratore("admin1", "pwd123", "", "");
         TabellaOrario tabella = new TabellaOrario();
 
-        System.out.println("DEBUG Costruttore Controller - prima creazione voli, size=" + voliGestiti.size());
+        //System.out.println("DEBUG Costruttore Controller - prima creazione voli, size=" + voliGestiti.size());
         Volo v1 = new Volo("VOLO1", "Alitalia", "2025-06-01", "10:00",
                 StatoVolo.PROGRAMMATO, null, null, "MIL", "3", "in arrivo");
         Volo v2 = new Volo("VOLO2", "Lufthansa", "2025-07-10", "18:30",
                 StatoVolo.PROGRAMMATO, null, null, "FRA", "12", "in partenza");
         voliGestiti.add(v1);
         voliGestiti.add(v2);
-        System.out.println("DEBUG Dopo aggiunta voli, size=" + voliGestiti.size());
+        //System.out.println("DEBUG Dopo aggiunta voli, size=" + voliGestiti.size());
 
 
         DatiPasseggero passeggero1 = new DatiPasseggero("Luigi", "Verdi", "ID12345", "luigiverdi@gmail.com");
@@ -173,9 +173,9 @@ public class Controller {
         gate = norm(gate);
         arrivoPartenza = norm(arrivoPartenza);
 
-        System.out.printf("DEBUG ricercaVoliRaw parametri: num=%s comp=%s stato=%s data=%s orario=%s aero=%s gate=%s ap=%s%n",
+        /*System.out.printf("DEBUG ricercaVoliRaw parametri: num=%s comp=%s stato=%s data=%s orario=%s aero=%s gate=%s ap=%s%n",
                 numeroVolo, compagnia, stato, data, orario, aeroporto, gate, arrivoPartenza);
-        System.out.println("DEBUG voliGestiti size attuale = " + voliGestiti.size());
+        System.out.println("DEBUG voliGestiti size attuale = " + voliGestiti.size()); */
 
         List<Volo> out = new ArrayList<>();
         for (Volo v : voliGestiti) {
@@ -222,7 +222,7 @@ public class Controller {
 
             if (match) out.add(v);
         }
-        System.out.println("DEBUG ricercaVoliRaw -> trovati=" + out.size());
+        //System.out.println("DEBUG ricercaVoliRaw -> trovati=" + out.size());
         return out;
     }
 
@@ -251,7 +251,7 @@ public class Controller {
                     safe(v.getArrivoPartenza())
             });
         }
-        System.out.println("DEBUG ricercaVoli() -> righe=" + righe.size());
+        //System.out.println("DEBUG ricercaVoli() -> righe=" + righe.size());
         return righe;
     }
 
