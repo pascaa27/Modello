@@ -319,7 +319,8 @@ public class Controller {
                                             String codiceFiscale,
                                             String numeroVolo,
                                             String numeroPrenotazione,
-                                            String postoAssegnato) {
+                                            String postoAssegnato,
+                                            String statoPrenotazione) {
         List<Object[]> risultati = new ArrayList<>();
 
         String n = norm(nome);
@@ -355,6 +356,10 @@ public class Controller {
             if (match && pa != null && (p.getPostoAssegnato() == null ||
                     !p.getPostoAssegnato().toLowerCase().contains(pa.toLowerCase())))
                 match = false;
+            // Stato prenotazione
+            if (match && statoPrenotazione != null &&
+                    (p.getStato() == null || !p.getStato().name().equalsIgnoreCase(statoPrenotazione)))
+                match = false;
 
             if (match) {
                 risultati.add(new Object[]{
@@ -363,7 +368,8 @@ public class Controller {
                         safe(dp != null ? dp.getCodiceFiscale() : ""),
                         p.getVolo() != null ? safe(p.getVolo().getCodiceUnivoco()) : "",
                         safe(p.getNumBiglietto()),
-                        safe(p.getPostoAssegnato())
+                        safe(p.getPostoAssegnato()),
+                        p.getStato() != null ? p.getStato().name() : ""
                 });
             }
         }
@@ -372,7 +378,7 @@ public class Controller {
 
     // Utility per GUI: tutte le righe senza filtro
     public List<Object[]> tuttiPasseggeri() {
-        return ricercaPasseggeri(null, null, null, null, null, null);
+        return ricercaPasseggeri(null, null, null, null, null, null, null);
     }
 
     // --- Bagagli ---

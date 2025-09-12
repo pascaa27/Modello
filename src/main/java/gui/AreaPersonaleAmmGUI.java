@@ -3,6 +3,8 @@ package gui;
 import javax.swing.*;
 import controller.Controller;
 import model.Amministratore;
+import model.StatoPrenotazione;
+
 import java.awt.*;
 import java.util.List;
 import javax.swing.table.DefaultTableModel;
@@ -52,6 +54,7 @@ public class AreaPersonaleAmmGUI {
     private JComboBox arrivoPartenzaComboBox;
     private JTextField codiceFiscaleTextField;
     private JTextField postoAssegnatoTextField;
+    private JComboBox<StatoPrenotazione> statoPrenotazioneComboBox;
 
     public AreaPersonaleAmmGUI(Controller controller, Amministratore amministratore) {
         this.controller = controller;
@@ -60,7 +63,7 @@ public class AreaPersonaleAmmGUI {
         areaPersonaleAmmPanel.setLayout(new BoxLayout(areaPersonaleAmmPanel, BoxLayout.Y_AXIS));
 
         // Dati amministratore
-        JPanel datiPanel = new JPanel(new GridLayout(5, 2, 10, 10));
+        JPanel datiPanel = new JPanel(new GridLayout(5, 3, 10, 10));
         datiPanel.add(new JLabel("Nome:"));
         nomeTextField = new JTextField(amministratore.getNomeUtente());
         nomeTextField.setEditable(false);
@@ -249,7 +252,7 @@ public class AreaPersonaleAmmGUI {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-        JPanel ricercaPanel = new JPanel(new GridLayout(2, 4, 8, 8));
+        JPanel ricercaPanel = new JPanel(new GridLayout(2, 10, 8, 8));
         ricercaPanel.add(new JLabel("Nome:"));
         nomePasseggeroTextField = new JTextField(10);
         ricercaPanel.add(nomePasseggeroTextField);
@@ -273,6 +276,15 @@ public class AreaPersonaleAmmGUI {
         ricercaPanel.add(new JLabel("Posto assegnato: "));
         postoAssegnatoTextField = new JTextField(10);
         ricercaPanel.add(postoAssegnatoTextField);
+
+        ricercaPanel.add(new JLabel("Stato prenotazione:"));
+        statoPrenotazioneComboBox = new JComboBox<>();
+        statoPrenotazioneComboBox.addItem(null); // vuoto = qualsiasi
+        for (StatoPrenotazione sp : StatoPrenotazione.values()) {
+            statoPrenotazioneComboBox.addItem(sp);
+        }
+        ricercaPanel.add(statoPrenotazioneComboBox);
+
 
         panel.add(ricercaPanel);
 
@@ -382,9 +394,21 @@ public class AreaPersonaleAmmGUI {
         String numeroPrenotazione = numeroPrenotazionePasseggeroTextField.getText();
         String postoAssegnato = postoAssegnatoTextField.getText();
 
-        List<Object[]> risultati = controller.ricercaPasseggeri(nome, cognome, codiceFiscale, numeroVolo, numeroPrenotazione, postoAssegnato);
+        StatoPrenotazione stato = (StatoPrenotazione) statoPrenotazioneComboBox.getSelectedItem();
+
+        List<Object[]> risultati = controller.ricercaPasseggeri(
+                nome,
+                cognome,
+                codiceFiscale,
+                numeroVolo,
+                numeroPrenotazione,
+                postoAssegnato,
+                stato != null ? stato.name() : null
+        );
+
         tabellaPasseggeroGUI.setRows(risultati);
     }
+
 
     private void caricaTuttiPasseggeri() {
         tabellaPasseggeroGUI.setRows(controller.tuttiPasseggeri());

@@ -15,7 +15,6 @@ public class DatiPasseggero {
         this.email = email;
         this.id = id;
         this.postoAssegnato = postoAssegnato;
-
     }
 
     public String getNome() {

@@ -14,7 +14,7 @@ public class TabellaPasseggeroGUI {
     private DefaultTableModel model;
     private Controller controller;
 
-    private static final String[] COLONNE = {"Nome", "Cognome", "Codice Fiscale", "Numero Volo", "Numero Prenotazione", "Posto assegnato"};
+    private static final String[] COLONNE = {"Nome", "Cognome", "Codice Fiscale", "Numero Volo", "Numero Prenotazione", "Posto assegnato", "Stato Prenotazione"};
 
     public TabellaPasseggeroGUI(Controller controller) {
         this.controller = controller;

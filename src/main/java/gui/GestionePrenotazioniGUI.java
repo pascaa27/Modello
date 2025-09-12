@@ -2,10 +2,7 @@ package gui;
 
 import javax.swing.*;
 import controller.Controller;
-import model.DatiPasseggero;
-import model.StatoPrenotazione;
-import model.Utente;
-import model.UtenteGenerico;
+import model.*;
 
 public class GestionePrenotazioniGUI {
     private JPanel panelPrenotazione;
@@ -42,7 +39,7 @@ public class GestionePrenotazioniGUI {
 
             if(numeroBiglietto.isEmpty() || posto.isEmpty() || numeroVolo.isEmpty()) {
                 JOptionPane.showMessageDialog(null,
-                        "Compila prima tutti i campi obbligatori (Numero biglietto e Posto).",
+                        "Compila prima tutti i campi obbligatori.",
                         "Errore",
                         JOptionPane.ERROR_MESSAGE);
                 return;
@@ -61,7 +58,7 @@ public class GestionePrenotazioniGUI {
             String cognome = datiGUI.getCognomeInserito();
             String codiceFiscale = datiGUI.getCodiceFiscaleInserito();
 
-            // 🔴 Controllo dei campi passeggero
+            //  Controllo dei campi passeggero
             if(nome == null || cognome == null || codiceFiscale == null ||
                     nome.isEmpty() || cognome.isEmpty() || codiceFiscale.isEmpty()) {
                 JOptionPane.showMessageDialog(null,
@@ -72,6 +69,14 @@ public class GestionePrenotazioniGUI {
             }
 
             StatoPrenotazione stato = (StatoPrenotazione) statoPrenotazioneComboBox.getSelectedItem();
+            Volo volo = controller.getVoloByCodice(numeroVolo);
+            if (volo == null) {
+                JOptionPane.showMessageDialog(null,
+                        "Il volo con codice " + numeroVolo + " non esiste.",
+                        "Errore",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
 
             controller.aggiungiPrenotazione(
                     numeroBiglietto,
@@ -83,8 +88,10 @@ public class GestionePrenotazioniGUI {
                     cognome,
                     codiceFiscale,
                     null,
-                    null
+                    volo
             );
+
+            areaPersonaleAmmGUI.aggiornaTabellaPasseggeri();
 
             JOptionPane.showMessageDialog(null, "Prenotazione completata con successo!");
 
