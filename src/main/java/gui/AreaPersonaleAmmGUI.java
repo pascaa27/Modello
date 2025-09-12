@@ -119,13 +119,14 @@ public class AreaPersonaleAmmGUI {
         tabellaOrarioButton.addActionListener(e -> apriTabellaOrario());
 
         gestioneVoliButton.addActionListener(e -> {
-            GestioneVoliGUI gestioneVoli = new GestioneVoliGUI(controller);
+            GestioneVoliGUI gestioneVoli = new GestioneVoliGUI(controller, this);
             JFrame frame = new JFrame("Gestione Voli");
             frame.setContentPane(gestioneVoli.getPanelDatiVolo());
             frame.pack();
             frame.setLocationRelativeTo(null);
             frame.setVisible(true);
         });
+
 
         gestionePrenotazioniButton.addActionListener(e -> {
             GestionePrenotazioniGUI gestionePrenotazioni = new GestionePrenotazioniGUI(controller, amministratore);
@@ -220,6 +221,13 @@ public class AreaPersonaleAmmGUI {
 
         return panel;
     }
+
+    public void aggiornaTabellaOrario() {
+        if (tabellaOrarioGUI != null) {
+            tabellaOrarioGUI.aggiornaVoli(controller.tuttiVoli());
+        }
+    }
+
 
     private void resetFiltriVoli() {
         numeroVoloTextField.setText("");

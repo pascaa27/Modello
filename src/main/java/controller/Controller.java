@@ -79,11 +79,31 @@ public class Controller {
         return ricercaVoli(null, null, null, null, null, null, null, null);
     }
 
-    public void aggiungiVolo(String codiceUnivoco, String compagniaAerea, String dataVolo, String orarioPrevisto,
-                             StatoVolo stato, String direzione, String otherAirport) {
+    public void aggiungiVolo(String codiceUnivoco,
+                             String compagniaAerea,
+                             String dataVolo,
+                             String orarioPrevisto,
+                             StatoVolo stato,
+                             String arrivoPartenza,
+                             String otherAirport,
+                             String gate) {
+
+        // crea con il costruttore ridotto
         Volo volo = new Volo(codiceUnivoco, compagniaAerea, dataVolo, orarioPrevisto, stato, null, null);
+
+        // assegna i campi aggiuntivi con i setter
+        volo.setAeroporto(otherAirport);
+        volo.setGate(gate);
+        volo.setArrivoPartenza(arrivoPartenza);
+
         voliGestiti.add(volo);
+
+        // DEBUG: conferma in console
+        // System.out.println("DEBUG Controller.aggiungiVolo - aggiunto volo " + codiceUnivoco + " gate='" + gate + "'");
     }
+
+
+
 
     public List<Volo> getVoliGestiti() {
         return voliGestiti;

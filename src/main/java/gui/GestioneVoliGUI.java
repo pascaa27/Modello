@@ -21,10 +21,12 @@ public class GestioneVoliGUI {
     private JComboBox<StatoVolo> statoVoloComboBox;
     private JButton aggiungiVoloButton;
     private final Controller controller;
+    private final AreaPersonaleAmmGUI areaAmmGUI;
     private static final String AEROPORTO_LOCALE = "NAP";
 
-    public GestioneVoliGUI(Controller controller) {
+    public GestioneVoliGUI(Controller controller, AreaPersonaleAmmGUI areaAmmGUI) {
         this.controller = controller;
+        this.areaAmmGUI = areaAmmGUI;
 
         // Gruppo radio
         ButtonGroup direzioneGroup = new ButtonGroup();
@@ -70,44 +72,44 @@ public class GestioneVoliGUI {
         String codice = safeText(codiceUnivocoTextField);
         String compagnia = safeText(compagniaTextField);
         String data = safeText(dataTextField);
+        String orarioPrevisto = safeText(orarioPrevistoTextField);
         String otherAirport = safeText(altroAeroportoTextField).toUpperCase();
-        if(!otherAirport.isEmpty()) {
-            altroAeroportoTextField.setText(otherAirport);
-        }
+        String gate = safeText(gateTextField); // safeText gestisce gateTextField==null
 
-        String orarioPrevisto = orarioPrevistoTextField != null ? safeText(orarioPrevistoTextField) : null;
-        String orarioStimato = orarioStimatoTextField != null ? safeText(orarioStimatoTextField) : null;
-        if(orarioStimato != null && orarioStimato.isEmpty()) orarioStimato = null;
+        StatoVolo stato = (StatoVolo) statoVoloComboBox.getSelectedItem();
 
-        String gate = gateTextField != null ? safeText(gateTextField) : null;
-        if(gate != null && gate.isEmpty()) gate = null;
+        String direzione = arrivoRadioButton.isSelected() ? "in arrivo" : "in partenza";
 
-        String direzione = arrivoRadioButton.isSelected() ? "A" : "P";
-        StatoVolo stato = statoVoloComboBox != null ? (StatoVolo) statoVoloComboBox.getSelectedItem() : null;
+        // DEBUG per capire cosa viene passato
+        //System.out.println("DEBUG aggiungiVolo: codice=" + codice + " gate='" + gate + "' direzione=" + direzione);
 
-        if(statoVoloComboBox == null) {
+        // Se il campo è veramente null (non inizializzato nel form), avvisa l'utente/lo sviluppatore
+        if (gateTextField == null) {
             JOptionPane.showMessageDialog(gestioneVoliPanel,
-                    "Il componente statoVoloComboBox non è stato associato nel form.",
-                    "Configurazione incompleta", JOptionPane.ERROR_MESSAGE);
+                    "Errore: il campo GATE non è collegato nel form (variabile gateTextField è null). Controlla il binding nel GUI builder.",
+                    "Configurazione form", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        String err = valida(codice, compagnia, data, otherAirport,
-                orarioPrevisto, orarioStimato, gate, direzione, stato);
-        if(err != null) {
-            JOptionPane.showMessageDialog(gestioneVoliPanel, err, "Errore", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
+        // Se vuoi impedire aggiunte senza gate per partenze in imbarco, lascia la validazione già presente.
+        // Alla fine chiami il controller (assicurati che la firma del controller includa 'gate')
+        controller.aggiungiVolo(
+                codice,
+                compagnia,
+                data,
+                orarioPrevisto,
+                stato,
+                direzione,
+                otherAirport,
+                gate
+        );
 
-        try {
-            controller.aggiungiVolo(codice, compagnia, data, orarioPrevisto, stato, direzione, otherAirport);
-            JOptionPane.showMessageDialog(gestioneVoliPanel, "Volo aggiunto con successo!");
-            pulisci();
-        } catch(Exception ex) {
-            JOptionPane.showMessageDialog(gestioneVoliPanel,
-                    "Errore inserimento: " + ex.getMessage(), "Errore", JOptionPane.ERROR_MESSAGE);
-        }
+        JOptionPane.showMessageDialog(gestioneVoliPanel, "Volo aggiunto con successo!");
+
+        // 👇 aggiorna la tabella orario dell’area amministratore
+        areaAmmGUI.aggiornaTabellaOrario();
     }
+
 
     private String valida(String codice,
                           String compagnia,
