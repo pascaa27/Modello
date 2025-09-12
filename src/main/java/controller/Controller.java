@@ -50,21 +50,26 @@ public class Controller {
         Amministratore admin = new Amministratore("admin1", "pwd123", "", "");
         TabellaOrario tabella = new TabellaOrario();
 
+
         //System.out.println("DEBUG Costruttore Controller - prima creazione voli, size=" + voliGestiti.size());
-        Volo v1 = new Volo("VOLO1", "Alitalia", "2025-06-01", "10:00",
-                StatoVolo.PROGRAMMATO, null, null, "MIL", "3", "in arrivo");
-        Volo v2 = new Volo("VOLO2", "Lufthansa", "2025-07-10", "18:30",
-                StatoVolo.PROGRAMMATO, null, null, "FRA", "12", "in partenza");
-        voliGestiti.add(v1);
-        voliGestiti.add(v2);
+        caricaVoliIniziali();
+
+
+
         //System.out.println("DEBUG Dopo aggiunta voli, size=" + voliGestiti.size());
 
 
         DatiPasseggero passeggero1 = new DatiPasseggero("Luigi", "Verdi", "ID12345", "luigiverdi@gmail.com");
         DatiPasseggero passeggero2 = new DatiPasseggero("Luca", "Bianchi", "ID67890", "lucabianchi@gmail.com");
 
-        Prenotazione p1 = new Prenotazione("ABC123", "12A", StatoPrenotazione.CONFERMATA, u1, passeggero1, v1);
-        Prenotazione p2 = new Prenotazione("DEF456", "12B", StatoPrenotazione.CONFERMATA, u2, passeggero2, v2);
+        Volo volo1 = getVoloByCodice("AZ123");
+        Volo volo2 = getVoloByCodice("FR987");
+        if (volo1 == null || volo2 == null) {
+            System.err.println("ERRORE: voli iniziali non trovati per le prenotazioni di esempio.");
+        }
+
+        Prenotazione p1 = new Prenotazione("ABC123", "12A", StatoPrenotazione.CONFERMATA, u1, passeggero1, volo1);
+        Prenotazione p2 = new Prenotazione("DEF456", "12B", StatoPrenotazione.CONFERMATA, u2, passeggero2, volo2);
 
         prenotazioni.add(p1);
         prenotazioni.add(p2);
@@ -78,6 +83,39 @@ public class Controller {
     public List<Object[]> tuttiVoli() {
         return ricercaVoli(null, null, null, null, null, null, null, null);
     }
+
+    private void caricaVoliIniziali() {
+        for (String[] r : VOLI_INIZIALI) {
+            // r: 0=codice,1=compagnia,2=statoString,3=data,4=orario,5=aeroporto,6=gate,7=arrivo/partenza
+            StatoVolo stato = parseStato(r[2]);
+            Volo v = new Volo(r[0], r[1], r[3], r[4], stato, null, null);
+            v.setAeroporto(r[5]);
+            v.setGate(r[6]);
+            v.setArrivoPartenza(r[7]);
+            voliGestiti.add(v);
+        }
+    }
+
+    private StatoVolo parseStato(String s) {
+        if (s == null) return null;
+        s = s.trim().toUpperCase();
+        try {
+            return StatoVolo.valueOf(s);
+        } catch (IllegalArgumentException ex) {
+            System.err.println("Stato volo sconosciuto: " + s);
+            return null;
+        }
+    }
+
+
+    private static final String[][] VOLI_INIZIALI = {
+            {"AZ123", "ITA Airways", "PROGRAMMATO", "2025-09-05", "08:15", "MIL", "3", "in arrivo"},
+            {"FR987", "Ryanair", "IMBARCO", "2025-09-05", "08:40", "BAR", "21", "in arrivo"},
+            {"LH455", "Lufthansa", "DECOLLATO", "2025-09-05", "08:55", "MAD", "15", "in partenza"},
+            {"U23610", "easyJet", "CANCELLATO", "2025-09-05", "09:05", "LDN", "9", "in arrivo"},
+            {"AF101", "Air France", "INRITARDO", "2025-09-05", "09:20", "MYK", "5", "in partenza"},
+            {"EK092", "Emirates", "ATTERRATO", "2025-09-05", "09:35", "PAR", "12", "in partenza"}
+    };
 
     public void aggiungiVolo(String codiceUnivoco,
                              String compagniaAerea,
@@ -129,7 +167,7 @@ public class Controller {
     }
 
     public void aggiungiPrenotazione(String numeroBiglietto, String posto, StatoPrenotazione stato,
-                                     UtenteGenerico utenteGenerico, String nome, String cognome,
+                                     String numeroVolo, UtenteGenerico utenteGenerico, String nome, String cognome,
                                      String codiceFiscale, String email, Volo volo) {
         DatiPasseggero datiPasseggero = new DatiPasseggero(nome, cognome, codiceFiscale, email);
         Prenotazione prenotazione = new Prenotazione(numeroBiglietto, posto, stato, utenteGenerico, datiPasseggero, volo);
@@ -276,28 +314,56 @@ public class Controller {
     }
 
     // --- Passeggeri ---
-    public List<Object[]> ricercaPasseggeri(String nome, String cognome, String numeroVolo, String numeroPrenotazione) {
+    public List<Object[]> ricercaPasseggeri(String nome,
+                                            String cognome,
+                                            String codiceFiscale,
+                                            String numeroVolo,
+                                            String numeroPrenotazione,
+                                            String postoAssegnato) {
         List<Object[]> risultati = new ArrayList<>();
-        for(Prenotazione p : prenotazioni) {
+
+        String n = norm(nome);
+        String c = norm(cognome);
+        String cf = norm(codiceFiscale);
+        String nv = norm(numeroVolo);
+        String np = norm(numeroPrenotazione);
+        String pa = norm(postoAssegnato);
+
+        for (Prenotazione p : prenotazioni) {
             boolean match = true;
             DatiPasseggero dp = p.getDatiPasseggero();
 
-            if(nome != null && !nome.isEmpty() && (dp.getNome() == null ||
-                    !dp.getNome().toLowerCase().contains(nome.toLowerCase()))) match = false;
-            if(cognome != null && !cognome.isEmpty() && (dp.getCognome() == null ||
-                    !dp.getCognome().toLowerCase().contains(cognome.toLowerCase()))) match = false;
-            if(numeroVolo != null && !numeroVolo.isEmpty() &&
-                    (p.getVolo() == null || p.getVolo().getCodiceUnivoco() == null ||
-                            !p.getVolo().getCodiceUnivoco().contains(numeroVolo))) match = false;
-            if(numeroPrenotazione != null && !numeroPrenotazione.isEmpty() &&
-                    (p.getNumBiglietto() == null || !p.getNumBiglietto().contains(numeroPrenotazione))) match = false;
+            // Nome
+            if (n != null && (dp == null || dp.getNome() == null || !dp.getNome().toLowerCase().contains(n.toLowerCase())))
+                match = false;
+            // Cognome
+            if (match && c != null && (dp == null || dp.getCognome() == null || !dp.getCognome().toLowerCase().contains(c.toLowerCase())))
+                match = false;
+            // Codice fiscale
+            if (match && cf != null && (dp == null || dp.getCodiceFiscale() == null ||
+                    !dp.getCodiceFiscale().toLowerCase().contains(cf.toLowerCase())))
+                match = false;
+            // Numero volo
+            if (match && nv != null && (p.getVolo() == null || p.getVolo().getCodiceUnivoco() == null ||
+                    !p.getVolo().getCodiceUnivoco().toLowerCase().contains(nv.toLowerCase())))
+                match = false;
+            // Numero prenotazione
+            if (match && np != null && (p.getNumBiglietto() == null ||
+                    !p.getNumBiglietto().toLowerCase().contains(np.toLowerCase())))
+                match = false;
+            // Posto
+            if (match && pa != null && (p.getPostoAssegnato() == null ||
+                    !p.getPostoAssegnato().toLowerCase().contains(pa.toLowerCase())))
+                match = false;
 
-            if(match) {
+            if (match) {
                 risultati.add(new Object[]{
-                        safe(dp.getNome()),
-                        safe(dp.getCognome()),
+                        safe(dp != null ? dp.getNome() : ""),
+                        safe(dp != null ? dp.getCognome() : ""),
+                        safe(dp != null ? dp.getCodiceFiscale() : ""),
                         p.getVolo() != null ? safe(p.getVolo().getCodiceUnivoco()) : "",
-                        safe(p.getNumBiglietto())
+                        safe(p.getNumBiglietto()),
+                        safe(p.getPostoAssegnato())
                 });
             }
         }
@@ -306,7 +372,7 @@ public class Controller {
 
     // Utility per GUI: tutte le righe senza filtro
     public List<Object[]> tuttiPasseggeri() {
-        return ricercaPasseggeri(null, null, null, null);
+        return ricercaPasseggeri(null, null, null, null, null, null);
     }
 
     // --- Bagagli ---

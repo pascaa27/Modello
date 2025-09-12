@@ -6,12 +6,16 @@ public class DatiPasseggero {
     private String codiceFiscale;
     private String email;
     private String id;
+    private String postoAssegnato;
 
     public DatiPasseggero(String nome, String cognome,  String codiceFiscale, String email) {
         this.nome = nome;
         this.cognome = cognome;
         this.codiceFiscale = codiceFiscale;
         this.email = email;
+        this.id = id;
+        this.postoAssegnato = postoAssegnato;
+
     }
 
     public String getNome() {
@@ -40,5 +44,12 @@ public class DatiPasseggero {
     }
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getPostoAssegnato() {
+        return postoAssegnato;
+    }
+    public void setPostoAssegnato(String postoAssegnato) {
+        this.postoAssegnato = postoAssegnato;
     }
 }

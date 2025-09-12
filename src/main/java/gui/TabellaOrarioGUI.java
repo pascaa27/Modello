@@ -7,31 +7,31 @@ import javax.swing.table.DefaultTableModel;
 import java.util.List;
 
 public class TabellaOrarioGUI {
-    private JPanel tabellaOrarioPanel;   // creato dal .form
-    private JTable tabellaOrarioTable;   // creato dal .form (dentro lo JScrollPane)
+    private JPanel tabellaOrarioPanel;   // generato dal .form
+    private JTable tabellaOrarioTable;   // generato dal .form
     private final Controller controller;
 
-    private static final String[] COLONNE = {"Numero Volo", "Compagnia", "Stato", "Data", "Orario previsto", "Aeroporto Destinazione", "GATE", "ARRIVO/PARTENZA"};
-
-    private static final Object[][] DATI_ESEMPIO = {
-            {"AZ123", "ITA Airways", "PROGRAMMATO", "2025-09-05", "08:15", "MIL", "3", "in arrivo"},
-            {"FR987", "Ryanair", "IMBARCO", "2025-09-05", "08:40", "BAR", "21", "in arrivo"},
-            {"LH455", "Lufthansa", "DECOLLATO", "2025-09-05", "08:55", "MAD", "15", "in partenza"},
-            {"U23610", "easyJet", "CANCELLATO", "2025-09-05", "09:05", "LDN", "9", "in arrivo"},
-            {"AF101", "Air France", "INRITARDO", "2025-09-05", "09:20", "MYK", "5", "in partenza"},
-            {"EK092", "Emirates", "ATTERRATO", "2025-09-05", "09:35", "PAR", "12", "in partenza"}
+    private static final String[] COLONNE = {
+            "Numero Volo",
+            "Compagnia",
+            "Stato",
+            "Data",
+            "Orario previsto",
+            "Aeroporto Destinazione",
+            "GATE",
+            "ARRIVO/PARTENZA"
     };
 
     public TabellaOrarioGUI(Controller controller) {
         this.controller = controller;
         inizializzaModello();
-        caricaDatiEsempio(); // togli se non vuoi i dati subito
+        // Carica SUBITO i voli reali presenti nel Controller
+        aggiornaVoli(controller.tuttiVoli());
     }
 
     private void inizializzaModello() {
-        if(tabellaOrarioTable == null) {
+        if (tabellaOrarioTable == null) {
             System.err.println("ERRORE: tabellaOrarioTable è null (binding errato nel form).");
-            // fallback d’emergenza (non dovrebbe accadere se il form è a posto):
             tabellaOrarioTable = new JTable();
             tabellaOrarioPanel.setLayout(new java.awt.BorderLayout());
             tabellaOrarioPanel.add(new JScrollPane(tabellaOrarioTable), java.awt.BorderLayout.CENTER);
@@ -41,18 +41,17 @@ public class TabellaOrarioGUI {
         };
         tabellaOrarioTable.setModel(model);
         tabellaOrarioTable.setFillsViewportHeight(true);
+        tabellaOrarioTable.setAutoCreateRowSorter(true);
     }
 
     public JPanel getPanel() {
         return tabellaOrarioPanel;
     }
 
-    public void caricaDatiEsempio() {
-        DefaultTableModel model = (DefaultTableModel) tabellaOrarioTable.getModel();
-        model.setRowCount(0);
-        for(Object[] r : DATI_ESEMPIO) model.addRow(r);
-    }
-
+    /**
+     * Aggiorna (sostituisce) tutte le righe della tabella.
+     * @param righe lista di Object[] ottenute da controller.tuttiVoli() o controller.ricercaVoli(...)
+     */
     public void aggiornaVoli(List<Object[]> righe) {
         DefaultTableModel model = (DefaultTableModel) tabellaOrarioTable.getModel();
         model.setRowCount(0);
@@ -63,9 +62,6 @@ public class TabellaOrarioGUI {
         }
     }
 
-    public void aggiungiVolo(String numero, String compagnia, String stato, String data,
-                             String orario, String aeroporto, String gate, String arrivoPartenza) {
-        ((DefaultTableModel) tabellaOrarioTable.getModel())
-                .addRow(new Object[]{numero, compagnia, stato, data, orario, aeroporto, gate, arrivoPartenza});
-    }
+    // Se in futuro vorrai aggiornare in modo incrementale, potrai aggiungere metodi tipo:
+    // public void aggiungiRiga(Object[] r) { ... }
 }

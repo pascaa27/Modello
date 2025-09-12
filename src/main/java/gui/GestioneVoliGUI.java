@@ -61,10 +61,8 @@ public class GestioneVoliGUI {
     }
 
     private void toggleDirezione() {
-        boolean isArrivo = arrivoRadioButton.isSelected();
         if(gateTextField != null) {
-            gateTextField.setEnabled(!isArrivo);
-            if(isArrivo) gateTextField.setText("");
+            gateTextField.setEnabled(true);
         }
     }
 

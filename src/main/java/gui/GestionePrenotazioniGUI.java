@@ -9,17 +9,20 @@ import model.UtenteGenerico;
 
 public class GestionePrenotazioniGUI {
     private JPanel panelPrenotazione;
-    private JTextField numeroBigliettoTextField;
+    private JTextField numeroPrenotazioneTextField;
     private JTextField postoTextField;
     private JComboBox<StatoPrenotazione> statoPrenotazioneComboBox;
     private JButton aggiungiPrenotazioneButton;
+    private JTextField numeroVoloTextField;
     private Controller controller;
     private Utente utente; // campo utente
     private DatiPasseggero datiPasseggero = null;
+    private final AreaPersonaleAmmGUI areaPersonaleAmmGUI;
 
-    public GestionePrenotazioniGUI(Controller controller, Utente utente) {
+    public GestionePrenotazioniGUI(Controller controller, Utente utente, AreaPersonaleAmmGUI areaPersonaleAmmGUI) {
         this.controller = controller;
         this.utente = utente;
+        this.areaPersonaleAmmGUI = areaPersonaleAmmGUI;
 
         for(StatoPrenotazione stato : StatoPrenotazione.values()) {
             statoPrenotazioneComboBox.addItem(stato);
@@ -33,10 +36,11 @@ public class GestionePrenotazioniGUI {
         }
 
         aggiungiPrenotazioneButton.addActionListener(e -> {
-            String numeroBiglietto = numeroBigliettoTextField.getText().trim();
+            String numeroBiglietto = numeroPrenotazioneTextField.getText().trim();
             String posto = postoTextField.getText().trim();
+            String numeroVolo = numeroVoloTextField.getText().trim();
 
-            if(numeroBiglietto.isEmpty() || posto.isEmpty()) {
+            if(numeroBiglietto.isEmpty() || posto.isEmpty() || numeroVolo.isEmpty()) {
                 JOptionPane.showMessageDialog(null,
                         "Compila prima tutti i campi obbligatori (Numero biglietto e Posto).",
                         "Errore",
@@ -73,6 +77,7 @@ public class GestionePrenotazioniGUI {
                     numeroBiglietto,
                     posto,
                     stato,
+                    numeroVolo,
                     utenteGenerico,
                     nome,
                     cognome,
@@ -84,8 +89,9 @@ public class GestionePrenotazioniGUI {
             JOptionPane.showMessageDialog(null, "Prenotazione completata con successo!");
 
             // reset campi
-            numeroBigliettoTextField.setText("");
+            numeroPrenotazioneTextField.setText("");
             postoTextField.setText("");
+            numeroVoloTextField.setText("");
             statoPrenotazioneComboBox.setSelectedIndex(0);
         });
     }
