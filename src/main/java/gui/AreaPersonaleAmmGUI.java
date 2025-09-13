@@ -252,7 +252,7 @@ public class AreaPersonaleAmmGUI {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-        JPanel ricercaPanel = new JPanel(new GridLayout(2, 10, 8, 8));
+        JPanel ricercaPanel = new JPanel(new GridLayout(0, 2, 8, 8));
         ricercaPanel.add(new JLabel("Nome:"));
         nomePasseggeroTextField = new JTextField(10);
         ricercaPanel.add(nomePasseggeroTextField);

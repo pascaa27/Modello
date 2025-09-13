@@ -68,8 +68,11 @@ public class GestionePrenotazioniGUI {
                 return;
             }
 
+
             StatoPrenotazione stato = (StatoPrenotazione) statoPrenotazioneComboBox.getSelectedItem();
+
             Volo volo = controller.getVoloByCodice(numeroVolo);
+
             if (volo == null) {
                 JOptionPane.showMessageDialog(null,
                         "Il volo con codice " + numeroVolo + " non esiste.",
@@ -77,6 +80,8 @@ public class GestionePrenotazioniGUI {
                         JOptionPane.ERROR_MESSAGE);
                 return;
             }
+
+
 
             controller.aggiungiPrenotazione(
                     numeroBiglietto,
