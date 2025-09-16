@@ -14,13 +14,13 @@ public class Controller {
     private List<Amministratore> amministratori;
     private List<DatiPasseggero> datiPasseggeri = new ArrayList<>();
     private List<UtenteGenerico> utenti = new ArrayList<>();
+    private List<Bagaglio> bagagli = new ArrayList<>();
     private AmministratoreDAOPostgres adminDAO;
     private BagaglioDAOPostgres bagaglioDAO;
     private DatiPasseggeroDAOPostgres datiPasseggeroDAO;
     private PrenotazioneDAOPostgres prenotazioneDAO;
     private UtenteGenericoDAOPostgres utentiDAO;
     private VoloDAOPostgres voloDAO;
-
 
     public Controller() {
         this.prenotazioni = new ArrayList<>();
@@ -140,8 +140,17 @@ public class Controller {
         // System.out.println("DEBUG Controller.aggiungiVolo - aggiunto volo " + codiceUnivoco + " gate='" + gate + "'");
     }
 
-
-
+    public boolean rimuoviVolo(String codiceUnivoco) {
+        Iterator<Volo> iterator = voliGestiti.iterator();
+        while (iterator.hasNext()) {
+            Volo v = iterator.next();
+            if (v.getCodiceUnivoco().equalsIgnoreCase(codiceUnivoco)) {
+                iterator.remove();
+                return true; // rimosso con successo
+            }
+        }
+        return false; // nessun volo trovato
+    }
 
     public List<Volo> getVoliGestiti() {
         return voliGestiti;
@@ -173,6 +182,19 @@ public class Controller {
         Prenotazione prenotazione = new Prenotazione(numeroBiglietto, posto, stato, utenteGenerico, datiPasseggero, volo);
         prenotazioni.add(prenotazione);
     }
+
+    public boolean rimuoviPrenotazione(String numeroPrenotazione) {
+        Iterator<Prenotazione> iterator = prenotazioni.iterator();
+        while(iterator.hasNext()) {
+            Prenotazione p = iterator.next();
+            if(p.getNumBiglietto().equalsIgnoreCase(numeroPrenotazione)) {
+                iterator.remove();
+                return true; // prenotazione rimossa
+            }
+        }
+        return false; // non trovata
+    }
+
 
     public void mostraAreaPersonaleAmm(JFrame finestraCorrente, Amministratore amministratore) {
         finestraCorrente.setVisible(false);
@@ -381,14 +403,20 @@ public class Controller {
         return ricercaPasseggeri(null, null, null, null, null, null, null);
     }
 
-    // --- Bagagli ---
-    public void aggiungiBagaglio(Bagaglio b) {
-        bagagliGestiti.add(b);
-        bagaglioDAO.insert(b);
+    // Aggiunge un bagaglio (ritorna false se già esiste con lo stesso codice)
+    public boolean aggiungiBagaglio(String codice, StatoBagaglio stato) {
+        for(Bagaglio b : bagagli) {
+            if(b.getCodice().equalsIgnoreCase(codice)) {
+                return false; // già esistente
+            }
+        }
+        bagagli.add(new Bagaglio(codice, stato));
+        return true;
     }
 
-    public List<Bagaglio> getBagagliGestiti() {
-        return bagagliGestiti;
+    // Restituisce tutti i bagagli
+    public List<Bagaglio> getBagagli() {
+        return new ArrayList<>(bagagli);
     }
 
     public List<Object[]> ricercaBagagli(String codiceBagaglio, String stato) {
@@ -410,6 +438,10 @@ public class Controller {
             }
         }
         return risultati;
+    }
+
+    public boolean rimuoviBagaglio(String codice) {
+        return bagagli.removeIf(b -> b.getCodice().equalsIgnoreCase(codice));
     }
 
 

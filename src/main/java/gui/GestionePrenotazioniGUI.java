@@ -11,6 +11,7 @@ public class GestionePrenotazioniGUI {
     private JComboBox<StatoPrenotazione> statoPrenotazioneComboBox;
     private JButton aggiungiPrenotazioneButton;
     private JTextField numeroVoloTextField;
+    private JButton rimuoviPrenotazioneButton;
     private Controller controller;
     private Utente utente; // campo utente
     private DatiPasseggero datiPasseggero = null;
@@ -68,20 +69,17 @@ public class GestionePrenotazioniGUI {
                 return;
             }
 
-
             StatoPrenotazione stato = (StatoPrenotazione) statoPrenotazioneComboBox.getSelectedItem();
 
             Volo volo = controller.getVoloByCodice(numeroVolo);
 
-            if (volo == null) {
+            if(volo == null) {
                 JOptionPane.showMessageDialog(null,
                         "Il volo con codice " + numeroVolo + " non esiste.",
                         "Errore",
                         JOptionPane.ERROR_MESSAGE);
                 return;
             }
-
-
 
             controller.aggiungiPrenotazione(
                     numeroBiglietto,
@@ -106,7 +104,39 @@ public class GestionePrenotazioniGUI {
             numeroVoloTextField.setText("");
             statoPrenotazioneComboBox.setSelectedIndex(0);
         });
+
+        rimuoviPrenotazioneButton.addActionListener(e -> rimuoviPrenotazione());
     }
+
+    private void rimuoviPrenotazione() {
+        String numeroBiglietto = numeroPrenotazioneTextField.getText().trim();
+
+        if(numeroBiglietto.isEmpty()) {
+            JOptionPane.showMessageDialog(null,
+                    "Inserisci il numero della prenotazione da rimuovere.",
+                    "Errore",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        boolean rimosso = controller.rimuoviPrenotazione(numeroBiglietto);
+
+        if(rimosso) {
+            JOptionPane.showMessageDialog(null,
+                    "Prenotazione rimossa con successo!");
+            areaPersonaleAmmGUI.aggiornaTabellaPasseggeri();
+            numeroPrenotazioneTextField.setText("");
+            postoTextField.setText("");
+            numeroVoloTextField.setText("");
+            statoPrenotazioneComboBox.setSelectedIndex(0);
+        } else {
+            JOptionPane.showMessageDialog(null,
+                    "Nessuna prenotazione trovata con numero " + numeroBiglietto,
+                    "Errore",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
 
     public JPanel getPanelPrenotazione() {
             return panelPrenotazione;

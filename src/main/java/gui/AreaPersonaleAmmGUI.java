@@ -128,7 +128,6 @@ public class AreaPersonaleAmmGUI {
         });
 
 
-
         gestionePrenotazioniButton.addActionListener(e -> {
             GestionePrenotazioniGUI gestionePrenotazioni = new GestionePrenotazioniGUI(controller, amministratore, this);
             JFrame frame = new JFrame("Gestione Prenotazioni");
@@ -139,9 +138,9 @@ public class AreaPersonaleAmmGUI {
         });
 
         gestioneGateButton.addActionListener(e -> {
-            GestioneGateGUI gestioneGate = new GestioneGateGUI(controller);
-            JFrame frame = new JFrame("Gestione Gate");
-            frame.setContentPane(gestioneGate.getPanelGate());
+            GestioneBagagliGUI gestioneBagagli = new GestioneBagagliGUI(controller);
+            JFrame frame = new JFrame("Gestione Bagagli");
+            frame.setContentPane(gestioneBagagli.getPanelBagagli());
             frame.pack();
             frame.setLocationRelativeTo(null);
             frame.setVisible(true);

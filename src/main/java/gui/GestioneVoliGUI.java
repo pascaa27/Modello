@@ -20,6 +20,7 @@ public class GestioneVoliGUI {
     private JRadioButton partenzaRadioButton;
     private JComboBox<StatoVolo> statoVoloComboBox;
     private JButton aggiungiVoloButton;
+    private JButton rimuoviVoloButton;
     private final Controller controller;
     private final AreaPersonaleAmmGUI areaAmmGUI;
     private static final String AEROPORTO_LOCALE = "NAP";
@@ -52,6 +53,9 @@ public class GestioneVoliGUI {
             aggiungiVoloButton.addActionListener(e -> aggiungiVolo());
         }
 
+        if(rimuoviVoloButton != null) {
+            rimuoviVoloButton.addActionListener(e -> rimuoviVolo());
+        }
     }
 
     private void setDirezioneDefault() {
@@ -71,26 +75,34 @@ public class GestioneVoliGUI {
         String compagnia = safeText(compagniaTextField);
         String data = safeText(dataTextField);
         String orarioPrevisto = safeText(orarioPrevistoTextField);
+        String orarioStimato = safeText(orarioStimatoTextField);
         String otherAirport = safeText(altroAeroportoTextField).toUpperCase();
-        String gate = safeText(gateTextField); // safeText gestisce gateTextField==null
+        String gate = safeText(gateTextField);
 
         StatoVolo stato = (StatoVolo) statoVoloComboBox.getSelectedItem();
+        String direzione = arrivoRadioButton.isSelected() ? "in arrivo" : "in partenza"; // così matcha la logica di valida()
 
-        String direzione = arrivoRadioButton.isSelected() ? "in arrivo" : "in partenza";
+        // 🔎 Richiamo la validazione
+        String errore = valida(codice, compagnia, data, otherAirport, orarioPrevisto, orarioStimato, gate, direzione, stato);
+        if(errore != null) {
+            JOptionPane.showMessageDialog(
+                    gestioneVoliPanel,
+                    errore,
+                    "Errore inserimento volo",
+                    JOptionPane.ERROR_MESSAGE
+            );
+            return; // blocca inserimento
+        }
 
-        // DEBUG per capire cosa viene passato
-        //System.out.println("DEBUG aggiungiVolo: codice=" + codice + " gate='" + gate + "' direzione=" + direzione);
-
-        // Se il campo è veramente null (non inizializzato nel form), avvisa l'utente/lo sviluppatore
-        if (gateTextField == null) {
+        // Se il campo è veramente null (binding errato nel form)
+        if(gateTextField == null) {
             JOptionPane.showMessageDialog(gestioneVoliPanel,
-                    "Errore: il campo GATE non è collegato nel form (variabile gateTextField è null). Controlla il binding nel GUI builder.",
+                    "Errore: il campo GATE non è collegato nel form.",
                     "Configurazione form", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        // Se vuoi impedire aggiunte senza gate per partenze in imbarco, lascia la validazione già presente.
-        // Alla fine chiami il controller (assicurati che la firma del controller includa 'gate')
+        // Se tutto ok → inserisci
         controller.aggiungiVolo(
                 codice,
                 compagnia,
@@ -103,9 +115,51 @@ public class GestioneVoliGUI {
         );
 
         JOptionPane.showMessageDialog(gestioneVoliPanel, "Volo aggiunto con successo!");
-
-        // 👇 aggiorna la tabella orario dell’area amministratore
+        pulisci(); // reset campi dopo inserimento
         areaAmmGUI.aggiornaTabellaOrario();
+    }
+
+    private void rimuoviVolo() {
+        String codice = safeText(codiceUnivocoTextField);
+
+        if(codice.isEmpty()) {
+            JOptionPane.showMessageDialog(
+                    gestioneVoliPanel,
+                    "Inserisci il codice univoco del volo da rimuovere.",
+                    "Errore rimozione",
+                    JOptionPane.ERROR_MESSAGE
+            );
+            return;
+        }
+
+        int conferma = JOptionPane.showConfirmDialog(
+                gestioneVoliPanel,
+                "Sei sicuro di voler rimuovere il volo con codice " + codice + "?",
+                "Conferma rimozione",
+                JOptionPane.YES_NO_OPTION
+        );
+
+        if(conferma == JOptionPane.YES_OPTION) {
+            boolean successo = controller.rimuoviVolo(codice); // 🔎 Assicurati che esista questo metodo nel Controller
+
+            if(successo) {
+                JOptionPane.showMessageDialog(
+                        gestioneVoliPanel,
+                        "Volo rimosso con successo!",
+                        "Rimozione completata",
+                        JOptionPane.INFORMATION_MESSAGE
+                );
+                pulisci();
+                areaAmmGUI.aggiornaTabellaOrario();
+            } else {
+                JOptionPane.showMessageDialog(
+                        gestioneVoliPanel,
+                        "Nessun volo trovato con codice " + codice,
+                        "Errore rimozione",
+                        JOptionPane.ERROR_MESSAGE
+                );
+            }
+        }
     }
 
 
@@ -119,7 +173,7 @@ public class GestioneVoliGUI {
                           String direzione,
                           StatoVolo stato) {
 
-        if(codice.isEmpty()) return "Codice volo obbligatorio.";
+        if(codice.isEmpty()) return "Codice univoco volo obbligatorio.";
 
         if(compagnia.isEmpty()) return "Compagnia obbligatoria.";
 
@@ -135,11 +189,11 @@ public class GestioneVoliGUI {
         if(orarioPrevisto == null || !Pattern.matches("\\d{2}:\\d{2}", orarioPrevisto))
             return "Orario previsto (HH:mm) obbligatorio.";
 
-        if(orarioStimato != null && !orarioStimato.isEmpty() && !Pattern.matches("\\d{2}:\\d{2}", orarioStimato))
-            return "Orario stimato deve essere HH:mm oppure vuoto.";
+        if(orarioStimato == null || !Pattern.matches("\\d{2}:\\d{2}", orarioStimato))
+            return "Orario stimato (HH:mm) obbligatorio.";
 
-        if("P".equals(direzione) && stato == StatoVolo.IMBARCO && (gate == null || gate.isEmpty()))
-            return "Gate obbligatorio per una partenza in IMBARCO.";
+        if(gate == null || gate.isEmpty())
+            return "Il campo Gate è obbligatorio.";
 
         return null;
     }
