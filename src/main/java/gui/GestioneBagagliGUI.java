@@ -8,16 +8,18 @@ import javax.swing.table.DefaultTableModel;
 import java.util.List;
 
 public class GestioneBagagliGUI {
-    private JPanel panelBagagli;
+    private JPanel panelBagaglio;
     private JTextField codiceBagaglioTextField;
     private JComboBox<StatoBagaglio> statoBagaglioComboBox;
     private JButton aggiungiBagaglioButton;
     private JButton rimuoviBagaglioButton;
     private JTable bagagliTable;
     private final Controller controller;
+    private final AreaPersonaleAmmGUI areaAmmGUI;
 
-    public GestioneBagagliGUI(Controller controller) {
+    public GestioneBagagliGUI(Controller controller, AreaPersonaleAmmGUI areaAmmGUI) {
         this.controller = controller;
+        this.areaAmmGUI = areaAmmGUI;
 
         // Popola combo stato
         for(StatoBagaglio stato : StatoBagaglio.values()) {
@@ -50,7 +52,7 @@ public class GestioneBagagliGUI {
         model.setRowCount(0);
         List<Bagaglio> bagagli = controller.getBagagli();
         for(Bagaglio b : bagagli) {
-            model.addRow(new Object[]{b.getCodice(), b.getStato()});
+            model.addRow(new Object[]{b.getCodUnivoco(), b.getStato()});
         }
     }
 
@@ -59,17 +61,18 @@ public class GestioneBagagliGUI {
         StatoBagaglio stato = (StatoBagaglio) statoBagaglioComboBox.getSelectedItem();
 
         if(codice.isEmpty() || stato == null) {
-            JOptionPane.showMessageDialog(panelBagagli, "Compila tutti i campi!");
+            JOptionPane.showMessageDialog(panelBagaglio, "Compila tutti i campi!");
             return;
         }
 
         boolean added = controller.aggiungiBagaglio(codice, stato);
         if(added) {
-            JOptionPane.showMessageDialog(panelBagagli, "Bagaglio aggiunto con successo!");
+            JOptionPane.showMessageDialog(panelBagaglio, "Bagaglio aggiunto con successo!");
             codiceBagaglioTextField.setText("");
             refreshTabellaBagagli();
+            areaAmmGUI.caricaTuttiBagagli(); // aggiorna tabella principale
         } else {
-            JOptionPane.showMessageDialog(panelBagagli, "Esiste già un bagaglio con questo codice!", "Duplicato", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(panelBagaglio, "Esiste già un bagaglio con questo codice!", "Duplicato", JOptionPane.WARNING_MESSAGE);
         }
     }
 
@@ -81,11 +84,11 @@ public class GestioneBagagliGUI {
         }
 
         if(codice.isEmpty()) {
-            JOptionPane.showMessageDialog(panelBagagli, "Seleziona un bagaglio dalla tabella o inserisci il codice.");
+            JOptionPane.showMessageDialog(panelBagaglio, "Seleziona un bagaglio dalla tabella o inserisci il codice.");
             return;
         }
 
-        int conferma = JOptionPane.showConfirmDialog(panelBagagli,
+        int conferma = JOptionPane.showConfirmDialog(panelBagaglio,
                 "Vuoi eliminare il bagaglio " + codice + "?",
                 "Conferma eliminazione",
                 JOptionPane.YES_NO_OPTION);
@@ -94,14 +97,16 @@ public class GestioneBagagliGUI {
 
         boolean removed = controller.rimuoviBagaglio(codice);
         if(removed) {
-            JOptionPane.showMessageDialog(panelBagagli, "Bagaglio eliminato.");
+            JOptionPane.showMessageDialog(panelBagaglio, "Bagaglio rimosso con successo!");
+            codiceBagaglioTextField.setText("");
             refreshTabellaBagagli();
+            areaAmmGUI.caricaTuttiBagagli(); // aggiorna tabella principale
         } else {
-            JOptionPane.showMessageDialog(panelBagagli, "Nessun bagaglio trovato con quel codice.", "Errore", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(panelBagaglio, "Nessun bagaglio trovato con quel codice.", "Errore", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    public JPanel getPanelBagagli() {
-        return panelBagagli;
+    public JPanel getPanelBagaglio() {
+        return panelBagaglio;
     }
 }

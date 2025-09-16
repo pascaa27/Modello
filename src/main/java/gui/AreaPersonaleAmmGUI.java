@@ -38,7 +38,7 @@ public class AreaPersonaleAmmGUI {
     private JButton cercaBagaglioButton;
     private JButton gestioneVoliButton;
     private JButton gestionePrenotazioniButton;
-    private JButton gestioneGateButton;
+    private JButton gestioneBagagliButton;
     private JTextField orarioTextField;
     private boolean passwordVisibile = false;
     private TabellaOrarioGUI tabellaOrarioGUI;
@@ -110,10 +110,10 @@ public class AreaPersonaleAmmGUI {
         JPanel bottoniPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
         gestioneVoliButton = new JButton("Gestione Voli");
         gestionePrenotazioniButton = new JButton("Gestione Prenotazioni");
-        gestioneGateButton = new JButton("Gestione Gate");
+        gestioneBagagliButton = new JButton("Gestione Bagagli");
         bottoniPanel.add(gestioneVoliButton);
         bottoniPanel.add(gestionePrenotazioniButton);
-        bottoniPanel.add(gestioneGateButton);
+        bottoniPanel.add(gestioneBagagliButton);
 
         areaPersonaleAmmPanel.add(bottoniPanel);
 
@@ -137,10 +137,10 @@ public class AreaPersonaleAmmGUI {
             frame.setVisible(true);
         });
 
-        gestioneGateButton.addActionListener(e -> {
-            GestioneBagagliGUI gestioneBagagli = new GestioneBagagliGUI(controller);
+        gestioneBagagliButton.addActionListener(e -> {
+            GestioneBagagliGUI gestioneBagagli = new GestioneBagagliGUI(controller, this);
             JFrame frame = new JFrame("Gestione Bagagli");
-            frame.setContentPane(gestioneBagagli.getPanelBagagli());
+            frame.setContentPane(gestioneBagagli.getPanelBagaglio());
             frame.pack();
             frame.setLocationRelativeTo(null);
             frame.setVisible(true);
@@ -425,7 +425,7 @@ public class AreaPersonaleAmmGUI {
         }
     }
 
-    private void caricaTuttiBagagli() {
+    public void caricaTuttiBagagli() {
         List<Object[]> risultati = controller.tuttiBagagliRows();
         DefaultTableModel model = (DefaultTableModel) risultatiRicercaBagaglioTable.getModel();
         model.setRowCount(0);

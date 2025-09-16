@@ -9,12 +9,11 @@ import java.util.*;
 public class Controller {
     private List<Volo> voliGestiti = new ArrayList<>();
     private List<Prenotazione> prenotazioni = new ArrayList<>();
-    private List<Bagaglio> bagagliGestiti = new ArrayList<>();
     private List<Gate> gates = new ArrayList<>();
     private List<Amministratore> amministratori;
     private List<DatiPasseggero> datiPasseggeri = new ArrayList<>();
     private List<UtenteGenerico> utenti = new ArrayList<>();
-    private List<Bagaglio> bagagli = new ArrayList<>();
+    private final List<Bagaglio> bagagli = new ArrayList<>();
     private AmministratoreDAOPostgres adminDAO;
     private BagaglioDAOPostgres bagaglioDAO;
     private DatiPasseggeroDAOPostgres datiPasseggeroDAO;
@@ -74,10 +73,10 @@ public class Controller {
         prenotazioni.add(p1);
         prenotazioni.add(p2);
 
-        bagagliGestiti.add(new Bagaglio("BAG001", 18.3, StatoBagaglio.SMARRITO, p1));
-        bagagliGestiti.add(new Bagaglio("BAG002", 19.1, StatoBagaglio.CARICATO, p1));
-        bagagliGestiti.add(new Bagaglio("BAG003", 13.4, StatoBagaglio.SMARRITO, p2));
-        bagagliGestiti.add(new Bagaglio("BAG004", 22.0, StatoBagaglio.CARICATO, p2));
+        bagagli.add(new Bagaglio("BAG001", 18.3, StatoBagaglio.SMARRITO, p1));
+        bagagli.add(new Bagaglio("BAG002", 19.1, StatoBagaglio.CARICATO, p1));
+        bagagli.add(new Bagaglio("BAG003", 13.4, StatoBagaglio.SMARRITO, p2));
+        bagagli.add(new Bagaglio("BAG004", 22.0, StatoBagaglio.CARICATO, p2));
     }
 
     public List<Object[]> tuttiVoli() {
@@ -403,15 +402,21 @@ public class Controller {
         return ricercaPasseggeri(null, null, null, null, null, null, null);
     }
 
-    // Aggiunge un bagaglio (ritorna false se già esiste con lo stesso codice)
-    public boolean aggiungiBagaglio(String codice, StatoBagaglio stato) {
+    // Aggiunge un bagaglio (ritorna false se già esiste con lo stesso codice). Versione usata dal DAO
+    public boolean aggiungiBagaglio(Bagaglio bagaglio) {
         for(Bagaglio b : bagagli) {
-            if(b.getCodice().equalsIgnoreCase(codice)) {
+            if(b.getCodUnivoco().equalsIgnoreCase(bagaglio.getCodUnivoco())) {
                 return false; // già esistente
             }
         }
-        bagagli.add(new Bagaglio(codice, stato));
+        bagagli.add(bagaglio);
         return true;
+    }
+
+    // versione usata dalla GUI
+    public boolean aggiungiBagaglio(String codice, StatoBagaglio stato) {
+        Bagaglio nuovo = new Bagaglio(codice, 0.0, stato, null);
+        return aggiungiBagaglio(nuovo);
     }
 
     // Restituisce tutti i bagagli
@@ -421,7 +426,7 @@ public class Controller {
 
     public List<Object[]> ricercaBagagli(String codiceBagaglio, String stato) {
         List<Object[]> risultati = new ArrayList<>();
-        for(Bagaglio b : bagagliGestiti) {
+        for(Bagaglio b : bagagli) {
             boolean match = true;
             if(codiceBagaglio != null && !codiceBagaglio.isEmpty() &&
                     (b.getCodUnivoco() == null || !b.getCodUnivoco().contains(codiceBagaglio)))
@@ -441,7 +446,7 @@ public class Controller {
     }
 
     public boolean rimuoviBagaglio(String codice) {
-        return bagagli.removeIf(b -> b.getCodice().equalsIgnoreCase(codice));
+        return bagagli.removeIf(b -> b.getCodUnivoco().equalsIgnoreCase(codice));
     }
 
 
