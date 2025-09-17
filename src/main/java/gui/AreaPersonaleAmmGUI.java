@@ -55,6 +55,7 @@ public class AreaPersonaleAmmGUI {
     private JTextField codiceFiscaleTextField;
     private JTextField postoAssegnatoTextField;
     private JComboBox<StatoPrenotazione> statoPrenotazioneComboBox;
+    private JTextField emailPasseggeroTextField;
 
     public AreaPersonaleAmmGUI(Controller controller, Amministratore amministratore) {
         this.controller = controller;
@@ -260,6 +261,10 @@ public class AreaPersonaleAmmGUI {
         cognomePasseggeroTextField = new JTextField(10);
         ricercaPanel.add(cognomePasseggeroTextField);
 
+        ricercaPanel.add(new JLabel("Email:"));
+        emailPasseggeroTextField = new JTextField(10);
+        ricercaPanel.add(emailPasseggeroTextField);
+
         ricercaPanel.add(new JLabel("Codice Fiscale:"));
         codiceFiscaleTextField = new JTextField(10);
         ricercaPanel.add(codiceFiscaleTextField);
@@ -297,6 +302,7 @@ public class AreaPersonaleAmmGUI {
         resetBtn.addActionListener(e -> {
             nomePasseggeroTextField.setText("");
             cognomePasseggeroTextField.setText("");
+            emailPasseggeroTextField.setText("");
             codiceFiscaleTextField.setText("");
             numeroVoloPasseggeroTextField.setText("");
             numeroPrenotazionePasseggeroTextField.setText("");
@@ -388,6 +394,7 @@ public class AreaPersonaleAmmGUI {
     private void ricercaPasseggeri() {
         String nome = nomePasseggeroTextField.getText();
         String cognome = cognomePasseggeroTextField.getText();
+        String email = emailPasseggeroTextField.getText();
         String codiceFiscale = codiceFiscaleTextField.getText();
         String numeroVolo = numeroVoloPasseggeroTextField.getText();
         String numeroPrenotazione = numeroPrenotazionePasseggeroTextField.getText();
@@ -398,6 +405,7 @@ public class AreaPersonaleAmmGUI {
         List<Object[]> risultati = controller.ricercaPasseggeri(
                 nome,
                 cognome,
+                email,
                 codiceFiscale,
                 numeroVolo,
                 numeroPrenotazione,

@@ -396,8 +396,10 @@ public class Controller {
     // ==========================
     // Passeggeri (su cache, alimentata quando inserisci/aggiorni/ricarichi)
     // ==========================
+    // Sostituisci la firma esistente con questa (8 parametri)
     public List<Object[]> ricercaPasseggeri(String nome,
                                             String cognome,
+                                            String email,
                                             String codiceFiscale,
                                             String numeroVolo,
                                             String numeroPrenotazione,
@@ -405,8 +407,9 @@ public class Controller {
                                             String statoPrenotazione) {
         List<Object[]> risultati = new ArrayList<>();
 
-        String n = norm(nome);
-        String c = norm(cognome);
+        String n  = norm(nome);
+        String c  = norm(cognome);
+        String em = norm(email);
         String cf = norm(codiceFiscale);
         String nv = norm(numeroVolo);
         String np = norm(numeroPrenotazione);
@@ -416,10 +419,16 @@ public class Controller {
             boolean match = true;
             DatiPasseggero dp = p.getDatiPasseggero();
 
-            if (n != null && (dp == null || dp.getNome() == null || !dp.getNome().toLowerCase().contains(n.toLowerCase())))
+            if (n != null && (dp == null || dp.getNome() == null ||
+                    !dp.getNome().toLowerCase().contains(n.toLowerCase())))
                 match = false;
 
-            if (match && c != null && (dp == null || dp.getCognome() == null || !dp.getCognome().toLowerCase().contains(c.toLowerCase())))
+            if (match && c != null && (dp == null || dp.getCognome() == null ||
+                    !dp.getCognome().toLowerCase().contains(c.toLowerCase())))
+                match = false;
+
+            if (match && em != null && (dp == null || dp.getEmail() == null ||
+                    !dp.getEmail().toLowerCase().contains(em.toLowerCase())))
                 match = false;
 
             if (match && cf != null && (dp == null || dp.getCodiceFiscale() == null ||
@@ -446,6 +455,7 @@ public class Controller {
                 risultati.add(new Object[]{
                         safe(dp != null ? dp.getNome() : ""),
                         safe(dp != null ? dp.getCognome() : ""),
+                        safe(dp != null ? dp.getEmail() : ""),            // Email: 3a colonna
                         safe(dp != null ? dp.getCodiceFiscale() : ""),
                         p.getVolo() != null ? safe(p.getVolo().getCodiceUnivoco()) : "",
                         safe(p.getNumBiglietto()),
@@ -458,7 +468,7 @@ public class Controller {
     }
 
     public List<Object[]> tuttiPasseggeri() {
-        return ricercaPasseggeri(null, null, null, null, null, null, null);
+        return ricercaPasseggeri(null, null, null, null, null, null, null, null);
     }
 
     // ==========================

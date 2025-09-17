@@ -3,7 +3,7 @@
   <grid id="27dc6" binding="areaPersonaleAmmPanel" layout-manager="GridLayoutManager" row-count="14" column-count="7" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="0" left="0" bottom="0" right="0"/>
     <constraints>
-      <xy x="20" y="20" width="588" height="771"/>
+      <xy x="20" y="20" width="588" height="875"/>
     </constraints>
     <properties/>
     <border type="none"/>
@@ -266,7 +266,7 @@
               </component>
             </children>
           </grid>
-          <grid id="71ea8" layout-manager="GridLayoutManager" row-count="13" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+          <grid id="71ea8" layout-manager="GridLayoutManager" row-count="17" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
             <margin top="0" left="0" bottom="0" right="0"/>
             <constraints>
               <tabbedpane title="Passeggero"/>
@@ -290,17 +290,105 @@
                 </constraints>
                 <properties/>
               </component>
-              <component id="2b3ae" class="javax.swing.JTextField" binding="cognomePasseggeroTextField">
+              <component id="9a935" class="javax.swing.JTextField" binding="numeroVoloPasseggeroTextField">
                 <constraints>
-                  <grid row="1" column="1" row-span="4" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                  <grid row="10" column="1" row-span="2" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
                     <preferred-size width="150" height="-1"/>
                   </grid>
                 </constraints>
                 <properties/>
               </component>
-              <component id="9a935" class="javax.swing.JTextField" binding="numeroVoloPasseggeroTextField">
+              <component id="80fe2" class="javax.swing.JLabel">
                 <constraints>
-                  <grid row="6" column="1" row-span="2" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                  <grid row="10" column="0" row-span="2" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <text value="Numero Volo:"/>
+                </properties>
+              </component>
+              <component id="e8a70" class="javax.swing.JTextField" binding="numeroPrenotazionePasseggeroTextField">
+                <constraints>
+                  <grid row="12" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                    <preferred-size width="150" height="-1"/>
+                  </grid>
+                </constraints>
+                <properties>
+                  <text value=""/>
+                </properties>
+              </component>
+              <component id="64ed4" class="javax.swing.JLabel">
+                <constraints>
+                  <grid row="12" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <text value="Numero Prenotazione:"/>
+                </properties>
+              </component>
+              <component id="d15d6" class="javax.swing.JButton" binding="cercaPasseggeroButton">
+                <constraints>
+                  <grid row="15" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <text value="Cerca"/>
+                </properties>
+              </component>
+              <component id="b6bd6" class="javax.swing.JTable" binding="risultatiRicercaPasseggeroTable">
+                <constraints>
+                  <grid row="16" column="0" row-span="1" col-span="2" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
+                    <preferred-size width="150" height="50"/>
+                  </grid>
+                </constraints>
+                <properties/>
+              </component>
+              <component id="ebd91" class="javax.swing.JLabel">
+                <constraints>
+                  <grid row="5" column="0" row-span="5" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <text value="Codice Fiscale:"/>
+                </properties>
+              </component>
+              <component id="a1146" class="javax.swing.JLabel">
+                <constraints>
+                  <grid row="13" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <text value="Posto Assegnato:"/>
+                </properties>
+              </component>
+              <component id="12a33" class="javax.swing.JTextField" binding="postoAssegnatoTextField">
+                <constraints>
+                  <grid row="13" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                    <preferred-size width="150" height="-1"/>
+                  </grid>
+                </constraints>
+                <properties/>
+              </component>
+              <component id="1d700" class="javax.swing.JLabel">
+                <constraints>
+                  <grid row="14" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <text value="Stato Prenotazione:"/>
+                </properties>
+              </component>
+              <component id="6583a" class="javax.swing.JComboBox" binding="statoPrenotazioneComboBox">
+                <constraints>
+                  <grid row="14" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties/>
+              </component>
+              <component id="f52a" class="javax.swing.JLabel">
+                <constraints>
+                  <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <text value="Email:"/>
+                </properties>
+              </component>
+              <component id="4c0bd" class="javax.swing.JTextField" binding="codiceFiscaleTextField">
+                <constraints>
+                  <grid row="5" column="1" row-span="5" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
                     <preferred-size width="150" height="-1"/>
                   </grid>
                 </constraints>
@@ -314,93 +402,23 @@
                   <text value="Cognome:"/>
                 </properties>
               </component>
-              <component id="80fe2" class="javax.swing.JLabel">
+              <component id="2b3ae" class="javax.swing.JTextField" binding="cognomePasseggeroTextField">
                 <constraints>
-                  <grid row="6" column="0" row-span="2" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                  <grid row="1" column="1" row-span="3" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                    <preferred-size width="150" height="-1"/>
+                  </grid>
                 </constraints>
-                <properties>
-                  <text value="Numero Volo:"/>
-                </properties>
+                <properties/>
               </component>
-              <component id="e8a70" class="javax.swing.JTextField" binding="numeroPrenotazionePasseggeroTextField">
+              <component id="4797c" class="javax.swing.JTextField" binding="emailPasseggeroTextField">
                 <constraints>
-                  <grid row="8" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                  <grid row="4" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
                     <preferred-size width="150" height="-1"/>
                   </grid>
                 </constraints>
                 <properties>
                   <text value=""/>
                 </properties>
-              </component>
-              <component id="64ed4" class="javax.swing.JLabel">
-                <constraints>
-                  <grid row="8" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                </constraints>
-                <properties>
-                  <text value="Numero Prenotazione:"/>
-                </properties>
-              </component>
-              <component id="d15d6" class="javax.swing.JButton" binding="cercaPasseggeroButton">
-                <constraints>
-                  <grid row="11" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-                </constraints>
-                <properties>
-                  <text value="Cerca"/>
-                </properties>
-              </component>
-              <component id="b6bd6" class="javax.swing.JTable" binding="risultatiRicercaPasseggeroTable">
-                <constraints>
-                  <grid row="12" column="0" row-span="1" col-span="2" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
-                    <preferred-size width="150" height="50"/>
-                  </grid>
-                </constraints>
-                <properties/>
-              </component>
-              <component id="ebd91" class="javax.swing.JLabel">
-                <constraints>
-                  <grid row="4" column="0" row-span="2" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                </constraints>
-                <properties>
-                  <text value="Codice Fiscale:"/>
-                </properties>
-              </component>
-              <component id="4c0bd" class="javax.swing.JTextField" binding="codiceFiscaleTextField">
-                <constraints>
-                  <grid row="5" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
-                    <preferred-size width="150" height="-1"/>
-                  </grid>
-                </constraints>
-                <properties/>
-              </component>
-              <component id="a1146" class="javax.swing.JLabel">
-                <constraints>
-                  <grid row="9" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                </constraints>
-                <properties>
-                  <text value="Posto Assegnato:"/>
-                </properties>
-              </component>
-              <component id="12a33" class="javax.swing.JTextField" binding="postoAssegnatoTextField">
-                <constraints>
-                  <grid row="9" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
-                    <preferred-size width="150" height="-1"/>
-                  </grid>
-                </constraints>
-                <properties/>
-              </component>
-              <component id="1d700" class="javax.swing.JLabel">
-                <constraints>
-                  <grid row="10" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                </constraints>
-                <properties>
-                  <text value="Stato Prenotazione:"/>
-                </properties>
-              </component>
-              <component id="6583a" class="javax.swing.JComboBox" binding="statoPrenotazioneComboBox">
-                <constraints>
-                  <grid row="10" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
-                </constraints>
-                <properties/>
               </component>
             </children>
           </grid>
