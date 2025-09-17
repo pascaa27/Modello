@@ -3,27 +3,38 @@ package controller;
 import gui.AreaPersonaleAmmGUI;
 import implementazioneDAO.implementazionePostgresDAO.*;
 import model.*;
+
 import javax.swing.*;
 import java.util.*;
 
+/**
+ * Controller "persistente":
+ * - carica i voli dal DB all'avvio
+ * - fa seed dei voli iniziali SOLO se il DB è vuoto
+ * - tutte le operazioni di aggiunta/rimozione/aggiornamento passano dai DAO (DB prima, poi cache in memoria)
+ * - le liste in memoria sono cache della UI, NON la verità dei dati
+ */
 public class Controller {
-    private List<Volo> voliGestiti = new ArrayList<>();
-    private List<Prenotazione> prenotazioni = new ArrayList<>();
-    private List<Gate> gates = new ArrayList<>();
-    private List<Amministratore> amministratori;
-    private List<DatiPasseggero> datiPasseggeri = new ArrayList<>();
-    private List<UtenteGenerico> utenti = new ArrayList<>();
+
+    // Cache in memoria per la UI
+    private final List<Volo> voliGestiti = new ArrayList<>();
+    private final List<Prenotazione> prenotazioni = new ArrayList<>();
+    private final List<Gate> gates = new ArrayList<>();
+    private final List<Amministratore> amministratori = new ArrayList<>();
+    private final List<DatiPasseggero> datiPasseggeri = new ArrayList<>();
+    private final List<UtenteGenerico> utenti = new ArrayList<>();
     private final List<Bagaglio> bagagli = new ArrayList<>();
-    private AmministratoreDAOPostgres adminDAO;
-    private BagaglioDAOPostgres bagaglioDAO;
-    private DatiPasseggeroDAOPostgres datiPasseggeroDAO;
-    private PrenotazioneDAOPostgres prenotazioneDAO;
-    private UtenteGenericoDAOPostgres utentiDAO;
-    private VoloDAOPostgres voloDAO;
+
+    // DAO
+    private final AmministratoreDAOPostgres adminDAO;
+    private final BagaglioDAOPostgres bagaglioDAO;
+    private final DatiPasseggeroDAOPostgres datiPasseggeroDAO;
+    private final PrenotazioneDAOPostgres prenotazioneDAO;
+    private final UtenteGenericoDAOPostgres utentiDAO;
+    private final VoloDAOPostgres voloDAO;
 
     public Controller() {
-        this.prenotazioni = new ArrayList<>();
-        this.amministratori = new ArrayList<>();
+        // Istanzia DAO
         this.adminDAO = new AmministratoreDAOPostgres();
         this.bagaglioDAO = new BagaglioDAOPostgres();
         this.datiPasseggeroDAO = new DatiPasseggeroDAOPostgres();
@@ -31,69 +42,256 @@ public class Controller {
         this.utentiDAO = new UtenteGenericoDAOPostgres();
         this.voloDAO = new VoloDAOPostgres();
 
+        // Collega i DAO al controller (per i factory/metodi di mapping)
         adminDAO.setController(this);
         bagaglioDAO.setController(this);
         datiPasseggeroDAO.setController(this);
         prenotazioneDAO.setController(this);
         utentiDAO.setController(this);
 
-        Amministratore a = adminDAO.findByEmail("admin1@gmail.com");
+        // Inizializza cache da DB
+        init();
+    }
 
+    /**
+     * Inizializzazione: carica da DB. Se non ci sono voli, fa SEED dei voli iniziali su DB e ricarica.
+     */
+    public final void init() {
+        ricaricaVoliDaDB();
 
-        AreaPersonale areaPersonale1 = new AreaPersonale();
-        AreaPersonale areaPersonale2 = new AreaPersonale();
-
-        UtenteGenerico u1 = new UtenteGenerico("luigiverdi@gmail.com", "54321", "Luigi", "Verdi", new ArrayList<>(), areaPersonale1);
-        UtenteGenerico u2 = new UtenteGenerico("lucabianchi@gmail.com", "56789", "Luca", "Bianchi", new ArrayList<>(), areaPersonale2);
-
-        Amministratore admin = new Amministratore("admin1", "pwd123", "", "");
-        TabellaOrario tabella = new TabellaOrario();
-
-
-        //System.out.println("DEBUG Costruttore Controller - prima creazione voli, size=" + voliGestiti.size());
-        caricaVoliIniziali();
-
-
-
-        //System.out.println("DEBUG Dopo aggiunta voli, size=" + voliGestiti.size());
-
-
-        DatiPasseggero passeggero1 = new DatiPasseggero("Luigi", "Verdi", "ID12345", "luigiverdi@gmail.com");
-        DatiPasseggero passeggero2 = new DatiPasseggero("Luca", "Bianchi", "ID67890", "lucabianchi@gmail.com");
-
-        Volo volo1 = getVoloByCodice("AZ123");
-        Volo volo2 = getVoloByCodice("FR987");
-        if (volo1 == null || volo2 == null) {
-            System.err.println("ERRORE: voli iniziali non trovati per le prenotazioni di esempio.");
+        if (voliGestiti.isEmpty()) {
+            seedVoliInizialiNelDB();
+            ricaricaVoliDaDB();
         }
 
-        Prenotazione p1 = new Prenotazione("ABC123", "12A", StatoPrenotazione.CONFERMATA, u1, passeggero1, volo1);
-        Prenotazione p2 = new Prenotazione("DEF456", "12B", StatoPrenotazione.CONFERMATA, u2, passeggero2, volo2);
-
-        prenotazioni.add(p1);
-        prenotazioni.add(p2);
-
-        bagagli.add(new Bagaglio("BAG001", 18.3, StatoBagaglio.SMARRITO, p1));
-        bagagli.add(new Bagaglio("BAG002", 19.1, StatoBagaglio.CARICATO, p1));
-        bagagli.add(new Bagaglio("BAG003", 13.4, StatoBagaglio.SMARRITO, p2));
-        bagagli.add(new Bagaglio("BAG004", 22.0, StatoBagaglio.CARICATO, p2));
+        // Se hai un metodo prenotazioneDAO.findAll(), puoi abilitare il caricamento anche delle prenotazioni
+        ricaricaPrenotazioniDaDB();
     }
 
-    public List<Object[]> tuttiVoli() {
-        return ricercaVoli(null, null, null, null, null, null, null, null);
+    // ==========================
+    // Voli (persistenti)
+    // ==========================
+    private void ricaricaVoliDaDB() {
+        voliGestiti.clear();
+        try {
+            voliGestiti.addAll(voloDAO.findAll());
+        } catch (Exception e) {
+            e.printStackTrace();
+            // La UI mostrerà liste vuote se il DB non risponde
+        }
     }
 
-    private void caricaVoliIniziali() {
+    private void seedVoliInizialiNelDB() {
         for (String[] r : VOLI_INIZIALI) {
-            // r: 0=codice,1=compagnia,2=statoString,3=data,4=orario,5=aeroporto,6=gate,7=arrivo/partenza
             StatoVolo stato = parseStato(r[2]);
             Volo v = new Volo(r[0], r[1], r[3], r[4], stato, null, null);
             v.setAeroporto(r[5]);
             v.setGate(r[6]);
             v.setArrivoPartenza(r[7]);
-            voliGestiti.add(v);
+            try {
+                voloDAO.insert(v); // ignora se già presente (implementa ON CONFLICT nel DAO)
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
+
+    public void aggiungiVolo(String codiceUnivoco,
+                             String compagniaAerea,
+                             String dataVolo,
+                             String orarioPrevisto,
+                             StatoVolo stato,
+                             String arrivoPartenza,
+                             String otherAirport,
+                             String gate) {
+
+        Volo volo = new Volo(codiceUnivoco, compagniaAerea, dataVolo, orarioPrevisto, stato, null, null);
+        volo.setAeroporto(otherAirport);
+        volo.setGate(gate);
+        volo.setArrivoPartenza(arrivoPartenza);
+
+        // Prima su DB, poi sulla cache
+        if (voloDAO.insert(volo)) {
+            voliGestiti.add(volo);
+        } else {
+            throw new RuntimeException("Impossibile inserire il volo " + codiceUnivoco);
+        }
+    }
+
+    public boolean rimuoviVolo(String codiceUnivoco) {
+        if (voloDAO.delete(codiceUnivoco)) {
+            return voliGestiti.removeIf(v -> v.getCodiceUnivoco().equalsIgnoreCase(codiceUnivoco));
+        }
+        return false;
+    }
+
+    public void aggiornaVolo(String codiceUnivoco, StatoVolo nuovoStato, String nuovoOrario) {
+        for (Volo volo : voliGestiti) {
+            if (volo.getCodiceUnivoco().equals(codiceUnivoco)) {
+                volo.setStato(nuovoStato);
+                volo.setOrarioPrevisto(nuovoOrario);
+
+                if (!voloDAO.update(volo)) {
+                    throw new RuntimeException("Impossibile aggiornare il volo " + codiceUnivoco);
+                }
+                return;
+            }
+        }
+        throw new NoSuchElementException("Volo non trovato: " + codiceUnivoco);
+    }
+
+    public List<Volo> getVoliGestiti() {
+        return Collections.unmodifiableList(voliGestiti);
+    }
+
+    public Volo cercaVolo(String codiceUnivoco) {
+        for (Volo volo : voliGestiti) {
+            if (volo.getCodiceUnivoco().equals(codiceUnivoco)) {
+                return volo;
+            }
+        }
+        return null;
+    }
+
+    // ==========================
+    // Prenotazioni (persistenti)
+    // ==========================
+    private void ricaricaPrenotazioniDaDB() {
+        prenotazioni.clear();
+
+
+        try {
+             prenotazioni.addAll(prenotazioneDAO.findAll());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void aggiungiPrenotazione(String numeroBiglietto, String posto, StatoPrenotazione stato,
+                                     String numeroVolo, UtenteGenerico utenteGenerico, String nome, String cognome,
+                                     String codiceFiscale, String email, Volo voloNonUsato) {
+
+        // Validazioni per rispettare i NOT NULL del DB
+        if (numeroBiglietto == null || numeroBiglietto.isBlank())
+            throw new IllegalArgumentException("Numero biglietto mancante");
+        if (posto == null || posto.isBlank())
+            throw new IllegalArgumentException("Posto assegnato mancante");
+        if (stato == null)
+            throw new IllegalArgumentException("Stato prenotazione mancante");
+        if (numeroVolo == null || numeroVolo.isBlank())
+            throw new IllegalArgumentException("Numero volo mancante");
+        if (codiceFiscale == null || codiceFiscale.isBlank())
+            throw new IllegalArgumentException("Codice fiscale mancante");
+        if (email == null || email.isBlank())
+            throw new IllegalArgumentException("Email passeggero mancante");
+
+        // 1) Verifica esistenza volo (FK su idvolo)
+        Volo v = getVoloByCodice(numeroVolo);
+        if (v == null) {
+            throw new IllegalArgumentException("Volo inesistente: " + numeroVolo + ". Inserisci prima il volo.");
+        }
+
+        // 2) Upsert DatiPasseggero PRIMA dell'inserimento prenotazione
+        DatiPasseggero dp;
+        try {
+            dp = datiPasseggeroDAO.findByCodiceFiscale(codiceFiscale);
+            if (dp == null) {
+                dp = new DatiPasseggero(nome, cognome, codiceFiscale, email);
+                if (!datiPasseggeroDAO.insert(dp)) {
+                    throw new RuntimeException("Inserimento DatiPasseggero fallito per CF " + codiceFiscale);
+                }
+                // opzionale: sincronizza cache
+                creaDatiPasseggero(nome, cognome, codiceFiscale, email);
+            } else {
+                boolean needUpdate = false;
+                if (dp.getEmail() == null || !dp.getEmail().equalsIgnoreCase(email)) {
+                    dp.setEmail(email);
+                    needUpdate = true;
+                }
+                if (!java.util.Objects.equals(dp.getNome(), nome)) { dp.setNome(nome); needUpdate = true; }
+                if (!java.util.Objects.equals(dp.getCognome(), cognome)) { dp.setCognome(cognome); needUpdate = true; }
+                if (needUpdate && !datiPasseggeroDAO.update(dp)) {
+                    throw new RuntimeException("Update DatiPasseggero fallito per CF " + codiceFiscale);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Errore nel salvataggio dei dati passeggero", e);
+        }
+
+        // 3) (opzionale) persisti/aggiorna utente
+        try {
+            // utentiDAO.insertOrUpdate(utenteGenerico);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // 4) Inserisci la prenotazione usando la stessa email allineata
+        Prenotazione pren = new Prenotazione(numeroBiglietto, posto, stato, utenteGenerico, dp, v);
+
+        System.out.printf("DEBUG insert prenotazione: biglietto=%s, posto=%s, stato=%s, emailutente=%s, idvolo=%s%n",
+                pren.getNumBiglietto(),
+                pren.getPostoAssegnato(),
+                pren.getStato().name(),
+                dp.getEmail(),
+                v.getCodiceUnivoco());
+
+        if (!prenotazioneDAO.insert(pren)) {
+            throw new RuntimeException("Impossibile inserire prenotazione " + numeroBiglietto);
+        }
+
+        // 5) Aggiorna cache
+        prenotazioni.add(pren);
+    }
+
+    public boolean rimuoviPrenotazione(String numeroPrenotazione) {
+        if (prenotazioneDAO.delete(numeroPrenotazione)) {
+            return prenotazioni.removeIf(p -> p.getNumBiglietto().equalsIgnoreCase(numeroPrenotazione));
+        }
+        return false;
+    }
+
+    public Prenotazione cercaPrenotazione(String numeroBiglietto) {
+        for (Prenotazione p : prenotazioni) {
+            if (p.getNumBiglietto().equals(numeroBiglietto)) {
+                return p;
+            }
+        }
+        // opzionale: se vuoi, prova a leggere dal DB con prenotazioneDAO.findByCodice(numeroBiglietto)
+        return null;
+    }
+
+    public boolean salvaPrenotazione(Prenotazione prenotazione) {
+        if (!prenotazioneDAO.update(prenotazione)) return false;
+
+        // riallinea la cache
+        for (int i = 0; i < prenotazioni.size(); i++) {
+            if (prenotazioni.get(i).getNumBiglietto().equals(prenotazione.getNumBiglietto())) {
+                prenotazioni.set(i, prenotazione);
+                return true;
+            }
+        }
+        // se non era in cache, aggiungila
+        prenotazioni.add(prenotazione);
+        return true;
+    }
+
+    public boolean annullaPrenotazione(Prenotazione prenotazione) {
+        if (prenotazione == null) return false;
+        prenotazione.setStato(StatoPrenotazione.CANCELLATA);
+        return salvaPrenotazione(prenotazione);
+    }
+
+    // ==========================
+    // Ricerca voli (su cache)
+    // ==========================
+    private String norm(String s) {
+        if (s == null) return null;
+        s = s.trim();
+        return s.isEmpty() ? null : s;
+    }
+
+    private String safe(String s) { return s == null ? "" : s; }
 
     private StatoVolo parseStato(String s) {
         if (s == null) return null;
@@ -106,141 +304,6 @@ public class Controller {
         }
     }
 
-
-    private static final String[][] VOLI_INIZIALI = {
-            {"AZ123", "ITA Airways", "PROGRAMMATO", "2025-09-05", "08:15", "MIL", "3", "in arrivo"},
-            {"FR987", "Ryanair", "IMBARCO", "2025-09-05", "08:40", "BAR", "21", "in arrivo"},
-            {"LH455", "Lufthansa", "DECOLLATO", "2025-09-05", "08:55", "MAD", "15", "in partenza"},
-            {"U23610", "easyJet", "CANCELLATO", "2025-09-05", "09:05", "LDN", "9", "in arrivo"},
-            {"AF101", "Air France", "INRITARDO", "2025-09-05", "09:20", "MYK", "5", "in partenza"},
-            {"EK092", "Emirates", "ATTERRATO", "2025-09-05", "09:35", "PAR", "12", "in partenza"}
-    };
-
-    public void aggiungiVolo(String codiceUnivoco,
-                             String compagniaAerea,
-                             String dataVolo,
-                             String orarioPrevisto,
-                             StatoVolo stato,
-                             String arrivoPartenza,
-                             String otherAirport,
-                             String gate) {
-
-        // crea con il costruttore ridotto
-        Volo volo = new Volo(codiceUnivoco, compagniaAerea, dataVolo, orarioPrevisto, stato, null, null);
-
-        // assegna i campi aggiuntivi con i setter
-        volo.setAeroporto(otherAirport);
-        volo.setGate(gate);
-        volo.setArrivoPartenza(arrivoPartenza);
-
-        voliGestiti.add(volo);
-
-        // DEBUG: conferma in console
-        // System.out.println("DEBUG Controller.aggiungiVolo - aggiunto volo " + codiceUnivoco + " gate='" + gate + "'");
-    }
-
-    public boolean rimuoviVolo(String codiceUnivoco) {
-        Iterator<Volo> iterator = voliGestiti.iterator();
-        while (iterator.hasNext()) {
-            Volo v = iterator.next();
-            if (v.getCodiceUnivoco().equalsIgnoreCase(codiceUnivoco)) {
-                iterator.remove();
-                return true; // rimosso con successo
-            }
-        }
-        return false; // nessun volo trovato
-    }
-
-    public List<Volo> getVoliGestiti() {
-        return voliGestiti;
-    }
-
-    public void aggiornaVolo(String codiceUnivoco, StatoVolo nuovoStato, String nuovoOrario) {
-        for(Volo volo : voliGestiti) {
-            if(volo.getCodiceUnivoco().equals(codiceUnivoco)) {
-                volo.setStato(nuovoStato);
-                volo.setOrarioPrevisto(nuovoOrario);
-                break;
-            }
-        }
-    }
-
-    public Volo cercaVolo(String codiceUnivoco) {
-        for(Volo volo : voliGestiti) {
-            if(volo.getCodiceUnivoco().equals(codiceUnivoco)) {
-                return volo;
-            }
-        }
-        return null;
-    }
-
-    public void aggiungiPrenotazione(String numeroBiglietto, String posto, StatoPrenotazione stato,
-                                     String numeroVolo, UtenteGenerico utenteGenerico, String nome, String cognome,
-                                     String codiceFiscale, String email, Volo volo) {
-        DatiPasseggero datiPasseggero = new DatiPasseggero(nome, cognome, codiceFiscale, email);
-        Prenotazione prenotazione = new Prenotazione(numeroBiglietto, posto, stato, utenteGenerico, datiPasseggero, volo);
-        prenotazioni.add(prenotazione);
-    }
-
-    public boolean rimuoviPrenotazione(String numeroPrenotazione) {
-        Iterator<Prenotazione> iterator = prenotazioni.iterator();
-        while(iterator.hasNext()) {
-            Prenotazione p = iterator.next();
-            if(p.getNumBiglietto().equalsIgnoreCase(numeroPrenotazione)) {
-                iterator.remove();
-                return true; // prenotazione rimossa
-            }
-        }
-        return false; // non trovata
-    }
-
-
-    public void mostraAreaPersonaleAmm(JFrame finestraCorrente, Amministratore amministratore) {
-        finestraCorrente.setVisible(false);
-        AreaPersonaleAmmGUI nuovaGUI = new AreaPersonaleAmmGUI(this, amministratore);
-        JFrame frame = new JFrame("Area Personale Amministratore");
-        frame.setContentPane(nuovaGUI.getAreaPersonaleAmmPanel());
-        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        frame.pack();
-        frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
-    }
-
-    public Prenotazione cercaPrenotazione(String numeroBiglietto) {
-        for(Prenotazione p : prenotazioni) {
-            if(p.getNumBiglietto().equals(numeroBiglietto)) {
-                return p;
-            }
-        }
-        return null;
-    }
-
-    public boolean salvaPrenotazione(Prenotazione prenotazione) {
-        for(int i = 0; i < prenotazioni.size(); i++) {
-            if(prenotazioni.get(i).getNumBiglietto().equals(prenotazione.getNumBiglietto())) {
-                prenotazioni.set(i, prenotazione);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public boolean annullaPrenotazione(Prenotazione prenotazione) {
-        if(prenotazione != null) {
-            prenotazione.setStato(StatoPrenotazione.CANCELLATA);
-            return salvaPrenotazione(prenotazione);
-        }
-        return false;
-    }
-
-    // --- Ricerca voli (già presente) ---
-
-    private String norm(String s) {
-        if(s == null) return null;
-        s = s.trim();
-        return s.isEmpty() ? null : s;
-    }
-
     public List<Volo> ricercaVoliRaw(String numeroVolo, String compagnia, String stato, String data,
                                      String orario, String aeroporto, String gate, String arrivoPartenza) {
         numeroVolo = norm(numeroVolo);
@@ -251,10 +314,6 @@ public class Controller {
         aeroporto = norm(aeroporto);
         gate = norm(gate);
         arrivoPartenza = norm(arrivoPartenza);
-
-        /*System.out.printf("DEBUG ricercaVoliRaw parametri: num=%s comp=%s stato=%s data=%s orario=%s aero=%s gate=%s ap=%s%n",
-                numeroVolo, compagnia, stato, data, orario, aeroporto, gate, arrivoPartenza);
-        System.out.println("DEBUG voliGestiti size attuale = " + voliGestiti.size()); */
 
         List<Volo> out = new ArrayList<>();
         for (Volo v : voliGestiti) {
@@ -301,11 +360,8 @@ public class Controller {
 
             if (match) out.add(v);
         }
-        //System.out.println("DEBUG ricercaVoliRaw -> trovati=" + out.size());
         return out;
     }
-
-    private String safe(String s) { return s == null ? "" : s; }
 
     public List<Object[]> ricercaVoli(String numeroVolo, String compagnia, String stato, String data,
                                       String orario, String aeroporto, String gate, String arrivoPartenza) {
@@ -330,11 +386,16 @@ public class Controller {
                     safe(v.getArrivoPartenza())
             });
         }
-        //System.out.println("DEBUG ricercaVoli() -> righe=" + righe.size());
         return righe;
     }
 
-    // --- Passeggeri ---
+    public List<Object[]> tuttiVoli() {
+        return ricercaVoli(null, null, null, null, null, null, null, null);
+    }
+
+    // ==========================
+    // Passeggeri (su cache, alimentata quando inserisci/aggiorni/ricarichi)
+    // ==========================
     public List<Object[]> ricercaPasseggeri(String nome,
                                             String cognome,
                                             String codiceFiscale,
@@ -355,29 +416,28 @@ public class Controller {
             boolean match = true;
             DatiPasseggero dp = p.getDatiPasseggero();
 
-            // Nome
             if (n != null && (dp == null || dp.getNome() == null || !dp.getNome().toLowerCase().contains(n.toLowerCase())))
                 match = false;
-            // Cognome
+
             if (match && c != null && (dp == null || dp.getCognome() == null || !dp.getCognome().toLowerCase().contains(c.toLowerCase())))
                 match = false;
-            // Codice fiscale
+
             if (match && cf != null && (dp == null || dp.getCodiceFiscale() == null ||
                     !dp.getCodiceFiscale().toLowerCase().contains(cf.toLowerCase())))
                 match = false;
-            // Numero volo
+
             if (match && nv != null && (p.getVolo() == null || p.getVolo().getCodiceUnivoco() == null ||
                     !p.getVolo().getCodiceUnivoco().toLowerCase().contains(nv.toLowerCase())))
                 match = false;
-            // Numero prenotazione
+
             if (match && np != null && (p.getNumBiglietto() == null ||
                     !p.getNumBiglietto().toLowerCase().contains(np.toLowerCase())))
                 match = false;
-            // Posto
+
             if (match && pa != null && (p.getPostoAssegnato() == null ||
                     !p.getPostoAssegnato().toLowerCase().contains(pa.toLowerCase())))
                 match = false;
-            // Stato prenotazione
+
             if (match && statoPrenotazione != null &&
                     (p.getStato() == null || !p.getStato().name().equalsIgnoreCase(statoPrenotazione)))
                 match = false;
@@ -397,45 +457,47 @@ public class Controller {
         return risultati;
     }
 
-    // Utility per GUI: tutte le righe senza filtro
     public List<Object[]> tuttiPasseggeri() {
         return ricercaPasseggeri(null, null, null, null, null, null, null);
     }
 
-    // Aggiunge un bagaglio (ritorna false se già esiste con lo stesso codice). Versione usata dal DAO
+    // ==========================
+    // Bagagli (opzionale: persistenza)
+    // ==========================
     public boolean aggiungiBagaglio(Bagaglio bagaglio) {
-        for(Bagaglio b : bagagli) {
-            if(b.getCodUnivoco().equalsIgnoreCase(bagaglio.getCodUnivoco())) {
-                return false; // già esistente
+        for (Bagaglio b : bagagli) {
+            if (b.getCodUnivoco().equalsIgnoreCase(bagaglio.getCodUnivoco())) {
+                return false;
             }
         }
+        // Se il tuo DAO gestisce i bagagli su DB, abilita:
+        // if (!bagaglioDAO.insert(bagaglio)) return false;
+
         bagagli.add(bagaglio);
         return true;
     }
 
-    // versione usata dalla GUI
     public boolean aggiungiBagaglio(String codice, StatoBagaglio stato) {
         Bagaglio nuovo = new Bagaglio(codice, 0.0, stato, null);
         return aggiungiBagaglio(nuovo);
     }
 
-    // Restituisce tutti i bagagli
     public List<Bagaglio> getBagagli() {
         return new ArrayList<>(bagagli);
     }
 
     public List<Object[]> ricercaBagagli(String codiceBagaglio, String stato) {
         List<Object[]> risultati = new ArrayList<>();
-        for(Bagaglio b : bagagli) {
+        for (Bagaglio b : bagagli) {
             boolean match = true;
-            if(codiceBagaglio != null && !codiceBagaglio.isEmpty() &&
+            if (codiceBagaglio != null && !codiceBagaglio.isEmpty() &&
                     (b.getCodUnivoco() == null || !b.getCodUnivoco().contains(codiceBagaglio)))
                 match = false;
-            if(stato != null && !stato.isEmpty() &&
+            if (stato != null && !stato.isEmpty() &&
                     (b.getStato() == null || !b.getStato().toString().equalsIgnoreCase(stato)))
                 match = false;
 
-            if(match) {
+            if (match) {
                 risultati.add(new Object[]{
                         safe(b.getCodUnivoco()),
                         b.getStato() != null ? b.getStato().toString() : ""
@@ -446,19 +508,21 @@ public class Controller {
     }
 
     public boolean rimuoviBagaglio(String codice) {
+        // Se vuoi persistere, chiama prima il DAO:
+        // bagaglioDAO.delete(codice);
         return bagagli.removeIf(b -> b.getCodUnivoco().equalsIgnoreCase(codice));
     }
-
 
     public List<Object[]> tuttiBagagliRows() {
         return ricercaBagagli(null, null);
     }
 
-    // --- Gate ---
+    // ==========================
+    // Gate (solo in memoria – se vuoi, aggiungi tabella e DAO)
+    // ==========================
     public boolean aggiungiGate(int numero) {
-        for(Gate g : gates) {
-            if(g.getNumero() == numero) {
-                // RIMOSSO JOptionPane: la GUI gestisce i messaggi
+        for (Gate g : gates) {
+            if (g.getNumero() == numero) {
                 return false;
             }
         }
@@ -466,11 +530,6 @@ public class Controller {
         return true;
     }
 
-    /**
-     * Elimina un gate con il numero indicato.
-     * @param numero numero del gate
-     * @return true se eliminato, false se non trovato
-     */
     public boolean eliminaGate(int numero) {
         return gates.removeIf(g -> g.getNumero() == numero);
     }
@@ -479,23 +538,19 @@ public class Controller {
         return gates;
     }
 
-    // AGGIUNGO METODI PER IL COLLEGAMENTO DAO - CONTROLLER
-    //
-    //
-
-    // Factory method per creare amministratori dal DAO
+    // ==========================
+    // DAO <-> Controller helpers
+    // ==========================
     public Amministratore creaAmministratore(String login, String password, String nome, String cognome) {
         Amministratore admin = new Amministratore(login, password, nome, cognome);
         amministratori.add(admin);
         return admin;
     }
 
-    // Recupera tutti gli amministratori
     public List<Amministratore> getAmministratori() {
         return amministratori;
     }
 
-    // Trova un amministratore già caricato
     public Amministratore getAmministratoreByLogin(String login) {
         for (Amministratore a : amministratori) {
             if (a.getLogin().equals(login)) {
@@ -511,17 +566,16 @@ public class Controller {
         return dp;
     }
 
-    // per trovare un passeggero già caricato (utile se DAO vuole cercare oggetti in memoria)
     public DatiPasseggero getDatiPasseggeroByCodiceFiscale(String codiceFiscale) {
-        for(DatiPasseggero d : datiPasseggeri) {
-            if(codiceFiscale != null && codiceFiscale.equals(d.getCodiceFiscale())) {
+        for (DatiPasseggero d : datiPasseggeri) {
+            if (codiceFiscale != null && codiceFiscale.equals(d.getCodiceFiscale())) {
                 return d;
             }
         }
         return null;
     }
 
-    // factory per creare Prenotazione (usata dal DAO)
+    /*
     public Prenotazione creaPrenotazione(String numBiglietto, String posto, StatoPrenotazione stato,
                                          UtenteGenerico utente, DatiPasseggero dp, Volo volo) {
         Prenotazione p = new Prenotazione(numBiglietto, posto, stato, utente, dp, volo);
@@ -529,38 +583,37 @@ public class Controller {
         return p;
     }
 
+     */
+
     public List<UtenteGenerico> getTuttiUtenti() {
         return utenti;
     }
 
-    // recupero UtenteGenerico da email
     public UtenteGenerico getUtenteByEmail(String email) {
-        for(UtenteGenerico u : getTuttiUtenti()) { // implementa getTuttiUtenti()
-            if(email != null && email.equals(u.getNomeUtente())) {
+        for (UtenteGenerico u : getTuttiUtenti()) {
+            // Se il tuo modello ha getEmail(), usa quello. Qui mantengo getNomeUtente come "email/login"
+            if (email != null && email.equalsIgnoreCase(u.getNomeUtente())) {
                 return u;
             }
         }
         return null;
     }
 
-    // factory per creare UtenteGenerico
     public UtenteGenerico creaUtenteGenerico(String emailUtente) {
         UtenteGenerico u = new UtenteGenerico(emailUtente, "", "", "", new ArrayList<>(), new AreaPersonale());
         utenti.add(u);
         return u;
     }
 
-    // recupero Volo da codice
     public Volo getVoloByCodice(String codiceVolo) {
-        for(Volo v : voliGestiti) {
-            if(v.getCodiceUnivoco() != null && v.getCodiceUnivoco().equals(codiceVolo)) {
+        for (Volo v : voliGestiti) {
+            if (v.getCodiceUnivoco() != null && v.getCodiceUnivoco().equals(codiceVolo)) {
                 return v;
             }
         }
         return null;
     }
 
-    // factory per creare Volo minimale
     public Volo creaVolo(String codiceVolo) {
         Volo v = new Volo(codiceVolo, "", "", "", null, null, null);
         voliGestiti.add(v);
@@ -574,11 +627,36 @@ public class Controller {
                 return p.getDatiPasseggero();
             }
         }
-        return null; // se non trovato
+        return null;
     }
 
-    // helper per DAO DatiPasseggero
     public DatiPasseggeroDAOPostgres getDatiPasseggeroDAO() {
         return datiPasseggeroDAO;
     }
+
+    // ==========================
+    // GUI helpers
+    // ==========================
+    public void mostraAreaPersonaleAmm(JFrame finestraCorrente, Amministratore amministratore) {
+        finestraCorrente.setVisible(false);
+        AreaPersonaleAmmGUI nuovaGUI = new AreaPersonaleAmmGUI(this, amministratore);
+        JFrame frame = new JFrame("Area Personale Amministratore");
+        frame.setContentPane(nuovaGUI.getAreaPersonaleAmmPanel());
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        frame.pack();
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
+    }
+
+    // ==========================
+    // Dati di seed
+    // ==========================
+    private static final String[][] VOLI_INIZIALI = {
+            {"AZ123", "ITA Airways", "PROGRAMMATO", "2025-09-05", "08:15", "MIL", "3", "in arrivo"},
+            {"FR987", "Ryanair", "IMBARCO", "2025-09-05", "08:40", "BAR", "21", "in arrivo"},
+            {"LH455", "Lufthansa", "DECOLLATO", "2025-09-05", "08:55", "MAD", "15", "in partenza"},
+            {"U23610", "easyJet", "CANCELLATO", "2025-09-05", "09:05", "LDN", "9", "in arrivo"},
+            {"AF101", "Air France", "INRITARDO", "2025-09-05", "09:20", "MYK", "5", "in partenza"},
+            {"EK092", "Emirates", "ATTERRATO", "2025-09-05", "09:35", "PAR", "12", "in partenza"}
+    };
 }

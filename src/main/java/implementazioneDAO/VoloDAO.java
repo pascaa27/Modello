@@ -1,11 +1,13 @@
 package implementazioneDAO;
 
 import model.Volo;
+import java.util.List;
 
-//interface contenuta nel package dao contenente metodi astratti
 public interface VoloDAO {
     Volo findByCodiceUnivoco(String codiceUnivoco);
+    List<Volo> findAll();
     boolean insert(Volo v);
     boolean update(Volo v);
     boolean delete(String codiceUnivoco);
+    long count();
 }
