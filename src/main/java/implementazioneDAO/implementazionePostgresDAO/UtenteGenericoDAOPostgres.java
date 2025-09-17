@@ -25,8 +25,8 @@ public class UtenteGenericoDAOPostgres implements UtenteGenericoDAO {
 
     @Override
     public UtenteGenerico findByEmail(String email) {
-        // "login" nel DB corrisponde all'email
-        String sql = "SELECT * FROM utentiGenerici WHERE login = ?";
+        // Seleziona solo utenti con ruolo 'utente'
+        String sql = "SELECT * FROM registrazioneutente WHERE email = ? AND ruolo = 'utente'";
         try(PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, email);
             ResultSet rs = ps.executeQuery();
@@ -41,9 +41,9 @@ public class UtenteGenericoDAOPostgres implements UtenteGenericoDAO {
 
     @Override
     public boolean insert(UtenteGenerico u) {
-        String sql = "INSERT INTO utentiGenerici (login, password, nomeUtente, cognomeUtente) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO registrazioneutente (email, password, nome, cognome, ruolo) VALUES (?, ?, ?, ?, 'utente')";
         try(PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, u.getLogin());
+            ps.setString(1, u.getLogin());       // login -> email
             ps.setString(2, u.getPassword());
             ps.setString(3, u.getNomeUtente());
             ps.setString(4, u.getCognomeUtente());
@@ -56,7 +56,7 @@ public class UtenteGenericoDAOPostgres implements UtenteGenericoDAO {
 
     @Override
     public boolean update(UtenteGenerico u) {
-        String sql = "UPDATE utentiGenerici SET password = ?, nomeUtente = ?, cognomeUtente = ? WHERE login = ?";
+        String sql = "UPDATE registrazioneutente SET password = ?, nome = ?, cognome = ? WHERE email = ? AND ruolo = 'utente'";
         try(PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, u.getPassword());
             ps.setString(2, u.getNomeUtente());
@@ -70,10 +70,10 @@ public class UtenteGenericoDAOPostgres implements UtenteGenericoDAO {
     }
 
     @Override
-    public boolean delete(String login) {
-        String sql = "DELETE FROM utentiGenerici WHERE login = ?";
+    public boolean delete(String email) {
+        String sql = "DELETE FROM registrazioneutente WHERE email = ? AND ruolo = 'utente'";
         try(PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, login);
+            ps.setString(1, email);
             return ps.executeUpdate() > 0;
         } catch(SQLException e) {
             e.printStackTrace();
@@ -81,20 +81,20 @@ public class UtenteGenericoDAOPostgres implements UtenteGenericoDAO {
         return false;
     }
 
-    // Mapping da ResultSet al model UtenteGenerico passando per il Controller
     private UtenteGenerico mapResultSetToUtenteGenerico(ResultSet rs) throws SQLException {
-        String email = rs.getString("login");
+        String email = rs.getString("email");
+        String password = rs.getString("password");
+        String nome = rs.getString("nome");
+        String cognome = rs.getString("cognome");
 
         UtenteGenerico utente = controller.getUtenteByEmail(email);
-
-        // Se l'utente non esiste ancora, lo creo tramite il Controller
-        if(utente == null) {
+        if (utente == null) {
             utente = controller.creaUtenteGenerico(email);
         }
 
-        utente.setPassword(rs.getString("password"));
-        utente.setNomeUtente(rs.getString("nomeUtente"));
-        utente.setCognomeUtente(rs.getString("cognomeUtente"));
+        utente.setPassword(password);
+        utente.setNomeUtente(nome);
+        utente.setCognomeUtente(cognome);
 
         return utente;
     }

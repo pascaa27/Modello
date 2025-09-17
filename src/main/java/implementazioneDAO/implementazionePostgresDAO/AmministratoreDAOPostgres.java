@@ -4,6 +4,7 @@ import implementazioneDAO.AmministratoreDAO;
 import model.Amministratore;
 import database.ConnessioneDatabase;
 import controller.Controller;
+
 import java.sql.*;
 
 public class AmministratoreDAOPostgres implements AmministratoreDAO {
@@ -25,28 +26,26 @@ public class AmministratoreDAOPostgres implements AmministratoreDAO {
 
     @Override
     public Amministratore findByEmail(String email) {
-        String sql = "SELECT * FROM amministratori WHERE email = ?";
-        try(PreparedStatement ps = conn.prepareStatement(sql)) {
+        // Seleziona solo utenti con ruolo 'amministratore'
+        String sql = "SELECT * FROM registrazioneutente WHERE email = ? AND ruolo = 'amministratore'";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, email);
             ResultSet rs = ps.executeQuery();
-
-            if(rs.next()) {
+            if (rs.next()) {
                 return mapResultSetToAmministratore(rs);
             }
-
         } catch(SQLException e) {
             e.printStackTrace();
         }
         return null; // se non trovato
     }
 
-    // Mapping da ResultSet al model Amministratore passando per il Controller
     private Amministratore mapResultSetToAmministratore(ResultSet rs) throws SQLException {
-        String login = rs.getString("login");
+        String email = rs.getString("email");
         String password = rs.getString("password");
         String nome = rs.getString("nome");
         String cognome = rs.getString("cognome");
 
-        return controller.creaAmministratore(login, password, nome, cognome);
+        return controller.creaAmministratore(email, password, nome, cognome);
     }
 }

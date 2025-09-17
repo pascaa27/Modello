@@ -13,8 +13,7 @@ public class GestionePrenotazioniGUI {
     private JTextField numeroVoloTextField;
     private JButton rimuoviPrenotazioneButton;
     private Controller controller;
-    private Utente utente; // campo utente
-    private DatiPasseggero datiPasseggero = null;
+    private Utente utente;
     private final AreaPersonaleAmmGUI areaPersonaleAmmGUI;
 
     public GestionePrenotazioniGUI(Controller controller, Utente utente, AreaPersonaleAmmGUI areaPersonaleAmmGUI) {
@@ -22,23 +21,25 @@ public class GestionePrenotazioniGUI {
         this.utente = utente;
         this.areaPersonaleAmmGUI = areaPersonaleAmmGUI;
 
-        for(StatoPrenotazione stato : StatoPrenotazione.values()) {
+        // popola combo stato
+        for (StatoPrenotazione stato : StatoPrenotazione.values()) {
             statoPrenotazioneComboBox.addItem(stato);
         }
 
         UtenteGenerico utenteGenerico;
-        if(controller.getUtenteByEmail(utente.getNomeUtente()) == null) {
+        if (controller.getUtenteByEmail(utente.getNomeUtente()) == null) {
             utenteGenerico = controller.creaUtenteGenerico(utente.getNomeUtente());
         } else {
             utenteGenerico = controller.getUtenteByEmail(utente.getNomeUtente());
         }
 
+        // listener aggiungi prenotazione
         aggiungiPrenotazioneButton.addActionListener(e -> {
             String numeroBiglietto = numeroPrenotazioneTextField.getText().trim();
             String posto = postoTextField.getText().trim();
             String numeroVolo = numeroVoloTextField.getText().trim();
 
-            if(numeroBiglietto.isEmpty() || posto.isEmpty() || numeroVolo.isEmpty()) {
+            if (numeroBiglietto.isEmpty() || posto.isEmpty() || numeroVolo.isEmpty()) {
                 JOptionPane.showMessageDialog(null,
                         "Compila prima tutti i campi obbligatori.",
                         "Errore",
@@ -58,12 +59,13 @@ public class GestionePrenotazioniGUI {
             String nome = datiGUI.getNomeInserito();
             String cognome = datiGUI.getCognomeInserito();
             String codiceFiscale = datiGUI.getCodiceFiscaleInserito();
+            String email = datiGUI.getEmailInserita();   // <-- nuova riga
 
             //  Controllo dei campi passeggero
-            if(nome == null || cognome == null || codiceFiscale == null ||
-                    nome.isEmpty() || cognome.isEmpty() || codiceFiscale.isEmpty()) {
+            if (nome == null || cognome == null || codiceFiscale == null || email == null ||
+                    nome.isEmpty() || cognome.isEmpty() || codiceFiscale.isEmpty() || email.isEmpty()) {
                 JOptionPane.showMessageDialog(null,
-                        "Compila correttamente tutti i dati del passeggero.",
+                        "Compila correttamente tutti i dati del passeggero (inclusa l'email).",
                         "Errore",
                         JOptionPane.ERROR_MESSAGE);
                 return;
@@ -73,7 +75,7 @@ public class GestionePrenotazioniGUI {
 
             Volo volo = controller.getVoloByCodice(numeroVolo);
 
-            if(volo == null) {
+            if (volo == null) {
                 JOptionPane.showMessageDialog(null,
                         "Il volo con codice " + numeroVolo + " non esiste.",
                         "Errore",
@@ -81,6 +83,7 @@ public class GestionePrenotazioniGUI {
                 return;
             }
 
+            // chiamata al controller con email inclusa
             controller.aggiungiPrenotazione(
                     numeroBiglietto,
                     posto,
@@ -90,7 +93,7 @@ public class GestionePrenotazioniGUI {
                     nome,
                     cognome,
                     codiceFiscale,
-                    null,
+                    email,    // <-- adesso passa l'email al controller
                     volo
             );
 
@@ -111,7 +114,7 @@ public class GestionePrenotazioniGUI {
     private void rimuoviPrenotazione() {
         String numeroBiglietto = numeroPrenotazioneTextField.getText().trim();
 
-        if(numeroBiglietto.isEmpty()) {
+        if (numeroBiglietto.isEmpty()) {
             JOptionPane.showMessageDialog(null,
                     "Inserisci il numero della prenotazione da rimuovere.",
                     "Errore",
@@ -121,7 +124,7 @@ public class GestionePrenotazioniGUI {
 
         boolean rimosso = controller.rimuoviPrenotazione(numeroBiglietto);
 
-        if(rimosso) {
+        if (rimosso) {
             JOptionPane.showMessageDialog(null,
                     "Prenotazione rimossa con successo!");
             areaPersonaleAmmGUI.aggiornaTabellaPasseggeri();
@@ -137,8 +140,7 @@ public class GestionePrenotazioniGUI {
         }
     }
 
-
     public JPanel getPanelPrenotazione() {
-            return panelPrenotazione;
-        }
+        return panelPrenotazione;
+    }
 }
