@@ -182,8 +182,9 @@ public class Controller {
             throw new IllegalArgumentException("Numero volo mancante");
         if (codiceFiscale == null || codiceFiscale.isBlank())
             throw new IllegalArgumentException("Codice fiscale mancante");
-        if (email == null || email.isBlank())
-            throw new IllegalArgumentException("Email passeggero mancante");
+        // EMAIL NON OBBLIGATORIA!
+        // if (email == null || email.isBlank())
+        //    throw new IllegalArgumentException("Email passeggero mancante");
 
         // 1) Verifica esistenza volo (FK su idvolo)
         Volo v = getVoloByCodice(numeroVolo);
@@ -204,7 +205,7 @@ public class Controller {
                 creaDatiPasseggero(nome, cognome, codiceFiscale, email);
             } else {
                 boolean needUpdate = false;
-                if (dp.getEmail() == null || !dp.getEmail().equalsIgnoreCase(email)) {
+                if (dp.getEmail() == null || (email != null && !dp.getEmail().equalsIgnoreCase(email))) {
                     dp.setEmail(email);
                     needUpdate = true;
                 }
@@ -304,9 +305,16 @@ public class Controller {
         }
     }
 
+
     public String getVoloByAeroporto(String aeroporto) {
-        // Query al database: SELECT codice_voolo FROM voli WHERE aeroporto_destinazione = ?
-        // Ritorna null se non esiste
+        if (aeroporto == null) return null;
+        for (Volo v : voliGestiti) {
+            // Confronta ignorando maiuscole/minuscole e spazi
+            if (v.getAeroporto() != null && v.getAeroporto().trim().equalsIgnoreCase(aeroporto.trim())) {
+                return v.getCodiceUnivoco();
+            }
+        }
+        return null; // Nessun volo trovato per quell'aeroporto
     }
 
 

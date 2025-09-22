@@ -23,13 +23,12 @@ public class DatiPasseggeroGUI {
             codiceFiscaleInserito = codiceFiscaleTextField.getText().trim();
             emailInserita = emailTextField.getText().trim();   // prendo anche email
 
+            // L'email NON è più obbligatoria!
             if (nomeInserito.isEmpty() ||
                     cognomeInserito.isEmpty() ||
-                    codiceFiscaleInserito.isEmpty() ||
-                    emailInserita.isEmpty()) {
-
+                    codiceFiscaleInserito.isEmpty()) {
                 JOptionPane.showMessageDialog(parentDialog,
-                        "Tutti i campi devono essere compilati (inclusa l'email).",
+                        "I campi nome, cognome e codice fiscale sono obbligatori.",
                         "Errore",
                         JOptionPane.ERROR_MESSAGE);
                 return;
@@ -40,23 +39,9 @@ public class DatiPasseggeroGUI {
         });
     }
 
-    public JPanel getPanel() {
-        return panelDatiPasseggero;
-    }
-
-    public String getNomeInserito() {
-        return nomeInserito;
-    }
-
-    public String getCognomeInserito() {
-        return cognomeInserito;
-    }
-
-    public String getCodiceFiscaleInserito() {
-        return codiceFiscaleInserito;
-    }
-
-    public String getEmailInserita() {          // nuovo getter
-        return emailInserita;
-    }
+    public JPanel getPanel() { return panelDatiPasseggero; }
+    public String getNomeInserito() { return nomeInserito; }
+    public String getCognomeInserito() { return cognomeInserito; }
+    public String getCodiceFiscaleInserito() { return codiceFiscaleInserito; }
+    public String getEmailInserita() { return emailInserita; } // può essere vuota/null
 }

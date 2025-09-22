@@ -15,6 +15,7 @@ public class EffettuaPrenotazioneGUI {
     private JTextField nomeTextField;
     private JTextField cognomeTextField;
     private JTextField codiceFiscaleTextField;
+    private JTextField emailTextField;
     private JComboBox<Integer> annoInizioComboBox;
     private JComboBox<Integer> meseInizioComboBox;
     private JComboBox<Integer> giornoInizioComboBox;
@@ -107,6 +108,7 @@ public class EffettuaPrenotazioneGUI {
         String nome = nomeTextField.getText().trim();
         String cognome = cognomeTextField.getText().trim();
         String codiceFiscale = codiceFiscaleTextField.getText().trim();
+        String email = emailTextField.getText().trim();
         String aeroporto = aeroportoDestinazioneTextField.getText().trim().toUpperCase();
 
         // Validazione base
@@ -156,7 +158,7 @@ public class EffettuaPrenotazioneGUI {
                     nome,
                     cognome,
                     codiceFiscale,
-                    utente.getLogin(),
+                    email,
                     null
             );
 

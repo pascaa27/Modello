@@ -62,18 +62,20 @@ public class DatiPasseggeroDAOPostgres implements DatiPasseggeroDAO {
 
     @Override
     public boolean insert(DatiPasseggero p) {
-        if (p == null || isBlank(p.getCodiceFiscale()) || isBlank(p.getNome())
-                || isBlank(p.getCognome()) || isBlank(p.getEmail())) {
+        if (p == null || isBlank(p.getCodiceFiscale()) || isBlank(p.getNome()) || isBlank(p.getCognome())) {
             System.err.println("Insert datipasseggeri fallita: campi obbligatori mancanti");
             return false;
         }
-        final String sql = "INSERT INTO public.datipasseggeri (nome, cognome, codicefiscale, email) " +
-                "VALUES (?, ?, ?, ?)";
+        final String sql = "INSERT INTO public.datipasseggeri (nome, cognome, codicefiscale, email) VALUES (?, ?, ?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, p.getNome());
             ps.setString(2, p.getCognome());
             ps.setString(3, p.getCodiceFiscale());
-            ps.setString(4, p.getEmail());
+            if (isBlank(p.getEmail())) {
+                ps.setNull(4, java.sql.Types.VARCHAR);
+            } else {
+                ps.setString(4, p.getEmail());
+            }
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             System.err.println("Errore INSERT datipasseggeri: " + e.getMessage());
@@ -94,7 +96,12 @@ public class DatiPasseggeroDAOPostgres implements DatiPasseggeroDAO {
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, p.getNome());
             ps.setString(2, p.getCognome());
-            ps.setString(3, p.getEmail());
+            // Se email è vuota o nulla, salva come null su DB
+            if (isBlank(p.getEmail())) {
+                ps.setNull(3, java.sql.Types.VARCHAR);
+            } else {
+                ps.setString(3, p.getEmail());
+            }
             ps.setString(4, p.getCodiceFiscale());
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
