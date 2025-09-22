@@ -2,8 +2,7 @@ package gui;
 
 import javax.swing.*;
 import controller.Controller;
-import model.Utente;
-
+import model.UtenteGenerico;
 import java.awt.*;
 
 public class AreaPersonaleUtenteGUI {
@@ -13,10 +12,11 @@ public class AreaPersonaleUtenteGUI {
     private JButton cercaModificaButton;
     private JTextField emailUtenteTextField;
     private JPanel areaPersonaleUtentePanel;
+    private JButton effettuaPrenotazioneButton;
     private Controller controller;
-    private Utente utente;
+    private UtenteGenerico utente;
 
-    public AreaPersonaleUtenteGUI(Controller controller, Utente utente) {
+    public AreaPersonaleUtenteGUI(Controller controller, UtenteGenerico utente) {
         this.controller = controller;
         this.utente = utente;
 
@@ -38,12 +38,18 @@ public class AreaPersonaleUtenteGUI {
         areaPersonaleUtentePanel.add(emailUtenteTextField);
 
         tabellaOrarioButton = new JButton("Tabella Orario");
+        effettuaPrenotazioneButton = new JButton("Effettua Prenotazione");
         cercaModificaButton = new JButton("Cerca/Modifica Prenotazione");
+
         areaPersonaleUtentePanel.add(tabellaOrarioButton);
+        areaPersonaleUtentePanel.add(effettuaPrenotazioneButton);
         areaPersonaleUtentePanel.add(cercaModificaButton);
 
         // Listener per Tabella Orario
         tabellaOrarioButton.addActionListener(e -> apriTabellaOrario());
+
+        // Listener per Effettua Prenotazione
+        effettuaPrenotazioneButton.addActionListener(e -> apriEffettuaPrenotazione());
 
         // Listener per Cerca/Modifica Prenotazione
         cercaModificaButton.addActionListener(e -> apriCercaModificaPrenotazione());
@@ -54,6 +60,16 @@ public class AreaPersonaleUtenteGUI {
         TabellaOrarioGUI gui = new TabellaOrarioGUI(controller); // già carica dati
         JFrame frame = new JFrame("Tabella Orario");
         frame.setContentPane(gui.getPanel());
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        frame.pack();
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
+    }
+
+    // Metodo che apre la GUI EffettuaPrenotazione
+    private void apriEffettuaPrenotazione() {
+        JFrame frame = new JFrame("Effettua Prenotazione");
+        frame.setContentPane(new EffettuaPrenotazioneGUI(controller, utente).getPanel());
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.pack();
         frame.setLocationRelativeTo(null);

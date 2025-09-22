@@ -4,7 +4,8 @@ import javax.swing.*;
 import java.util.*;
 import controller.Controller;
 import model.Amministratore;
-import model.Utente;
+import model.UtenteGenerico;
+import model.AreaPersonale;
 
 public class LoginGUI {
     private JPanel loginPanel;
@@ -18,7 +19,8 @@ public class LoginGUI {
     private static final String ADMIN_EMAIL = "a";
     private static final String ADMIN_PASS = "a";
 
-    private List<Utente> utentiRegistrati = new ArrayList<>();
+    // 🔹 Ora tiene traccia degli utenti generici
+    private List<UtenteGenerico> utentiRegistrati = new ArrayList<>();
 
     public LoginGUI(Controller controller, Amministratore amministratore) {
         this.controller = controller;
@@ -27,8 +29,8 @@ public class LoginGUI {
             String email = emailTextField.getText().trim();
             String password = passwordTextField.getText().trim();
 
-            JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(loginPanel);  //Ottiene il frame padre del pannello di login
-            frame.dispose();  //e lo chiude
+            JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(loginPanel);
+            frame.dispose();
 
             if(email.equals(ADMIN_EMAIL) && password.equals(ADMIN_PASS)) {
                 // Area amministratore
@@ -40,8 +42,8 @@ public class LoginGUI {
                 nuovoFrame.setVisible(true);
             } else {
                 // Cerca utente tra i registrati
-                Utente utenteTrovato = null;
-                for(Utente u : utentiRegistrati) {
+                UtenteGenerico utenteTrovato = null;
+                for(UtenteGenerico u : utentiRegistrati) {
                     if(u.getLogin().equals(email) && u.getPassword().equals(password)) {
                         utenteTrovato = u;
                         break;
@@ -56,7 +58,7 @@ public class LoginGUI {
                     nuovoFrame.setVisible(true);
                 } else {
                     JOptionPane.showMessageDialog(null, "Credenziali non valide. Registrati o riprova.");
-                    frame.setVisible(true); // Torna al login
+                    frame.setVisible(true);
                 }
             }
         });
@@ -73,7 +75,7 @@ public class LoginGUI {
             }
 
             boolean esiste = false;
-            for(Utente u : utentiRegistrati) {
+            for(UtenteGenerico u : utentiRegistrati) {
                 if(u.getLogin().equals(email)) {
                     esiste = true;
                     break;
@@ -84,8 +86,17 @@ public class LoginGUI {
                 return;
             }
 
-            Utente nuovoUtente = new Utente(email, password, nome, cognome);
-            utentiRegistrati.add(nuovoUtente);  //aggiunge alla lista
+            // 🔹 Creiamo un UtenteGenerico invece di Utente
+            UtenteGenerico nuovoUtente = new UtenteGenerico(
+                    email,
+                    password,
+                    nome,
+                    cognome,
+                    new ArrayList<>(),
+                    new AreaPersonale()
+            );
+
+            utentiRegistrati.add(nuovoUtente);
             JOptionPane.showMessageDialog(null, "Registrazione avvenuta con successo! Ora puoi accedere.");
         });
     }
@@ -97,9 +108,7 @@ public class LoginGUI {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             Controller controller = new Controller();
-            Amministratore amministratore = new Amministratore(
-                    "a", "a", "a", "a"
-            );
+            Amministratore amministratore = new Amministratore("a", "a", "a", "a");
             JFrame frame = new JFrame("Area Login - Aeroporto");
             frame.setContentPane(new LoginGUI(controller, amministratore).getLoginPanel());
             frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);

@@ -304,6 +304,12 @@ public class Controller {
         }
     }
 
+    public String getVoloByAeroporto(String aeroporto) {
+        // Query al database: SELECT codice_voolo FROM voli WHERE aeroporto_destinazione = ?
+        // Ritorna null se non esiste
+    }
+
+
     public List<Volo> ricercaVoliRaw(String numeroVolo, String compagnia, String stato, String data,
                                      String orario, String aeroporto, String gate, String arrivoPartenza) {
         numeroVolo = norm(numeroVolo);
