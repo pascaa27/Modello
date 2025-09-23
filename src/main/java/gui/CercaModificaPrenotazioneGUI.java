@@ -17,6 +17,7 @@ public class CercaModificaPrenotazioneGUI {
     private JButton salvaModificheButton;
     private JButton annullaPrenotazioneButton;
     private JTextArea messaggioTextArea;
+    private JScrollPane listaPrenotazioniScrollPane;
     private Controller controller;
     private Prenotazione prenotazioneCorrente;
     private Utente utente;
@@ -50,7 +51,7 @@ public class CercaModificaPrenotazioneGUI {
             }
         }
         listaPrenotazioni = new JList<>(listaModel);
-        panelCercaModificaPrenotazione.add(new JScrollPane(listaPrenotazioni));
+        listaPrenotazioniScrollPane.setViewportView(listaPrenotazioni);
 
         listaPrenotazioni.addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
