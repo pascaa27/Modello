@@ -178,8 +178,8 @@ public class EffettuaPrenotazioneGUI {
                     "Errore",
                     JOptionPane.ERROR_MESSAGE);
         }
-        
-        utente.setUltimoCodicePrenotazione(pren.getNumBiglietto());
+
+        utente.aggiungiCodicePrenotazione(pren.getNumBiglietto());
     }
 
     public JPanel getPanel() {

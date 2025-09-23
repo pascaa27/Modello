@@ -3,10 +3,7 @@ package gui;
 import javax.swing.*;
 import java.awt.event.ActionListener;
 import controller.Controller;
-import model.Prenotazione;
-import model.Utente;
-import model.Volo;
-import model.StatoPrenotazione;
+import model.*;
 
 public class CercaModificaPrenotazioneGUI {
     private JPanel panelCercaModificaPrenotazione;
@@ -23,12 +20,15 @@ public class CercaModificaPrenotazioneGUI {
     private Controller controller;
     private Prenotazione prenotazioneCorrente;
     private Utente utente;
+    private JList<String> listaPrenotazioni;
+    private DefaultListModel<String> listaModel;
 
 
     // Costruttore con Controller passato dall'area personale
     public CercaModificaPrenotazioneGUI(Controller controller, Utente utente, String codicePrenotazione) {
         this.controller = controller;
         this.utente = utente;
+
         if (codicePrenotazione != null && !codicePrenotazione.isEmpty()) {
             codiceInserimentoTextField.setText(codicePrenotazione);
             cercaPrenotazione(); // esegue subito la ricerca
@@ -41,6 +41,24 @@ public class CercaModificaPrenotazioneGUI {
         }
 
         setCampiPrenotazioneAbilitati(false);
+
+        listaModel = new DefaultListModel<>();
+        if (utente instanceof UtenteGenerico) {
+            UtenteGenerico ug = (UtenteGenerico) utente;
+            for (String codice : ug.getCodiciPrenotazioni()) {
+                listaModel.addElement(codice);
+            }
+        }
+        listaPrenotazioni = new JList<>(listaModel);
+        panelCercaModificaPrenotazione.add(new JScrollPane(listaPrenotazioni));
+
+        listaPrenotazioni.addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                String codiceSelezionato = listaPrenotazioni.getSelectedValue();
+                codiceInserimentoTextField.setText(codiceSelezionato);
+                cercaPrenotazione(); // carica la prenotazione selezionata
+            }
+        });
 
         cercaButton.addActionListener(e -> cercaPrenotazione());
         salvaModificheButton.addActionListener(e -> salvaModifiche());
