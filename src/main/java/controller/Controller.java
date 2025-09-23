@@ -167,7 +167,7 @@ public class Controller {
         }
     }
 
-    public void aggiungiPrenotazione(String numeroBiglietto, String posto, StatoPrenotazione stato,
+    public Prenotazione aggiungiPrenotazione(String numeroBiglietto, String posto, StatoPrenotazione stato,
                                      String numeroVolo, UtenteGenerico utenteGenerico, String nome, String cognome,
                                      String codiceFiscale, String email, Volo voloNonUsato) {
 
@@ -233,6 +233,7 @@ public class Controller {
 
         // Cache UI
         prenotazioni.add(pren);
+        return pren;
     }
 
     // Helper: ritorna sedile valido "A12" o null se raw è vuoto/non valido/"auto"

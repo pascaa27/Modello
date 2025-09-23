@@ -8,6 +8,7 @@ public class UtenteGenerico extends Utente {
     private String nomeUtente;
     private List<Prenotazione> prenotazioni= new ArrayList<>();     //attributo che rappresenta tutte le prenotazioni fatte da questo utente
     private AreaPersonale areaPersonale;
+    private String ultimoCodicePrenotazione;
 
     public void aggiungiPrenotazione(Prenotazione p) {
         prenotazioni.add(p);        //aggiunge alla lista le prenotazioni p
@@ -51,5 +52,13 @@ public class UtenteGenerico extends Utente {
 
     public void setAreaPersonale(AreaPersonale areaPersonale) {
         this.areaPersonale = areaPersonale;
+    }
+
+    public String getUltimoCodicePrenotazione() {
+        return ultimoCodicePrenotazione;
+    }
+
+    public void setUltimoCodicePrenotazione(String ultimoCodicePrenotazione) {
+        this.ultimoCodicePrenotazione = ultimoCodicePrenotazione;
     }
 }

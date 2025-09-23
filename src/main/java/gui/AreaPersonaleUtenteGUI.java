@@ -79,7 +79,9 @@ public class AreaPersonaleUtenteGUI {
     // Metodo che apre la GUI Cerca/Modifica Prenotazione
     private void apriCercaModificaPrenotazione() {
         JFrame frame = new JFrame("Cerca/Modifica Prenotazione");
-        frame.setContentPane(new CercaModificaPrenotazioneGUI(controller, utente).getPanel());
+        frame.setContentPane(
+                new CercaModificaPrenotazioneGUI(controller, utente, utente.getUltimoCodicePrenotazione()).getPanel()
+        );
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.pack();
         frame.setLocationRelativeTo(null);

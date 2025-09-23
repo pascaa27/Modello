@@ -24,10 +24,15 @@ public class CercaModificaPrenotazioneGUI {
     private Prenotazione prenotazioneCorrente;
     private Utente utente;
 
+
     // Costruttore con Controller passato dall'area personale
-    public CercaModificaPrenotazioneGUI(Controller controller, Utente utente) {
+    public CercaModificaPrenotazioneGUI(Controller controller, Utente utente, String codicePrenotazione) {
         this.controller = controller;
         this.utente = utente;
+        if (codicePrenotazione != null && !codicePrenotazione.isEmpty()) {
+            codiceInserimentoTextField.setText(codicePrenotazione);
+            cercaPrenotazione(); // esegue subito la ricerca
+        }
 
         // Popola la comboBox con tutti gli stati disponibili
         statoVoloComboBox.removeAllItems();

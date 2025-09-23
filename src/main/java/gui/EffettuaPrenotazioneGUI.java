@@ -1,6 +1,7 @@
 package gui;
 
 import controller.Controller;
+import model.Prenotazione;
 import model.StatoPrenotazione;
 import model.UtenteGenerico;
 
@@ -138,6 +139,8 @@ public class EffettuaPrenotazioneGUI {
             return;
         }
 
+        Prenotazione pren = null;
+
         try {
             // Recupera il volo corrispondente dall'amministratore / database
             String codiceVolo = controller.getVoloByAeroporto(aeroporto); // metodo da implementare nel Controller
@@ -149,7 +152,7 @@ public class EffettuaPrenotazioneGUI {
 
             String numeroBiglietto = UUID.randomUUID().toString().substring(0, 8);
 
-            controller.aggiungiPrenotazione(
+            pren = controller.aggiungiPrenotazione(
                     numeroBiglietto,
                     "",
                     StatoPrenotazione.CONFERMATA,
@@ -163,7 +166,9 @@ public class EffettuaPrenotazioneGUI {
             );
 
             JOptionPane.showMessageDialog(effettuaPrenotazionePanel,
-                    "Prenotazione effettuata con successo!\nDal " + dataInizio + " al " + dataFine,
+                    "Prenotazione effettuata con successo!\n" +
+                            "Codice prenotazione: " + pren.getNumBiglietto() + "\n" +
+                            "Dal " + dataInizio + " al " + dataFine,
                     "Successo",
                     JOptionPane.INFORMATION_MESSAGE);
 
@@ -173,6 +178,8 @@ public class EffettuaPrenotazioneGUI {
                     "Errore",
                     JOptionPane.ERROR_MESSAGE);
         }
+        
+        utente.setUltimoCodicePrenotazione(pren.getNumBiglietto());
     }
 
     public JPanel getPanel() {
