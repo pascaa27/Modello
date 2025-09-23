@@ -151,7 +151,7 @@ public class EffettuaPrenotazioneGUI {
 
             controller.aggiungiPrenotazione(
                     numeroBiglietto,
-                    "Posto-Auto",
+                    "",
                     StatoPrenotazione.CONFERMATA,
                     codiceVolo, // ora passa il volo corretto
                     utente,

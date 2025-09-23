@@ -8,6 +8,7 @@ import model.*;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
 
@@ -35,6 +36,69 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
                     "FROM public.prenotazioni p " +
                     "LEFT JOIN public.datipasseggeri d ON d.email = p.emailutente " +
                     "LEFT JOIN public.voli v ON v.codiceunivoco = p.idvolo ";
+
+    // Parametri generazione posti: colonne A..F e file 1..30
+    private static final char[] SEAT_LETTERS = "ABCDEF".toCharArray();
+    private static final int SEAT_MAX_NUMBER = 30;
+
+    private String generateRandomSeat() {
+        ThreadLocalRandom r = ThreadLocalRandom.current();
+        char letter = SEAT_LETTERS[r.nextInt(SEAT_LETTERS.length)];
+        int number = r.nextInt(1, SEAT_MAX_NUMBER + 1);
+        return letter + String.valueOf(number);
+    }
+
+    // Normalizza l'input utente: rimuove caratteri non alfanumerici e porta in upper case
+    private static String norm(String s) {
+        if (s == null) return "";
+        return s.trim().toUpperCase().replaceAll("[^A-Z0-9]", "");
+    }
+
+    // Ritorna un posto valido (es. "A12") se l'input corrisponde al formato A..F + 1..30; altrimenti null (=> auto)
+    private String parseSeatOrNull(String raw) {
+        String t = norm(raw);
+        // Esplicite parole chiave per "auto"
+        if (t.isEmpty() || t.equals("AUTO") || t.equals("POSTO") || t.equals("POSTOAUTO")) return null;
+
+        if (t.length() < 2) return null;
+        char letter = t.charAt(0);
+        if (letter < 'A' || letter > 'F') return null;
+        String numStr = t.substring(1);
+        try {
+            int n = Integer.parseInt(numStr);
+            if (n >= 1 && n <= SEAT_MAX_NUMBER) {
+                return letter + String.valueOf(n);
+            }
+        } catch (NumberFormatException ignored) { }
+        return null;
+    }
+
+    private boolean seatExists(String idVolo, String seat) throws SQLException {
+        final String sql = "SELECT 1 FROM public.prenotazioni WHERE idvolo = ? AND postoassegnato = ? LIMIT 1";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, idVolo);
+            ps.setString(2, seat);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+    private String generateAvailableSeat(String idVolo) throws SQLException {
+        // Tentativi random
+        for (int attempt = 0; attempt < 200; attempt++) {
+            String candidate = generateRandomSeat();
+            if (!seatExists(idVolo, candidate)) return candidate;
+        }
+        // Fallback deterministico
+        for (char letter : SEAT_LETTERS) {
+            for (int num = 1; num <= SEAT_MAX_NUMBER; num++) {
+                String candidate = letter + String.valueOf(num);
+                if (!seatExists(idVolo, candidate)) return candidate;
+            }
+        }
+        throw new SQLException("Nessun posto disponibile per il volo " + idVolo);
+    }
 
     @Override
     public Prenotazione findByCodice(String codice) {
@@ -85,24 +149,60 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
     public boolean insert(Prenotazione p) {
         if (p == null) { System.err.println("Prenotazione nulla"); return false; }
         if (p.getNumBiglietto() == null || p.getNumBiglietto().isBlank()) { System.err.println("numbiglietto mancante"); return false; }
-        if (p.getPostoAssegnato() == null || p.getPostoAssegnato().isBlank()) { System.err.println("postoassegnato mancante"); return false; }
-        if (p.getStato() == null) { System.err.println("stato mancante"); return false; } // NOT NULL in DB
+        if (p.getStato() == null) { System.err.println("stato mancante"); return false; }
         if (p.getVolo() == null || p.getVolo().getCodiceUnivoco() == null || p.getVolo().getCodiceUnivoco().isBlank()) { System.err.println("idvolo mancante"); return false; }
         if (p.getDatiPasseggero() == null || p.getDatiPasseggero().getEmail() == null || p.getDatiPasseggero().getEmail().isBlank()) { System.err.println("emailutente mancante"); return false; }
 
-        final String sql = "INSERT INTO public.prenotazioni (numbiglietto, postoassegnato, stato, emailutente, idvolo) VALUES (?, ?, ?, ?, ?)";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, p.getNumBiglietto());
-            ps.setString(2, p.getPostoAssegnato());
-            ps.setString(3, p.getStato().name()); // DB richiede NOT NULL
-            ps.setString(4, p.getDatiPasseggero().getEmail());
-            ps.setString(5, p.getVolo().getCodiceUnivoco());
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            System.err.println("ERRORE INSERT prenotazioni: sqlState=" + e.getSQLState() + " code=" + e.getErrorCode() + " msg=" + e.getMessage());
-            e.printStackTrace();
+        final String idVolo = p.getVolo().getCodiceUnivoco();
+        String posto = parseSeatOrNull(p.getPostoAssegnato());
+        try {
+            if (posto == null) {
+                posto = generateAvailableSeat(idVolo); // A..F + 1..30, non occupato
+                p.setPostoAssegnato(posto);            // aggiorna l’oggetto per mostrarlo in UI
+            } else if (seatExists(idVolo, posto)) {
+                System.err.println("Il posto " + posto + " per il volo " + idVolo + " è già occupato");
+                return false;
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
             return false;
         }
+
+        final String sql = "INSERT INTO public.prenotazioni (numbiglietto, postoassegnato, stato, emailutente, idvolo) VALUES (?, ?, ?, ?, ?)";
+
+        // Retry in caso di collisione concorrente (unique 23505)
+        final int MAX_RETRY = 3;
+        for (int attempt = 0; attempt <= MAX_RETRY; attempt++) {
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, p.getNumBiglietto());
+                ps.setString(2, posto);
+                ps.setString(3, p.getStato().name());
+                ps.setString(4, p.getDatiPasseggero().getEmail());
+                ps.setString(5, idVolo);
+                return ps.executeUpdate() > 0;
+            } catch (SQLException e) {
+                if ("23505".equals(e.getSQLState())) {
+                    // Collisione su (idvolo, postoassegnato)
+                    if (attempt == MAX_RETRY) {
+                        System.err.println("ERRORE INSERT prenotazioni: collisione ripetuta su posto. Ultimo msg: " + e.getMessage());
+                        return false;
+                    }
+                    try {
+                        posto = generateAvailableSeat(idVolo);
+                        p.setPostoAssegnato(posto);
+                    } catch (SQLException ex) {
+                        System.err.println("Errore nel ricalcolo del posto dopo 23505: " + ex.getMessage());
+                        ex.printStackTrace();
+                        return false;
+                    }
+                    continue;
+                }
+                System.err.println("ERRORE INSERT prenotazioni: sqlState=" + e.getSQLState() + " code=" + e.getErrorCode() + " msg=" + e.getMessage());
+                e.printStackTrace();
+                return false;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -111,14 +211,35 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
             System.err.println("Update Prenotazione fallita: oggetto nullo o numbiglietto mancante");
             return false;
         }
+        final String idVolo = (p.getVolo() != null) ? p.getVolo().getCodiceUnivoco() : null;
+        if (idVolo == null) {
+            System.err.println("Update Prenotazione fallita: idvolo mancante");
+            return false;
+        }
+
+        String posto = parseSeatOrNull(p.getPostoAssegnato());
+        try {
+            if (posto == null) {
+                posto = generateAvailableSeat(idVolo);
+                p.setPostoAssegnato(posto);
+            } else if (seatExists(idVolo, posto)) {
+                System.err.println("Il posto " + posto + " per il volo " + idVolo + " è già occupato");
+                return false;
+            }
+        } catch (SQLException ex) {
+            System.err.println("Errore durante la generazione/verifica del posto (update): " + ex.getMessage());
+            ex.printStackTrace();
+            return false;
+        }
+
         final String sql = "UPDATE public.prenotazioni " +
                 "SET postoassegnato = ?, stato = ?, emailutente = ?, idvolo = ? " +
                 "WHERE numbiglietto = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, p.getPostoAssegnato());
+            ps.setString(1, posto);
             ps.setString(2, p.getStato() != null ? p.getStato().name() : null);
             ps.setString(3, (p.getDatiPasseggero() != null) ? p.getDatiPasseggero().getEmail() : null);
-            ps.setString(4, (p.getVolo() != null) ? p.getVolo().getCodiceUnivoco() : null);
+            ps.setString(4, idVolo);
             ps.setString(5, p.getNumBiglietto());
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {

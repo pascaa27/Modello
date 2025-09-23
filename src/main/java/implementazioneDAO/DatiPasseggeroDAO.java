@@ -2,10 +2,12 @@ package implementazioneDAO;
 
 import model.DatiPasseggero;
 
-//interface contenuta nel package dao contenente metodi astratti
 public interface DatiPasseggeroDAO {
-    DatiPasseggero findByCodiceFiscale(String codiceFiscale);
-    boolean insert(DatiPasseggero passeggero);
-    boolean update(DatiPasseggero passeggero);
-    boolean delete(String codiceFiscale);
+    DatiPasseggero findByEmail(String email);
+    boolean insert(DatiPasseggero p);
+    boolean update(DatiPasseggero p);
+    boolean deleteByEmail(String email);
+
+    @Deprecated
+    default DatiPasseggero findByCodiceFiscale(String codiceFiscale) { return null; }
 }

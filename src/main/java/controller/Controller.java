@@ -171,28 +171,22 @@ public class Controller {
                                      String numeroVolo, UtenteGenerico utenteGenerico, String nome, String cognome,
                                      String codiceFiscale, String email, Volo voloNonUsato) {
 
-        // Validazioni per rispettare i NOT NULL del DB
         if (numeroBiglietto == null || numeroBiglietto.isBlank())
             throw new IllegalArgumentException("Numero biglietto mancante");
-        if (posto == null || posto.isBlank())
-            throw new IllegalArgumentException("Posto assegnato mancante");
+        // IMPORTANTE: non bloccare più se il posto è vuoto/null -> lo genera il DAO
         if (stato == null)
             throw new IllegalArgumentException("Stato prenotazione mancante");
         if (numeroVolo == null || numeroVolo.isBlank())
             throw new IllegalArgumentException("Numero volo mancante");
         if (codiceFiscale == null || codiceFiscale.isBlank())
             throw new IllegalArgumentException("Codice fiscale mancante");
-        // EMAIL NON OBBLIGATORIA!
-        // if (email == null || email.isBlank())
-        //    throw new IllegalArgumentException("Email passeggero mancante");
 
-        // 1) Verifica esistenza volo (FK su idvolo)
         Volo v = getVoloByCodice(numeroVolo);
         if (v == null) {
             throw new IllegalArgumentException("Volo inesistente: " + numeroVolo + ". Inserisci prima il volo.");
         }
 
-        // 2) Upsert DatiPasseggero PRIMA dell'inserimento prenotazione
+        // Upsert DatiPasseggero (come già avevi)
         DatiPasseggero dp;
         try {
             dp = datiPasseggeroDAO.findByCodiceFiscale(codiceFiscale);
@@ -201,7 +195,6 @@ public class Controller {
                 if (!datiPasseggeroDAO.insert(dp)) {
                     throw new RuntimeException("Inserimento DatiPasseggero fallito per CF " + codiceFiscale);
                 }
-                // opzionale: sincronizza cache
                 creaDatiPasseggero(nome, cognome, codiceFiscale, email);
             } else {
                 boolean needUpdate = false;
@@ -220,29 +213,42 @@ public class Controller {
             throw new RuntimeException("Errore nel salvataggio dei dati passeggero", e);
         }
 
-        // 3) (opzionale) persisti/aggiorna utente
-        try {
-            // utentiDAO.insertOrUpdate(utenteGenerico);
-        } catch (Exception e) {
-            e.printStackTrace();
+        // Normalizza: se non è un sedile valido A..F + 1..30, lascialo null (il DAO genererà)
+        String postoNormalizzato = normalizeSeatOrNull(posto);
+
+        Prenotazione pren = new Prenotazione(numeroBiglietto, postoNormalizzato, stato, utenteGenerico, dp, v);
+
+        // Inserisci su DB: il DAO assegna un posto se null/non valido
+        if (!prenotazioneDAO.insert(pren)) {
+            throw new RuntimeException("Impossibile inserire prenotazione " + numeroBiglietto);
         }
 
-        // 4) Inserisci la prenotazione usando la stessa email allineata
-        Prenotazione pren = new Prenotazione(numeroBiglietto, posto, stato, utenteGenerico, dp, v);
-
-        System.out.printf("DEBUG insert prenotazione: biglietto=%s, posto=%s, stato=%s, emailutente=%s, idvolo=%s%n",
+        // LOG DOPO l’insert: ora pren.getPostoAssegnato() contiene il posto generato
+        System.out.printf("OK prenotazione: biglietto=%s, posto=%s, stato=%s, emailutente=%s, idvolo=%s%n",
                 pren.getNumBiglietto(),
                 pren.getPostoAssegnato(),
                 pren.getStato().name(),
                 dp.getEmail(),
                 v.getCodiceUnivoco());
 
-        if (!prenotazioneDAO.insert(pren)) {
-            throw new RuntimeException("Impossibile inserire prenotazione " + numeroBiglietto);
-        }
-
-        // 5) Aggiorna cache
+        // Cache UI
         prenotazioni.add(pren);
+    }
+
+    // Helper: ritorna sedile valido "A12" o null se raw è vuoto/non valido/"auto"
+    private String normalizeSeatOrNull(String raw) {
+        if (raw == null) return null;
+        String t = raw.trim().toUpperCase().replaceAll("[^A-Z0-9]", "");
+        if (t.isEmpty() || t.equals("AUTO") || t.equals("POSTOAUTO") || t.equals("POSTO")) return null;
+        if (t.length() < 2) return null;
+        char letter = t.charAt(0);
+        if (letter < 'A' || letter > 'F') return null;
+        try {
+            int n = Integer.parseInt(t.substring(1));
+            return (n >= 1 && n <= 30) ? (letter + String.valueOf(n)) : null;
+        } catch (NumberFormatException ex) {
+            return null;
+        }
     }
 
     public boolean rimuoviPrenotazione(String numeroPrenotazione) {

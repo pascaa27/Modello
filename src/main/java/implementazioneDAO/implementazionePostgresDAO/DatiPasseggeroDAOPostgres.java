@@ -18,7 +18,7 @@ public class DatiPasseggeroDAOPostgres implements DatiPasseggeroDAO {
     public DatiPasseggeroDAOPostgres() {
         try {
             this.conn = ConnessioneDatabase.getInstance().getConnection();
-            this.conn.setAutoCommit(true); // esplicito
+            this.conn.setAutoCommit(true);
         } catch (SQLException e) {
             throw new RuntimeException("Errore nella connessione al database", e);
         }
@@ -28,26 +28,16 @@ public class DatiPasseggeroDAOPostgres implements DatiPasseggeroDAO {
         this.controller = controller;
     }
 
+    // CF rimosso dallo schema: manteniamo il metodo deprecato ma restituiamo sempre null
     @Override
+    @Deprecated
     public DatiPasseggero findByCodiceFiscale(String codiceFiscale) {
-        final String sql = "SELECT nome, cognome, codicefiscale, email " +
-                "FROM public.datipasseggeri WHERE codicefiscale = ?";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, codiceFiscale);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return map(rs);
-            }
-        } catch (SQLException e) {
-            System.err.println("Errore findByCodiceFiscale: " + e.getMessage());
-            e.printStackTrace();
-        }
         return null;
     }
 
-    // Facoltativo ma utile
+    @Override
     public DatiPasseggero findByEmail(String email) {
-        final String sql = "SELECT nome, cognome, codicefiscale, email " +
-                "FROM public.datipasseggeri WHERE email = ?";
+        final String sql = "SELECT nome, cognome, email, password FROM public.datipasseggeri WHERE email = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, email);
             try (ResultSet rs = ps.executeQuery()) {
@@ -62,20 +52,16 @@ public class DatiPasseggeroDAOPostgres implements DatiPasseggeroDAO {
 
     @Override
     public boolean insert(DatiPasseggero p) {
-        if (p == null || isBlank(p.getCodiceFiscale()) || isBlank(p.getNome()) || isBlank(p.getCognome())) {
-            System.err.println("Insert datipasseggeri fallita: campi obbligatori mancanti");
+        if (p == null || isBlank(p.getNome()) || isBlank(p.getCognome()) || isBlank(p.getEmail())) {
+            System.err.println("Insert datipasseggeri fallita: campi obbligatori mancanti (nome, cognome, email)");
             return false;
         }
-        final String sql = "INSERT INTO public.datipasseggeri (nome, cognome, codicefiscale, email) VALUES (?, ?, ?, ?)";
+        final String sql = "INSERT INTO public.datipasseggeri (nome, cognome, email, password) VALUES (?, ?, ?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, p.getNome());
             ps.setString(2, p.getCognome());
-            ps.setString(3, p.getCodiceFiscale());
-            if (isBlank(p.getEmail())) {
-                ps.setNull(4, java.sql.Types.VARCHAR);
-            } else {
-                ps.setString(4, p.getEmail());
-            }
+            ps.setString(3, p.getEmail());
+            ps.setString(4, p.getPassword() == null ? "" : p.getPassword());
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             System.err.println("Errore INSERT datipasseggeri: " + e.getMessage());
@@ -86,23 +72,16 @@ public class DatiPasseggeroDAOPostgres implements DatiPasseggeroDAO {
 
     @Override
     public boolean update(DatiPasseggero p) {
-        if (p == null || isBlank(p.getCodiceFiscale())) {
-            System.err.println("Update datipasseggeri fallita: oggetto nullo o CF mancante");
+        if (p == null || isBlank(p.getEmail())) {
+            System.err.println("Update datipasseggeri fallita: oggetto nullo o email mancante");
             return false;
         }
-        final String sql = "UPDATE public.datipasseggeri " +
-                "SET nome = ?, cognome = ?, email = ? " +
-                "WHERE codicefiscale = ?";
+        final String sql = "UPDATE public.datipasseggeri SET nome = ?, cognome = ?, password = ? WHERE email = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, p.getNome());
             ps.setString(2, p.getCognome());
-            // Se email è vuota o nulla, salva come null su DB
-            if (isBlank(p.getEmail())) {
-                ps.setNull(3, java.sql.Types.VARCHAR);
-            } else {
-                ps.setString(3, p.getEmail());
-            }
-            ps.setString(4, p.getCodiceFiscale());
+            ps.setString(3, p.getPassword() == null ? "" : p.getPassword());
+            ps.setString(4, p.getEmail());
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             System.err.println("Errore UPDATE datipasseggeri: " + e.getMessage());
@@ -112,10 +91,10 @@ public class DatiPasseggeroDAOPostgres implements DatiPasseggeroDAO {
     }
 
     @Override
-    public boolean delete(String codiceFiscale) {
-        final String sql = "DELETE FROM public.datipasseggeri WHERE codicefiscale = ?";
+    public boolean deleteByEmail(String email) {
+        final String sql = "DELETE FROM public.datipasseggeri WHERE email = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, codiceFiscale);
+            ps.setString(1, email);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             System.err.println("Errore DELETE datipasseggeri: " + e.getMessage());
@@ -127,10 +106,10 @@ public class DatiPasseggeroDAOPostgres implements DatiPasseggeroDAO {
     private DatiPasseggero map(ResultSet rs) throws SQLException {
         String nome = rs.getString("nome");
         String cognome = rs.getString("cognome");
-        String cf = rs.getString("codicefiscale");
         String email = rs.getString("email");
-        // Evito side-effect sulla cache del Controller
-        return new DatiPasseggero(nome, cognome, cf, email);
+        String password = rs.getString("password");
+        // codiceFiscale è stato rimosso: passiamo null
+        return new DatiPasseggero(nome, cognome, null, email, password);
     }
 
     private static boolean isBlank(String s) {

@@ -86,7 +86,7 @@ public class GestionePrenotazioniGUI {
             // chiamata al controller con email inclusa
             controller.aggiungiPrenotazione(
                     numeroBiglietto,
-                    posto,
+                    null,
                     stato,
                     numeroVolo,
                     utenteGenerico,
@@ -94,7 +94,7 @@ public class GestionePrenotazioniGUI {
                     cognome,
                     codiceFiscale,
                     email,    // <-- adesso passa l'email al controller
-                    volo
+                    null
             );
 
             areaPersonaleAmmGUI.aggiornaTabellaPasseggeri();
