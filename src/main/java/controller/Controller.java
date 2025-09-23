@@ -168,12 +168,12 @@ public class Controller {
     }
 
     public Prenotazione aggiungiPrenotazione(String numeroBiglietto, String posto, StatoPrenotazione stato,
-                                     String numeroVolo, UtenteGenerico utenteGenerico, String nome, String cognome,
-                                     String codiceFiscale, String email, Volo voloNonUsato) {
+                                             String numeroVolo, UtenteGenerico utenteGenerico, String nome, String cognome,
+                                             String codiceFiscale, String email, Volo voloNonUsato) {
 
         if (numeroBiglietto == null || numeroBiglietto.isBlank())
             throw new IllegalArgumentException("Numero biglietto mancante");
-        // IMPORTANTE: non bloccare più se il posto è vuoto/null -> lo genera il DAO
+        // posto può essere vuoto/null: lo genererà il DAO
         if (stato == null)
             throw new IllegalArgumentException("Stato prenotazione mancante");
         if (numeroVolo == null || numeroVolo.isBlank())
@@ -182,9 +182,7 @@ public class Controller {
             throw new IllegalArgumentException("Codice fiscale mancante");
 
         Volo v = getVoloByCodice(numeroVolo);
-        if (v == null) {
-            throw new IllegalArgumentException("Volo inesistente: " + numeroVolo + ". Inserisci prima il volo.");
-        }
+        if (v == null) throw new IllegalArgumentException("Volo inesistente: " + numeroVolo);
 
         // Upsert DatiPasseggero (come già avevi)
         DatiPasseggero dp;
@@ -199,8 +197,7 @@ public class Controller {
             } else {
                 boolean needUpdate = false;
                 if (dp.getEmail() == null || (email != null && !dp.getEmail().equalsIgnoreCase(email))) {
-                    dp.setEmail(email);
-                    needUpdate = true;
+                    dp.setEmail(email); needUpdate = true;
                 }
                 if (!java.util.Objects.equals(dp.getNome(), nome)) { dp.setNome(nome); needUpdate = true; }
                 if (!java.util.Objects.equals(dp.getCognome(), cognome)) { dp.setCognome(cognome); needUpdate = true; }
@@ -209,21 +206,19 @@ public class Controller {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
             throw new RuntimeException("Errore nel salvataggio dei dati passeggero", e);
         }
 
-        // Normalizza: se non è un sedile valido A..F + 1..30, lascialo null (il DAO genererà)
+        // Normalizza il posto (se non valido => null, così lo genera il DAO)
         String postoNormalizzato = normalizeSeatOrNull(posto);
 
         Prenotazione pren = new Prenotazione(numeroBiglietto, postoNormalizzato, stato, utenteGenerico, dp, v);
 
-        // Inserisci su DB: il DAO assegna un posto se null/non valido
         if (!prenotazioneDAO.insert(pren)) {
             throw new RuntimeException("Impossibile inserire prenotazione " + numeroBiglietto);
         }
 
-        // LOG DOPO l’insert: ora pren.getPostoAssegnato() contiene il posto generato
+        // Ora il DAO ha impostato il posto generato in pren (p.setPostoAssegnato)
         System.out.printf("OK prenotazione: biglietto=%s, posto=%s, stato=%s, emailutente=%s, idvolo=%s%n",
                 pren.getNumBiglietto(),
                 pren.getPostoAssegnato(),
@@ -231,7 +226,6 @@ public class Controller {
                 dp.getEmail(),
                 v.getCodiceUnivoco());
 
-        // Cache UI
         prenotazioni.add(pren);
         return pren;
     }
@@ -270,6 +264,22 @@ public class Controller {
     }
 
     public boolean salvaPrenotazione(Prenotazione prenotazione) {
+        if (prenotazione == null) return false;
+
+        // Persisti anche eventuali modifiche al passeggero
+        DatiPasseggero dp = prenotazione.getDatiPasseggero();
+        if (dp != null) {
+            try {
+                // update “morbido”: aggiorna solo se esiste
+                if (datiPasseggeroDAO.findByCodiceFiscale(dp.getCodiceFiscale()) != null) {
+                    if (!datiPasseggeroDAO.update(dp)) return false;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+
         if (!prenotazioneDAO.update(prenotazione)) return false;
 
         // riallinea la cache
@@ -279,7 +289,6 @@ public class Controller {
                 return true;
             }
         }
-        // se non era in cache, aggiungila
         prenotazioni.add(prenotazione);
         return true;
     }

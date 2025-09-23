@@ -46,11 +46,22 @@ public class CercaModificaPrenotazioneGUI {
         listaModel = new DefaultListModel<>();
         if (utente instanceof UtenteGenerico) {
             UtenteGenerico ug = (UtenteGenerico) utente;
-            for (String codice : ug.getCodiciPrenotazioni()) {
+            java.util.LinkedHashSet<String> unici = new java.util.LinkedHashSet<>(ug.getCodiciPrenotazioni());
+            for (String codice : unici) {
                 listaModel.addElement(codice);
             }
         }
         listaPrenotazioni = new JList<>(listaModel);
+        listaPrenotazioni.setCellRenderer(new DefaultListCellRenderer() {
+            @Override
+            public java.awt.Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                java.awt.Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (c instanceof JLabel && value != null) {
+                    ((JLabel) c).setText("Codice Prenotazione: " + value.toString());
+                }
+                return c;
+            }
+        });
         listaPrenotazioniScrollPane.setViewportView(listaPrenotazioni);
 
         listaPrenotazioni.addListSelectionListener(e -> {
@@ -81,7 +92,7 @@ public class CercaModificaPrenotazioneGUI {
             cognomeTextField.setText(prenotazioneCorrente.getDatiPasseggero().getCognome());
             emailTextField.setText(prenotazioneCorrente.getDatiPasseggero().getEmail());
             voloTextField.setText(prenotazioneCorrente.getVolo().getCodiceUnivoco());
-            statoVoloComboBox.setSelectedItem(prenotazioneCorrente.getStato());
+            statoVoloComboBox.setSelectedItem(prenotazioneCorrente.getStato().name());
 
             codiceInserimentoTextField.setEditable(false);
 

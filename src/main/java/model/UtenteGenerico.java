@@ -63,11 +63,13 @@ public class UtenteGenerico extends Utente {
         this.ultimoCodicePrenotazione = ultimoCodicePrenotazione;
     }
 
-    public void aggiungiCodicePrenotazione(String codice) {
-        codiciPrenotazioni.add(codice);
-    }
-
     public List<String> getCodiciPrenotazioni() {
         return codiciPrenotazioni;
+    }
+
+    public void aggiungiCodicePrenotazione(String codice) {
+        if (codice != null && !codice.isBlank() && !codiciPrenotazioni.contains(codice)) {
+            codiciPrenotazioni.add(codice);
+        }
     }
 }

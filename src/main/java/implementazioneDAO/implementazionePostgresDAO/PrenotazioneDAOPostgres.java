@@ -205,9 +205,26 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
         return false;
     }
 
+    // NUOVO: controlla se il posto è preso da un'altra prenotazione (esclude numbiglietto corrente)
+    private boolean seatTakenByAnother(String idVolo, String seat, String numBigliettoCorrente) throws SQLException {
+        final String sql =
+                "SELECT 1 " +
+                        "FROM public.prenotazioni " +
+                        "WHERE idvolo = ? AND postoassegnato = ? AND numbiglietto <> ? " +
+                        "LIMIT 1";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, idVolo);
+            ps.setString(2, seat);
+            ps.setString(3, numBigliettoCorrente);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
     @Override
     public boolean update(Prenotazione p) {
-        if (p == null || isBlank(p.getNumBiglietto())) {
+        if (p == null || p.getNumBiglietto() == null || p.getNumBiglietto().isBlank()) {
             System.err.println("Update Prenotazione fallita: oggetto nullo o numbiglietto mancante");
             return false;
         }
@@ -217,13 +234,14 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
             return false;
         }
 
+        // Se posto nullo/non valido => rigenera; se valido, NON considerarlo “occupato” se è la stessa prenotazione
         String posto = parseSeatOrNull(p.getPostoAssegnato());
         try {
             if (posto == null) {
                 posto = generateAvailableSeat(idVolo);
                 p.setPostoAssegnato(posto);
-            } else if (seatExists(idVolo, posto)) {
-                System.err.println("Il posto " + posto + " per il volo " + idVolo + " è già occupato");
+            } else if (seatTakenByAnother(idVolo, posto, p.getNumBiglietto())) {
+                System.err.printf("Update: posto %s per volo %s occupato da un'altra prenotazione%n", posto, idVolo);
                 return false;
             }
         } catch (SQLException ex) {
@@ -232,9 +250,11 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
             return false;
         }
 
-        final String sql = "UPDATE public.prenotazioni " +
-                "SET postoassegnato = ?, stato = ?, emailutente = ?, idvolo = ? " +
-                "WHERE numbiglietto = ?";
+        final String sql =
+                "UPDATE public.prenotazioni " +
+                        "SET postoassegnato = ?, stato = ?, emailutente = ?, idvolo = ? " +
+                        "WHERE numbiglietto = ?";
+
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, posto);
             ps.setString(2, p.getStato() != null ? p.getStato().name() : null);
@@ -248,6 +268,8 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
             return false;
         }
     }
+
+// ... resto classe
 
     @Override
     public boolean delete(String codicePrenotazione) {

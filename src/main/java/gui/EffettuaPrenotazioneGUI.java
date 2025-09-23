@@ -164,6 +164,10 @@ public class EffettuaPrenotazioneGUI {
                     email,
                     null
             );
+            if (pren == null) {
+                JOptionPane.showMessageDialog(effettuaPrenotazionePanel, "Creazione prenotazione fallita.", "Errore", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
 
             JOptionPane.showMessageDialog(effettuaPrenotazionePanel,
                     "Prenotazione effettuata con successo!\n" +
@@ -171,6 +175,9 @@ public class EffettuaPrenotazioneGUI {
                             "Dal " + dataInizio + " al " + dataFine,
                     "Successo",
                     JOptionPane.INFORMATION_MESSAGE);
+            if (utente != null) {
+                utente.aggiungiCodicePrenotazione(pren.getNumBiglietto());
+            }
 
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(effettuaPrenotazionePanel,
@@ -178,8 +185,6 @@ public class EffettuaPrenotazioneGUI {
                     "Errore",
                     JOptionPane.ERROR_MESSAGE);
         }
-
-        utente.aggiungiCodicePrenotazione(pren.getNumBiglietto());
     }
 
     public JPanel getPanel() {
