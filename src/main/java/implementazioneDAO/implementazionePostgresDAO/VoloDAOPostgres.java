@@ -23,7 +23,7 @@ public class VoloDAOPostgres implements VoloDAO {
 
     @Override
     public Volo findByCodiceUnivoco(String codiceUnivoco) {
-        String sql = "SELECT codiceunivoco, compagniaaerea, datavolo, orarioprevisto, stato, aeroporto, gate, arrivopartenza " +
+        String sql = "SELECT codiceunivoco, compagniaaerea, datavolo, orarioprevisto, orariostimato, stato, aeroporto, gate, arrivopartenza " +
                 "FROM public.voli WHERE codiceunivoco = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, codiceUnivoco);
@@ -40,7 +40,7 @@ public class VoloDAOPostgres implements VoloDAO {
 
     @Override
     public List<Volo> findAll() {
-        String sql = "SELECT codiceunivoco, compagniaaerea, datavolo, orarioprevisto, stato, aeroporto, gate, arrivopartenza " +
+        String sql = "SELECT codiceunivoco, compagniaaerea, datavolo, orarioprevisto, orariostimato, stato, aeroporto, gate, arrivopartenza " +
                 "FROM public.voli ORDER BY codiceunivoco";
         List<Volo> result = new ArrayList<>();
         try (PreparedStatement ps = conn.prepareStatement(sql);
@@ -57,8 +57,8 @@ public class VoloDAOPostgres implements VoloDAO {
     @Override
     public boolean insert(Volo v) {
         String sql = "INSERT INTO public.voli " +
-                "(codiceunivoco, compagniaaerea, datavolo, orarioprevisto, stato, aeroporto, gate, arrivopartenza) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?) " +
+                "(codiceunivoco, compagniaaerea, datavolo, orarioprevisto, orariostimato, stato, aeroporto, gate, arrivopartenza) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) " +
                 "ON CONFLICT (codiceunivoco) DO NOTHING";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             fill(ps, v);
@@ -71,19 +71,19 @@ public class VoloDAOPostgres implements VoloDAO {
 
     @Override
     public boolean update(Volo v) {
-        String sql = "UPDATE public.voli SET compagniaaerea=?, datavolo=?, orarioprevisto=?, stato=?, aeroporto=?, gate=?, arrivopartenza=? " +
+        String sql = "UPDATE public.voli SET compagniaaerea=?, datavolo=?, orarioprevisto=?, orariostimato=?, stato=?, aeroporto=?, gate=?, arrivopartenza=? " +
                 "WHERE codiceunivoco=?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, v.getCompagniaAerea());
             ps.setString(2, v.getDataVolo());
             ps.setString(3, v.getOrarioPrevisto());
-            // Stato può essere null: se la colonna è NOT NULL in DB, evita di passare null dal chiamante
-            if (v.getStato() != null) ps.setString(4, v.getStato().name());
-            else ps.setNull(4, Types.VARCHAR);
-            ps.setString(5, v.getAeroporto());
-            ps.setString(6, v.getGate());
-            ps.setString(7, v.getArrivoPartenza());
-            ps.setString(8, v.getCodiceUnivoco());
+            ps.setString(4, v.getOrarioStimato());
+            if (v.getStato() != null) ps.setString(5, v.getStato().name());
+            else ps.setNull(5, Types.VARCHAR);
+            ps.setString(6, v.getAeroporto());
+            ps.setString(7, v.getGate());
+            ps.setString(8, v.getArrivoPartenza());
+            ps.setString(9, v.getCodiceUnivoco());
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -124,27 +124,25 @@ public class VoloDAOPostgres implements VoloDAO {
         ps.setString(2, v.getCompagniaAerea());
         ps.setString(3, v.getDataVolo());
         ps.setString(4, v.getOrarioPrevisto());
-        if (v.getStato() != null) ps.setString(5, v.getStato().name());
-        else ps.setNull(5, Types.VARCHAR);
-        ps.setString(6, v.getAeroporto());
-        ps.setString(7, v.getGate());
-        ps.setString(8, v.getArrivoPartenza());
+        ps.setString(5, v.getOrarioStimato());
+        if (v.getStato() != null) ps.setString(6, v.getStato().name());
+        else ps.setNull(6, Types.VARCHAR);
+        ps.setString(7, v.getAeroporto());
+        ps.setString(8, v.getGate());
+        ps.setString(9, v.getArrivoPartenza());
     }
 
     private static Volo mapRow(ResultSet rs) throws SQLException {
-        String codice = rs.getString("codiceunivoco");
-        String compagnia = rs.getString("compagniaaerea");
-        String dataVolo = rs.getString("datavolo");
-        String orario = rs.getString("orarioprevisto");
-        String statoStr = rs.getString("stato");
-        String aeroporto = rs.getString("aeroporto");
-        String gate = rs.getString("gate");
-        String arrivoPartenza = rs.getString("arrivopartenza");
-
-        Volo v = new Volo(codice, compagnia, dataVolo, orario, parseStato(statoStr), null, null);
-        v.setAeroporto(aeroporto);
-        v.setGate(gate);
-        v.setArrivoPartenza(arrivoPartenza);
+        Volo v = new Volo();  // <— costruttore vuoto
+        v.setCodiceUnivoco(rs.getString("codiceunivoco"));
+        v.setCompagniaAerea(rs.getString("compagniaaerea"));
+        v.setDataVolo(rs.getString("datavolo"));
+        v.setOrarioPrevisto(rs.getString("orarioprevisto"));
+        v.setOrarioStimato(rs.getString("orariostimato")); // assicurati che la colonna esista
+        v.setStato(parseStato(rs.getString("stato")));
+        v.setAeroporto(rs.getString("aeroporto"));
+        v.setGate(rs.getString("gate"));
+        v.setArrivoPartenza(rs.getString("arrivopartenza"));
         return v;
     }
 

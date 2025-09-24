@@ -9,6 +9,7 @@ public class Volo {
     private String compagniaAerea;
     private String dataVolo;
     private String orarioPrevisto;
+    private String orarioStimato;
     private StatoVolo stato;
     private Amministratore amministratore;
     private TabellaOrario tabellaOrario;
@@ -17,12 +18,13 @@ public class Volo {
     private String gate;
     private String arrivoPartenza;
 
-    public Volo(String codiceUnivoco, String compagniaAerea, String dataVolo, String orarioPrevisto, StatoVolo stato, Amministratore amministratore, TabellaOrario tabellaOrario,
+    public Volo(String codiceUnivoco, String compagniaAerea, String dataVolo, String orarioPrevisto, String orarioStimato, StatoVolo stato, Amministratore amministratore, TabellaOrario tabellaOrario,
                 String aeroporto, String gate, String arrivoPartenza) {
         this.codiceUnivoco = codiceUnivoco;
         this.compagniaAerea = compagniaAerea;
         this.dataVolo = dataVolo;
         this.orarioPrevisto = orarioPrevisto;
+        this.orarioStimato = orarioStimato;
         this.stato = stato;
         this.amministratore = amministratore;
         this.tabellaOrario = tabellaOrario;
@@ -31,13 +33,33 @@ public class Volo {
         this.arrivoPartenza = arrivoPartenza;
     }
 
-    public Volo(String codiceUnivoco, String compagniaAerea, String dataVolo, String orarioPrevisto, StatoVolo stato, Amministratore amministratore, TabellaOrario tabellaOrario) {
-        this(codiceUnivoco, compagniaAerea, dataVolo, orarioPrevisto, stato, amministratore, tabellaOrario, null, null, null);
+    public Volo(String codiceUnivoco, String compagniaAerea, String dataVolo, String orarioPrevisto, String orarioStimato, StatoVolo stato, Amministratore amministratore, TabellaOrario tabellaOrario) {
+        this(codiceUnivoco, compagniaAerea, dataVolo, orarioPrevisto, orarioStimato, stato, amministratore, tabellaOrario, null, null, null);
     }
 
-    // costruttore vuoto per il binding automatico in PrenotazioneDAOPostgres
+    // NUOVO: overload storico “breve” (5 argomenti)
+    public Volo(String codiceUnivoco,
+                String compagniaAerea,
+                String dataVolo,
+                String orarioPrevisto,
+                StatoVolo stato) {
+        this(codiceUnivoco, compagniaAerea, dataVolo, orarioPrevisto, orarioPrevisto, stato, null, null, null, null, null);
+    }
+
+    // NUOVO: overload storico usato in alcuni DAO (7 argomenti, senza orarioStimato)
+    public Volo(String codiceUnivoco,
+                String compagniaAerea,
+                String dataVolo,
+                String orarioPrevisto,
+                StatoVolo stato,
+                Amministratore amministratore,
+                TabellaOrario tabellaOrario) {
+        this(codiceUnivoco, compagniaAerea, dataVolo, orarioPrevisto, orarioPrevisto, stato, amministratore, tabellaOrario, null, null, null);
+    }
+
+    // costruttore vuoto per il binding automatico in DAO/Controller
     public Volo() {
-        // vuoto, necessario per il framework nel controller
+        // vuoto, necessario per mapping e riflessioni
     }
 
     public List<Prenotazione> getPrenotazioni() {
@@ -66,6 +88,10 @@ public class Volo {
 
     public String getOrarioPrevisto() {
         return orarioPrevisto;
+    }
+
+    public String getOrarioStimato() {
+        return orarioStimato;
     }
 
     public StatoVolo getStato() {
@@ -110,6 +136,10 @@ public class Volo {
 
     public void setOrarioPrevisto(String orarioPrevisto) {
         this.orarioPrevisto = orarioPrevisto;
+    }
+
+    public void setOrarioStimato(String orarioStimato) {
+        this.orarioStimato = orarioStimato;
     }
 
     public void setStato(StatoVolo stato) {

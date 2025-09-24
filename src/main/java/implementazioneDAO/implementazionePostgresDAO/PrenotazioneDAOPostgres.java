@@ -32,7 +32,7 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
             "SELECT p.numbiglietto, p.postoassegnato, p.stato, p.emailutente, p.idvolo, " +
                     "       d.nome AS dp_nome, d.cognome AS dp_cognome, d.codicefiscale AS dp_codicefiscale, d.email AS dp_email, " +
                     "       v.compagniaaerea AS v_compagniaaerea, v.datavolo AS v_datavolo, v.orarioprevisto AS v_orarioprevisto, " +
-                    "       v.stato AS v_stato, v.aeroporto AS v_aeroporto, v.gate AS v_gate, v.arrivopartenza AS v_arrivopartenza " +
+                    "       v.orariostimato AS v_orariostimato, v.stato AS v_stato, v.aeroporto AS v_aeroporto, v.gate AS v_gate, v.arrivopartenza AS v_arrivopartenza " +
                     "FROM public.prenotazioni p " +
                     "LEFT JOIN public.datipasseggeri d ON d.email = p.emailutente " +
                     "LEFT JOIN public.voli v ON v.codiceunivoco = p.idvolo ";
@@ -269,8 +269,6 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
         }
     }
 
-// ... resto classe
-
     @Override
     public boolean delete(String codicePrenotazione) {
         final String sql = "DELETE FROM public.prenotazioni WHERE numbiglietto = ?";
@@ -294,11 +292,14 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
         Volo volo = null;
         if (controller != null) volo = controller.getVoloByCodice(codiceVolo);
         if (volo == null) {
-            String comp = rs.getString("v_compagniaaerea");
-            String dataV = rs.getString("v_datavolo");
-            String orario = rs.getString("v_orarioprevisto");
-            StatoVolo statoV = parseStatoVolo(rs.getString("v_stato"));
-            volo = new Volo(codiceVolo, comp, dataV, orario, statoV, null, null);
+            // Costruzione robusta: costruttore vuoto + setter
+            volo = new Volo();
+            volo.setCodiceUnivoco(codiceVolo);
+            volo.setCompagniaAerea(rs.getString("v_compagniaaerea"));
+            volo.setDataVolo(rs.getString("v_datavolo"));
+            volo.setOrarioPrevisto(rs.getString("v_orarioprevisto"));
+            volo.setOrarioStimato(rs.getString("v_orariostimato"));
+            volo.setStato(parseStatoVolo(rs.getString("v_stato")));
             volo.setAeroporto(rs.getString("v_aeroporto"));
             volo.setGate(rs.getString("v_gate"));
             volo.setArrivoPartenza(rs.getString("v_arrivopartenza"));

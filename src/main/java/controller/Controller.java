@@ -84,38 +84,53 @@ public class Controller {
     private void seedVoliInizialiNelDB() {
         for (String[] r : VOLI_INIZIALI) {
             StatoVolo stato = parseStato(r[2]);
-            Volo v = new Volo(r[0], r[1], r[3], r[4], stato, null, null);
+
+            Volo v = new Volo();                 // <— costruttore vuoto
+            v.setCodiceUnivoco(r[0]);
+            v.setCompagniaAerea(r[1]);
+            v.setStato(stato);
+            v.setDataVolo(r[3]);
+            v.setOrarioPrevisto(r[4]);
             v.setAeroporto(r[5]);
             v.setGate(r[6]);
             v.setArrivoPartenza(r[7]);
+            // opzionale: inizializza stimato uguale al previsto
+            if (v.getOrarioStimato() == null || v.getOrarioStimato().isBlank()) {
+                v.setOrarioStimato(v.getOrarioPrevisto());
+            }
+
             try {
-                voloDAO.insert(v); // ignora se già presente (implementa ON CONFLICT nel DAO)
+                voloDAO.insert(v); // ignora se già presente
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
     }
 
-    public void aggiungiVolo(String codiceUnivoco,
-                             String compagniaAerea,
-                             String dataVolo,
+    public void aggiungiVolo(String codice,
+                             String compagnia,
+                             String data,
                              String orarioPrevisto,
+                             String orarioStimato,
                              StatoVolo stato,
-                             String arrivoPartenza,
-                             String otherAirport,
+                             String direzione,     // "in arrivo" | "in partenza"
+                             String aeroporto,     // IATA (3 lettere)
                              String gate) {
+        Volo v = new Volo();             // <— costruttore vuoto
+        v.setCodiceUnivoco(codice);
+        v.setCompagniaAerea(compagnia);
+        v.setDataVolo(data);
+        v.setOrarioPrevisto(orarioPrevisto);
+        v.setOrarioStimato(orarioStimato);
+        v.setStato(stato);
+        v.setArrivoPartenza(direzione);
+        v.setAeroporto(aeroporto);
+        v.setGate(gate);
 
-        Volo volo = new Volo(codiceUnivoco, compagniaAerea, dataVolo, orarioPrevisto, stato, null, null);
-        volo.setAeroporto(otherAirport);
-        volo.setGate(gate);
-        volo.setArrivoPartenza(arrivoPartenza);
-
-        // Prima su DB, poi sulla cache
-        if (voloDAO.insert(volo)) {
-            voliGestiti.add(volo);
-        } else {
-            throw new RuntimeException("Impossibile inserire il volo " + codiceUnivoco);
+        if (!voloDAO.insert(v)) {
+            throw new RuntimeException("Impossibile inserire il volo " + codice);
         }
+        this.voliGestiti.add(v);
     }
 
     public boolean rimuoviVolo(String codiceUnivoco) {
@@ -125,11 +140,25 @@ public class Controller {
         return false;
     }
 
-    public void aggiornaVolo(String codiceUnivoco, StatoVolo nuovoStato, String nuovoOrario) {
+    public void aggiornaVolo(String codiceUnivoco,
+                             String compagnia,
+                             String dataVolo,
+                             String orarioPrevisto,
+                             String orarioStimato,
+                             StatoVolo nuovoStato,
+                             String direzione, // "in arrivo" | "in partenza"
+                             String aeroporto,
+                             String gate) {
         for (Volo volo : voliGestiti) {
             if (volo.getCodiceUnivoco().equals(codiceUnivoco)) {
+                volo.setCompagniaAerea(compagnia);
+                volo.setDataVolo(dataVolo);
+                volo.setOrarioPrevisto(orarioPrevisto);
+                volo.setOrarioStimato(orarioStimato);
                 volo.setStato(nuovoStato);
-                volo.setOrarioPrevisto(nuovoOrario);
+                volo.setArrivoPartenza(direzione);
+                volo.setAeroporto(aeroporto);
+                volo.setGate(gate);
 
                 if (!voloDAO.update(volo)) {
                     throw new RuntimeException("Impossibile aggiornare il volo " + codiceUnivoco);
@@ -137,11 +166,7 @@ public class Controller {
                 return;
             }
         }
-        throw new NoSuchElementException("Volo non trovato: " + codiceUnivoco);
-    }
-
-    public List<Volo> getVoliGestiti() {
-        return Collections.unmodifiableList(voliGestiti);
+        throw new java.util.NoSuchElementException("Volo non trovato: " + codiceUnivoco);
     }
 
     public Volo cercaVolo(String codiceUnivoco) {
@@ -334,63 +359,28 @@ public class Controller {
     }
 
 
-    public List<Volo> ricercaVoliRaw(String numeroVolo, String compagnia, String stato, String data,
-                                     String orario, String aeroporto, String gate, String arrivoPartenza) {
-        numeroVolo = norm(numeroVolo);
-        compagnia = norm(compagnia);
-        stato = norm(stato);
-        data = norm(data);
-        orario = norm(orario);
-        aeroporto = norm(aeroporto);
-        gate = norm(gate);
-        arrivoPartenza = norm(arrivoPartenza);
-
-        List<Volo> out = new ArrayList<>();
+    public List<Volo> ricercaVoliRaw(String numeroVolo,
+                                     String compagnia,
+                                     String stato,
+                                     String data,
+                                     String orario,
+                                     String aeroporto,
+                                     String gate,
+                                     String arrivoPartenza) {
+        List<Volo> result = new ArrayList<>();
         for (Volo v : voliGestiti) {
-            boolean match = true;
+            if (numeroVolo != null && (v.getCodiceUnivoco() == null || !v.getCodiceUnivoco().equalsIgnoreCase(numeroVolo))) continue;
+            if (compagnia != null && (v.getCompagniaAerea() == null || !v.getCompagniaAerea().toLowerCase().contains(compagnia.toLowerCase()))) continue;
+            if (stato != null && (v.getStato() == null || !v.getStato().name().equalsIgnoreCase(stato))) continue;
+            if (data != null && (v.getDataVolo() == null || !v.getDataVolo().equals(data))) continue;
+            if (orario != null && (v.getOrarioPrevisto() == null || !v.getOrarioPrevisto().equals(orario))) continue;
+            if (aeroporto != null && (v.getAeroporto() == null || !v.getAeroporto().equalsIgnoreCase(aeroporto))) continue;
+            if (gate != null && (v.getGate() == null || !v.getGate().equalsIgnoreCase(gate))) continue;
+            if (arrivoPartenza != null && (v.getArrivoPartenza() == null || !v.getArrivoPartenza().equalsIgnoreCase(arrivoPartenza))) continue;
 
-            if (numeroVolo != null &&
-                    (v.getCodiceUnivoco() == null ||
-                            !v.getCodiceUnivoco().toLowerCase().contains(numeroVolo.toLowerCase())))
-                match = false;
-
-            if (compagnia != null &&
-                    (v.getCompagniaAerea() == null ||
-                            !v.getCompagniaAerea().toLowerCase().contains(compagnia.toLowerCase())))
-                match = false;
-
-            if (stato != null) {
-                if (v.getStato() == null || !v.getStato().name().equalsIgnoreCase(stato)) match = false;
-            }
-
-            if (data != null &&
-                    (v.getDataVolo() == null ||
-                            !v.getDataVolo().toLowerCase().contains(data.toLowerCase())))
-                match = false;
-
-            if (orario != null &&
-                    (v.getOrarioPrevisto() == null ||
-                            !v.getOrarioPrevisto().toLowerCase().contains(orario.toLowerCase())))
-                match = false;
-
-            if (aeroporto != null &&
-                    (v.getAeroporto() == null ||
-                            !v.getAeroporto().toLowerCase().contains(aeroporto.toLowerCase())))
-                match = false;
-
-            if (gate != null &&
-                    (v.getGate() == null ||
-                            !v.getGate().toLowerCase().contains(gate.toLowerCase())))
-                match = false;
-
-            if (arrivoPartenza != null &&
-                    (v.getArrivoPartenza() == null ||
-                            !v.getArrivoPartenza().equalsIgnoreCase(arrivoPartenza)))
-                match = false;
-
-            if (match) out.add(v);
+            result.add(v);
         }
-        return out;
+        return result;
     }
 
     public List<Object[]> ricercaVoli(String numeroVolo, String compagnia, String stato, String data,
@@ -406,23 +396,36 @@ public class Controller {
         List<Object[]> righe = new ArrayList<>();
         for (Volo v : trovati) {
             righe.add(new Object[]{
-                    safe(v.getCodiceUnivoco()),
-                    safe(v.getCompagniaAerea()),
-                    v.getStato() != null ? v.getStato().name() : "",
-                    safe(v.getDataVolo()),
-                    safe(v.getOrarioPrevisto()),
-                    safe(v.getAeroporto()),
-                    safe(v.getGate()),
-                    safe(v.getArrivoPartenza())
+                    safe(v.getCodiceUnivoco()),                          // 0 Numero Volo
+                    safe(v.getCompagniaAerea()),                         // 1 Compagnia
+                    v.getStato() != null ? v.getStato().name() : "",    // 2 Stato
+                    safe(v.getDataVolo()),                               // 3 Data
+                    safe(v.getOrarioPrevisto()),                         // 4 Orario previsto
+                    safe(v.getOrarioStimato()),                          // 5 Orario stimato
+                    safe(v.getAeroporto()),                              // 6 Aeroporto Destinazione
+                    safe(v.getGate()),                                   // 7 GATE
+                    safe(v.getArrivoPartenza())                          // 8 ARRIVO/PARTENZA
             });
         }
         return righe;
     }
-
     public List<Object[]> tuttiVoli() {
-        return ricercaVoli(null, null, null, null, null, null, null, null);
+        List<Object[]> rows = new java.util.ArrayList<>();
+        for (Volo v : voliGestiti) {
+            rows.add(new Object[]{
+                    v.getCodiceUnivoco(),                      // 0 Numero Volo
+                    v.getCompagniaAerea(),                     // 1 Compagnia
+                    v.getStato() != null ? v.getStato().name() : "", // 2 Stato
+                    v.getDataVolo(),                           // 3 Data
+                    v.getOrarioPrevisto(),                     // 4 Orario previsto
+                    v.getOrarioStimato(),                      // 5 Orario stimato
+                    v.getAeroporto(),                          // 6 Aeroporto Destinazione
+                    v.getGate(),                               // 7 GATE
+                    v.getArrivoPartenza()                      // 8 ARRIVO/PARTENZA
+            });
+        }
+        return rows;
     }
-
     // ==========================
     // Passeggeri (su cache, alimentata quando inserisci/aggiorni/ricarichi)
     // ==========================
@@ -655,7 +658,8 @@ public class Controller {
     }
 
     public Volo creaVolo(String codiceVolo) {
-        Volo v = new Volo(codiceVolo, "", "", "", null, null, null);
+        Volo v = new Volo();             // <— costruttore vuoto
+        v.setCodiceUnivoco(codiceVolo);
         voliGestiti.add(v);
         return v;
     }

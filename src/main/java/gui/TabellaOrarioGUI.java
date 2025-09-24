@@ -17,6 +17,7 @@ public class TabellaOrarioGUI {
             "Stato",
             "Data",
             "Orario previsto",
+            "Orario stimato",
             "Aeroporto Destinazione",
             "GATE",
             "ARRIVO/PARTENZA"
