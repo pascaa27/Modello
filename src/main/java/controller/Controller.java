@@ -192,13 +192,13 @@ public class Controller {
         }
     }
 
+    // Sostituisci l'intero metodo con questo
     public Prenotazione aggiungiPrenotazione(String numeroBiglietto, String posto, StatoPrenotazione stato,
                                              String numeroVolo, UtenteGenerico utenteGenerico, String nome, String cognome,
                                              String codiceFiscale, String email, Volo voloNonUsato) {
 
         if (numeroBiglietto == null || numeroBiglietto.isBlank())
             throw new IllegalArgumentException("Numero biglietto mancante");
-        // posto può essere vuoto/null: lo genererà il DAO
         if (stato == null)
             throw new IllegalArgumentException("Stato prenotazione mancante");
         if (numeroVolo == null || numeroVolo.isBlank())
@@ -209,46 +209,36 @@ public class Controller {
         Volo v = getVoloByCodice(numeroVolo);
         if (v == null) throw new IllegalArgumentException("Volo inesistente: " + numeroVolo);
 
-        // Upsert DatiPasseggero (come già avevi)
-        DatiPasseggero dp;
+        // NON scriviamo su datipasseggeri: usiamo un oggetto "transitorio" solo per portare l'email al DAO prenotazioni.
+        // Se esiste già in DB un datapasseggero con lo stesso CF/email, NON lo tocchiamo.
+        DatiPasseggero dpEsistente = null;
         try {
-            dp = datiPasseggeroDAO.findByCodiceFiscale(codiceFiscale);
-            if (dp == null) {
-                dp = new DatiPasseggero(nome, cognome, codiceFiscale, email);
-                if (!datiPasseggeroDAO.insert(dp)) {
-                    throw new RuntimeException("Inserimento DatiPasseggero fallito per CF " + codiceFiscale);
-                }
-                creaDatiPasseggero(nome, cognome, codiceFiscale, email);
-            } else {
-                boolean needUpdate = false;
-                if (dp.getEmail() == null || (email != null && !dp.getEmail().equalsIgnoreCase(email))) {
-                    dp.setEmail(email); needUpdate = true;
-                }
-                if (!java.util.Objects.equals(dp.getNome(), nome)) { dp.setNome(nome); needUpdate = true; }
-                if (!java.util.Objects.equals(dp.getCognome(), cognome)) { dp.setCognome(cognome); needUpdate = true; }
-                if (needUpdate && !datiPasseggeroDAO.update(dp)) {
-                    throw new RuntimeException("Update DatiPasseggero fallito per CF " + codiceFiscale);
-                }
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("Errore nel salvataggio dei dati passeggero", e);
+            dpEsistente = datiPasseggeroDAO.findByCodiceFiscale(codiceFiscale);
+        } catch (Exception ignored) {}
+
+        DatiPasseggero dpForPren;
+        if (dpEsistente != null) {
+            // Usa i dati già presenti (ma NON fare update)
+            dpForPren = dpEsistente;
+        } else {
+            // Crea un oggetto in memoria; NON chiamare insert/update su datipasseggeri
+            dpForPren = new DatiPasseggero(nome, cognome, codiceFiscale, email);
         }
 
         // Normalizza il posto (se non valido => null, così lo genera il DAO)
         String postoNormalizzato = normalizeSeatOrNull(posto);
 
-        Prenotazione pren = new Prenotazione(numeroBiglietto, postoNormalizzato, stato, utenteGenerico, dp, v);
+        Prenotazione pren = new Prenotazione(numeroBiglietto, postoNormalizzato, stato, utenteGenerico, dpForPren, v);
 
         if (!prenotazioneDAO.insert(pren)) {
             throw new RuntimeException("Impossibile inserire prenotazione " + numeroBiglietto);
         }
 
-        // Ora il DAO ha impostato il posto generato in pren (p.setPostoAssegnato)
         System.out.printf("OK prenotazione: biglietto=%s, posto=%s, stato=%s, emailutente=%s, idvolo=%s%n",
                 pren.getNumBiglietto(),
                 pren.getPostoAssegnato(),
                 pren.getStato().name(),
-                dp.getEmail(),
+                dpForPren != null ? dpForPren.getEmail() : null,
                 v.getCodiceUnivoco());
 
         prenotazioni.add(pren);
