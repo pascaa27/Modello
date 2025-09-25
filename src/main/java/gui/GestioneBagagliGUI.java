@@ -86,11 +86,14 @@ public class GestioneBagagliGUI {
         if (bagagliTable == null) return;
         DefaultTableModel model = (DefaultTableModel) bagagliTable.getModel();
         model.setRowCount(0);
-        List<Bagaglio> bagagli = controller.getBagagli();
+
+        // usa DAO invece della cache
+        List<Bagaglio> bagagli = controller.trovaTuttiBagagli();
         for (Bagaglio b : bagagli) {
             model.addRow(new Object[]{b.getCodUnivoco(), b.getStato()});
         }
     }
+
 
     private void aggiungiBagaglio() {
         String codice = codiceBagaglioTextField.getText().trim();

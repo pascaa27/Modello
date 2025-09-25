@@ -46,6 +46,30 @@ public class BagaglioDAOPostgres implements BagaglioDAO {
         return bagagli;
     }
 
+    public Bagaglio findById(String codice) {
+        String sql = "SELECT codUnivoco, pesoKg, stato, numBiglietto FROM bagagli WHERE codUnivoco = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, codice);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    String cod = rs.getString("codUnivoco");
+                    double peso = rs.getDouble("pesoKg");
+                    StatoBagaglio stato = StatoBagaglio.valueOf(rs.getString("stato"));
+                    String numBiglietto = rs.getString("numBiglietto");
+                    Prenotazione pren = null;
+                    if (numBiglietto != null && controller != null) {
+                        pren = controller.cercaPrenotazione(numBiglietto);
+                    }
+                    return new Bagaglio(cod, peso, stato, pren);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+
     @Override
     public List<Bagaglio> findAll() {
         List<Bagaglio> bagagli = new ArrayList<>();

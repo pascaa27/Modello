@@ -279,13 +279,19 @@ public class Controller {
     }
 
     public Prenotazione cercaPrenotazione(String numeroBiglietto) {
+        // Prima cerca in cache
         for (Prenotazione p : prenotazioni) {
             if (p.getNumBiglietto().equals(numeroBiglietto)) {
                 return p;
             }
         }
-        // opzionale: se vuoi, prova a leggere dal DB con prenotazioneDAO.findByCodice(numeroBiglietto)
-        return null;
+
+        // Se non è in cache, prova a leggere dal DB
+        Prenotazione dalDB = prenotazioneDAO.findByCodice(numeroBiglietto);
+        if (dalDB != null) {
+            prenotazioni.add(dalDB); // aggiorna la cache
+        }
+        return dalDB;
     }
 
     public boolean salvaPrenotazione(Prenotazione prenotazione) {
@@ -508,16 +514,11 @@ public class Controller {
     // Bagagli (opzionale: persistenza)
     // ==========================
     public boolean aggiungiBagaglio(Bagaglio bagaglio) {
-        for (Bagaglio b : bagagli) {
-            if (b.getCodUnivoco().equalsIgnoreCase(bagaglio.getCodUnivoco())) {
-                return false;
-            }
+        // controlla duplicati direttamente nel DB
+        if (bagaglioDAO.findById(bagaglio.getCodUnivoco()) != null) {
+            return false;
         }
-        // Persisti su DB
-        if (!bagaglioDAO.insert(bagaglio)) return false;
-
-        bagagli.add(bagaglio);
-        return true;
+        return bagaglioDAO.insert(bagaglio);
     }
 
     public boolean aggiungiBagaglio(String codice, StatoBagaglio stato) {
@@ -526,12 +527,16 @@ public class Controller {
     }
 
     public List<Bagaglio> getBagagli() {
-        return new ArrayList<>(bagagli);
+        return bagaglioDAO.findAll();
+    }
+
+    public List<Bagaglio> trovaTuttiBagagli() {
+        return bagaglioDAO.findAll();
     }
 
     public List<Object[]> ricercaBagagli(String codiceBagaglio, String stato) {
         List<Object[]> risultati = new ArrayList<>();
-        for (Bagaglio b : bagagli) {
+        for (Bagaglio b : bagaglioDAO.findAll()) {
             boolean match = true;
             if (codiceBagaglio != null && !codiceBagaglio.isEmpty() &&
                     (b.getCodUnivoco() == null || !b.getCodUnivoco().contains(codiceBagaglio)))
@@ -551,10 +556,7 @@ public class Controller {
     }
 
     public boolean rimuoviBagaglio(String codice) {
-        // Persisti prima su DB
-        if (!bagaglioDAO.delete(codice)) return false;
-
-        return bagagli.removeIf(b -> b.getCodUnivoco().equalsIgnoreCase(codice));
+        return bagaglioDAO.delete(codice);
     }
 
     public List<Object[]> tuttiBagagliRows() {
@@ -563,18 +565,9 @@ public class Controller {
 
     public boolean aggiornaBagaglio(Bagaglio bagaglio) {
         if (bagaglio == null) return false;
-        if (!bagaglioDAO.update(bagaglio)) return false;
-
-        // riallinea cache
-        for (int i = 0; i < bagagli.size(); i++) {
-            if (bagagli.get(i).getCodUnivoco().equalsIgnoreCase(bagaglio.getCodUnivoco())) {
-                bagagli.set(i, bagaglio);
-                return true;
-            }
-        }
-        bagagli.add(bagaglio);
-        return true;
+        return bagaglioDAO.update(bagaglio);
     }
+
 
 
 
