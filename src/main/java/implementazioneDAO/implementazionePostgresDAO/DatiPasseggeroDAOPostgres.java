@@ -5,10 +5,7 @@ import implementazioneDAO.DatiPasseggeroDAO;
 import model.DatiPasseggero;
 import database.ConnessioneDatabase;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 
 public class DatiPasseggeroDAOPostgres implements DatiPasseggeroDAO {
 
@@ -28,12 +25,8 @@ public class DatiPasseggeroDAOPostgres implements DatiPasseggeroDAO {
         this.controller = controller;
     }
 
-    // CF rimosso dallo schema: manteniamo il metodo deprecato ma restituiamo sempre null
-    @Override
-    @Deprecated
-    public DatiPasseggero findByCodiceFiscale(String codiceFiscale) {
-        return null;
-    }
+    @Override @Deprecated
+    public DatiPasseggero findByCodiceFiscale(String codiceFiscale) { return null; }
 
     @Override
     public DatiPasseggero findByEmail(String email) {
@@ -50,7 +43,7 @@ public class DatiPasseggeroDAOPostgres implements DatiPasseggeroDAO {
         return null;
     }
 
-    // REGISTRAZIONE: upsert su email (email deve essere UNIQUE su datipasseggeri)
+    // REGISTRAZIONE: upsert su email normalizzata
     @Override
     public boolean insert(DatiPasseggero p) {
         if (p == null || isBlank(p.getNome()) || isBlank(p.getCognome()) || isBlank(p.getEmail())) {
@@ -60,16 +53,19 @@ public class DatiPasseggeroDAOPostgres implements DatiPasseggeroDAO {
         final String sql =
                 "INSERT INTO public.datipasseggeri (nome, cognome, email, password) " +
                         "VALUES (?, ?, LOWER(BTRIM(?)), ?) " +
-                        "ON CONFLICT (email) DO UPDATE SET " +
-                        "  nome = EXCLUDED.nome, " +
-                        "  cognome = EXCLUDED.cognome, " +
-                        "  password = EXCLUDED.password";
+                        "ON CONFLICT (email) DO UPDATE SET nome = EXCLUDED.nome, cognome = EXCLUDED.cognome, password = EXCLUDED.password";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, p.getNome());
             ps.setString(2, p.getCognome());
             ps.setString(3, p.getEmail());
             ps.setString(4, p.getPassword() == null ? "" : p.getPassword());
-            return ps.executeUpdate() > 0;
+            boolean ok = ps.executeUpdate() > 0;
+
+            // DEBUG
+            logDbContext("insert");
+            System.out.printf("REG OK=%s email_norm='%s'%n", ok, p.getEmail() == null ? null : p.getEmail().trim().toLowerCase());
+
+            return ok;
         } catch (SQLException e) {
             System.err.println("Errore INSERT/UPSERT datipasseggeri: " + e.getMessage());
             e.printStackTrace();
@@ -110,18 +106,26 @@ public class DatiPasseggeroDAOPostgres implements DatiPasseggeroDAO {
         }
     }
 
-    // LOGIN: verifica credenziali
+    // LOGIN con diagnostica: capiamo se non trova l'email o se sbaglia la password
     public boolean checkCredenziali(String email, String passwordChiara) {
         if (isBlank(email) || passwordChiara == null) return false;
-        final String sql =
-                "SELECT 1 FROM public.datipasseggeri " +
-                        "WHERE email = LOWER(BTRIM(?)) AND password = ? " +
-                        "LIMIT 1";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+
+        logDbContext("login");
+        System.out.printf("LOGIN tentativo email_norm='%s'%n", email.trim().toLowerCase());
+
+        try (PreparedStatement ps = conn.prepareStatement(
+                "SELECT password FROM public.datipasseggeri WHERE email = LOWER(BTRIM(?)) LIMIT 1")) {
             ps.setString(1, email);
-            ps.setString(2, passwordChiara);
             try (ResultSet rs = ps.executeQuery()) {
-                return rs.next();
+                if (!rs.next()) {
+                    System.out.println("LOGIN KO: email non trovata");
+                    return false;
+                }
+                String pwdDb = rs.getString(1);
+                boolean ok = (pwdDb != null && pwdDb.equals(passwordChiara));
+                System.out.printf("LOGIN %s: confrontate password (db='%s', in='%s')%n",
+                        ok ? "OK" : "KO", pwdDb, passwordChiara);
+                return ok;
             }
         } catch (SQLException e) {
             System.err.println("Errore verifica credenziali (datipasseggeri): " + e.getMessage());
@@ -130,16 +134,23 @@ public class DatiPasseggeroDAOPostgres implements DatiPasseggeroDAO {
         }
     }
 
+    private void logDbContext(String where) {
+        try (Statement st = conn.createStatement();
+             ResultSet rs = st.executeQuery("SELECT current_user, current_database(), current_schema()")) {
+            if (rs.next()) {
+                System.out.printf("[%s] DBCTX user=%s db=%s schema=%s%n",
+                        where, rs.getString(1), rs.getString(2), rs.getString(3));
+            }
+        } catch (SQLException ignored) {}
+    }
+
     private DatiPasseggero map(ResultSet rs) throws SQLException {
         String nome = rs.getString("nome");
         String cognome = rs.getString("cognome");
         String email = rs.getString("email");
         String password = rs.getString("password");
-        // codiceFiscale rimosso => passiamo null
         return new DatiPasseggero(nome, cognome, null, email, password);
     }
 
-    private static boolean isBlank(String s) {
-        return s == null || s.trim().isEmpty();
-    }
+    private static boolean isBlank(String s) { return s == null || s.trim().isEmpty(); }
 }
