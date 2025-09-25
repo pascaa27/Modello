@@ -12,7 +12,7 @@ import java.util.List;
 
 public class BagaglioDAOPostgres implements BagaglioDAO {
 
-    private Connection conn;
+    private final Connection conn;
     private Controller controller;
 
     public BagaglioDAOPostgres() {
@@ -32,14 +32,31 @@ public class BagaglioDAOPostgres implements BagaglioDAO {
         List<Bagaglio> bagagli = new ArrayList<>();
         String sql = "SELECT * FROM bagagli WHERE numBiglietto = ?";
 
-        try(PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, numBiglietto);
-            ResultSet rs = ps.executeQuery();
-
-            while(rs.next()) {
-                bagagli.add(mapResultSetToBagaglio(rs));
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Bagaglio b = mapResultSetToBagaglio(rs);
+                    if (b != null) bagagli.add(b);
+                }
             }
-        } catch(SQLException e) {
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return bagagli;
+    }
+
+    @Override
+    public List<Bagaglio> findAll() {
+        List<Bagaglio> bagagli = new ArrayList<>();
+        String sql = "SELECT * FROM bagagli ORDER BY codUnivoco";
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                Bagaglio b = mapResultSetToBagaglio(rs);
+                if (b != null) bagagli.add(b);
+            }
+        } catch (SQLException e) {
             e.printStackTrace();
         }
         return bagagli;
@@ -48,11 +65,15 @@ public class BagaglioDAOPostgres implements BagaglioDAO {
     @Override
     public boolean insert(Bagaglio bagaglio) {
         String sql = "INSERT INTO bagagli (codUnivoco, pesoKg, stato, numBiglietto) VALUES (?, ?, ?, ?)";
-        try(PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, bagaglio.getCodUnivoco());
             ps.setDouble(2, bagaglio.getPesoKg());
             ps.setString(3, bagaglio.getStato().name());
-            ps.setString(4, bagaglio.getPrenotazione().getNumBiglietto());
+            if (bagaglio.getPrenotazione() != null) {
+                ps.setString(4, bagaglio.getPrenotazione().getNumBiglietto());
+            } else {
+                ps.setNull(4, Types.VARCHAR);
+            }
             return ps.executeUpdate() > 0;
         } catch(SQLException e) {
             e.printStackTrace();
@@ -63,10 +84,14 @@ public class BagaglioDAOPostgres implements BagaglioDAO {
     @Override
     public boolean update(Bagaglio bagaglio) {
         String sql = "UPDATE bagagli SET pesoKg = ?, stato = ?, numBiglietto = ? WHERE codUnivoco = ?";
-        try(PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setDouble(1, bagaglio.getPesoKg());
             ps.setString(2, bagaglio.getStato().name());
-            ps.setString(3, bagaglio.getPrenotazione().getNumBiglietto());
+            if (bagaglio.getPrenotazione() != null) {
+                ps.setString(3, bagaglio.getPrenotazione().getNumBiglietto());
+            } else {
+                ps.setNull(3, Types.VARCHAR);
+            }
             ps.setString(4, bagaglio.getCodUnivoco());
             return ps.executeUpdate() > 0;
         } catch(SQLException e) {
@@ -78,7 +103,7 @@ public class BagaglioDAOPostgres implements BagaglioDAO {
     @Override
     public boolean delete(String codUnivoco) {
         String sql = "DELETE FROM bagagli WHERE codUnivoco = ?";
-        try(PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, codUnivoco);
             return ps.executeUpdate() > 0;
         } catch(SQLException e) {
@@ -87,26 +112,18 @@ public class BagaglioDAOPostgres implements BagaglioDAO {
         return false;
     }
 
-    // Mapping da ResultSet al model Bagaglio passando per il Controller
+    // Mapping puro: crea l'oggetto; se controller è disponibile e la prenotazione è in cache, la collega.
     private Bagaglio mapResultSetToBagaglio(ResultSet rs) throws SQLException {
         String codUnivoco = rs.getString("codUnivoco");
         double pesoKg = rs.getDouble("pesoKg");
         StatoBagaglio stato = StatoBagaglio.valueOf(rs.getString("stato"));
         String numBiglietto = rs.getString("numBiglietto");
 
-        // Recupera prenotazione già caricata dal Controller
-        Prenotazione pren = controller.cercaPrenotazione(numBiglietto);
-
-        // Se la prenotazione non è ancora in memoria, gestire un fallback
-        if(pren == null) {
-            System.err.println("Prenotazione non trovata per biglietto " + numBiglietto);
-            return null; // oppure lancio eccezione
+        Prenotazione pren = null;
+        if (controller != null && numBiglietto != null) {
+            pren = controller.cercaPrenotazione(numBiglietto); // può restare null se non caricata
         }
 
-        // Usa il Controller per aggiungere il bagaglio alla lista centrale
-        Bagaglio b = new Bagaglio(codUnivoco, pesoKg, stato, pren);
-        controller.aggiungiBagaglio(b);
-
-        return b;
+        return new Bagaglio(codUnivoco, pesoKg, stato, pren);
     }
 }
