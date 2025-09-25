@@ -7,6 +7,8 @@ import model.StatoPrenotazione;
 
 import java.awt.*;
 import java.util.List;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -99,12 +101,25 @@ public class AreaPersonaleAmmGUI {
 
         areaPersonaleAmmPanel.add(datiPanel);
 
-
         // Tabs
         tabbedPane1 = new JTabbedPane();
         tabbedPane1.addTab("Voli", creaTabVoli());
         tabbedPane1.addTab("Passeggeri", creaTabPasseggeri());
         tabbedPane1.addTab("Bagagli", creaTabBagagli());
+
+        // NEW: ricarica automaticamente i bagagli quando apri la tab "Bagagli"
+        tabbedPane1.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                int idx = tabbedPane1.getSelectedIndex();
+                if (idx >= 0) {
+                    String title = tabbedPane1.getTitleAt(idx);
+                    if ("Bagagli".equalsIgnoreCase(title)) {
+                        caricaTuttiBagagli();
+                    }
+                }
+            }
+        });
 
         areaPersonaleAmmPanel.add(tabbedPane1);
 
@@ -118,7 +133,6 @@ public class AreaPersonaleAmmGUI {
 
         areaPersonaleAmmPanel.add(bottoniPanel);
 
-
         gestioneVoliButton.addActionListener(e -> {
             GestioneVoliGUI gestioneVoli = new GestioneVoliGUI(controller, this);
             JFrame frame = new JFrame("Gestione Voli");
@@ -127,7 +141,6 @@ public class AreaPersonaleAmmGUI {
             frame.setLocationRelativeTo(null);
             frame.setVisible(true);
         });
-
 
         gestionePrenotazioniButton.addActionListener(e -> {
             GestionePrenotazioniGUI gestionePrenotazioni = new GestionePrenotazioniGUI(controller, amministratore, this);
@@ -146,21 +159,12 @@ public class AreaPersonaleAmmGUI {
             frame.setLocationRelativeTo(null);
             frame.setVisible(true);
         });
+
         aggiornaTabellaOrario();
-    }
 
-    /*
-    private void apriTabellaOrario() {
-        TabellaOrarioGUI gui = new TabellaOrarioGUI(controller); // già carica dati
-        JFrame frame = new JFrame("Tabella Orario");
-        frame.setContentPane(gui.getPanel());
-        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        frame.pack();
-        frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
+        // NEW: carica subito tutti i bagagli all'avvio dell'Area Personale
+        caricaTuttiBagagli();
     }
-
-     */
 
     // ---- TAB VOLI ----
     private JPanel creaTabVoli() {
@@ -223,7 +227,6 @@ public class AreaPersonaleAmmGUI {
         }
     }
 
-
     private void resetFiltriVoli() {
         numeroVoloTextField.setText("");
         compagniaTextField.setText("");
@@ -234,8 +237,6 @@ public class AreaPersonaleAmmGUI {
         gateTextField.setText("");
         arrivoPartenzaComboBox.setSelectedIndex(0);
     }
-
-
 
     private JPanel creaPair(String labelText, JComponent campo, int gapLabelCampo) {
         JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, gapLabelCampo, 0));
@@ -288,7 +289,6 @@ public class AreaPersonaleAmmGUI {
             statoPrenotazioneComboBox.addItem(sp);
         }
         ricercaPanel.add(statoPrenotazioneComboBox);
-
 
         panel.add(ricercaPanel);
 
@@ -364,6 +364,9 @@ public class AreaPersonaleAmmGUI {
         JScrollPane scrollPane = new JScrollPane(risultatiRicercaBagaglioTable);
         panel.add(scrollPane);
 
+        // NEW: carica subito tutti i bagagli la prima volta che si crea la tab
+        SwingUtilities.invokeLater(this::caricaTuttiBagagli);
+
         return panel;
     }
 
@@ -387,7 +390,6 @@ public class AreaPersonaleAmmGUI {
         List<Object[]> risultati = controller.ricercaVoli(
                 numeroVolo, compagnia, stato, data, orario, aeroporto, gate, arrivoPartenza
         );
-        //System.out.println("DEBUG GUI ricerca -> risultati=" + risultati.size());
         tabellaOrarioGUI.aggiornaVoli(risultati);
     }
 
@@ -416,7 +418,6 @@ public class AreaPersonaleAmmGUI {
         tabellaPasseggeroGUI.setRows(risultati);
     }
 
-
     private void caricaTuttiPasseggeri() {
         tabellaPasseggeroGUI.setRows(controller.tuttiPasseggeri());
     }
@@ -434,6 +435,7 @@ public class AreaPersonaleAmmGUI {
     }
 
     public void caricaTuttiBagagli() {
+        if (risultatiRicercaBagaglioTable == null) return;
         List<Object[]> risultati = controller.tuttiBagagliRows();
         DefaultTableModel model = (DefaultTableModel) risultatiRicercaBagaglioTable.getModel();
         model.setRowCount(0);
@@ -468,7 +470,4 @@ public class AreaPersonaleAmmGUI {
             tabellaPasseggeroGUI.setRows(controller.tuttiPasseggeri());
         }
     }
-
-
-
 }
