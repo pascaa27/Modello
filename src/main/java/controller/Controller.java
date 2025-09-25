@@ -68,6 +68,16 @@ public class Controller {
         ricaricaPrenotazioniDaDB();
     }
 
+    private void ricaricaBagagliDaDB() {
+        bagagli.clear();
+        try {
+            List<Bagaglio> tutti = bagaglioDAO.findAll();
+            bagagli.addAll(tutti);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     // ==========================
     // Voli (persistenti)
     // ==========================
@@ -503,8 +513,8 @@ public class Controller {
                 return false;
             }
         }
-        // Se il tuo DAO gestisce i bagagli su DB, abilita:
-        // if (!bagaglioDAO.insert(bagaglio)) return false;
+        // Persisti su DB
+        if (!bagaglioDAO.insert(bagaglio)) return false;
 
         bagagli.add(bagaglio);
         return true;
@@ -541,14 +551,32 @@ public class Controller {
     }
 
     public boolean rimuoviBagaglio(String codice) {
-        // Se vuoi persistere, chiama prima il DAO:
-        // bagaglioDAO.delete(codice);
+        // Persisti prima su DB
+        if (!bagaglioDAO.delete(codice)) return false;
+
         return bagagli.removeIf(b -> b.getCodUnivoco().equalsIgnoreCase(codice));
     }
 
     public List<Object[]> tuttiBagagliRows() {
         return ricercaBagagli(null, null);
     }
+
+    public boolean aggiornaBagaglio(Bagaglio bagaglio) {
+        if (bagaglio == null) return false;
+        if (!bagaglioDAO.update(bagaglio)) return false;
+
+        // riallinea cache
+        for (int i = 0; i < bagagli.size(); i++) {
+            if (bagagli.get(i).getCodUnivoco().equalsIgnoreCase(bagaglio.getCodUnivoco())) {
+                bagagli.set(i, bagaglio);
+                return true;
+            }
+        }
+        bagagli.add(bagaglio);
+        return true;
+    }
+
+
 
     // ==========================
     // Gate (solo in memoria – se vuoi, aggiungi tabella e DAO)
