@@ -18,7 +18,6 @@ public class LoginGUI {
     private JTextField cognomeTextField1;
     private JTextField emailTextField;
     private JTextField passwordTextField;
-
     private Controller controller;
     private static final String ADMIN_EMAIL = "a";
     private static final String ADMIN_PASS = "a";
