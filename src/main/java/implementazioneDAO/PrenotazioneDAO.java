@@ -1,6 +1,8 @@
 package implementazioneDAO;
 
 import model.Prenotazione;
+
+import java.sql.SQLException;
 import java.util.List;
 
 public interface PrenotazioneDAO {
@@ -12,6 +14,9 @@ public interface PrenotazioneDAO {
 
     // Tutte le prenotazioni
     List<Prenotazione> findAll();
+
+    List<Prenotazione> findByEmailUtente(String emailUtente) throws SQLException;
+
 
     // Scrittura
     boolean insert(Prenotazione p);

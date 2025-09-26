@@ -39,6 +39,24 @@ public class UtenteGenericoDAOPostgres implements UtenteGenericoDAO {
         return null; // se non trovato
     }
 
+    public boolean existsByEmail(String email) {
+        if (email == null || email.isBlank()) return false;
+
+        final String sql = "SELECT 1 FROM public.registrazioneutente WHERE LOWER(email) = LOWER(?) LIMIT 1";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, email.trim());
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next(); // true se trova almeno una riga
+            }
+        } catch (SQLException e) {
+            System.err.println("Errore existsByEmail: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+
     @Override
     public boolean insert(UtenteGenerico u) {
         String sql = "INSERT INTO registrazioneutente (email, password, nome, cognome, ruolo) VALUES (?, ?, ?, ?, 'utente')";

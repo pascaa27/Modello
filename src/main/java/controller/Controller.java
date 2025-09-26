@@ -207,6 +207,7 @@ public class Controller {
                                              String numeroVolo, UtenteGenerico utenteGenerico, String nome, String cognome,
                                              String codiceFiscale, String email, Volo voloNonUsato) {
 
+        // Validazioni
         if (numeroBiglietto == null || numeroBiglietto.isBlank())
             throw new IllegalArgumentException("Numero biglietto mancante");
         if (stato == null)
@@ -215,45 +216,67 @@ public class Controller {
             throw new IllegalArgumentException("Numero volo mancante");
         if (codiceFiscale == null || codiceFiscale.isBlank())
             throw new IllegalArgumentException("Codice fiscale mancante");
+        if (email == null || email.isBlank())
+            throw new IllegalArgumentException("Email mancante");
 
         Volo v = getVoloByCodice(numeroVolo);
         if (v == null) throw new IllegalArgumentException("Volo inesistente: " + numeroVolo);
 
-        // NON scriviamo su datipasseggeri: usiamo un oggetto "transitorio" solo per portare l'email al DAO prenotazioni.
-        // Se esiste già in DB un datapasseggero con lo stesso CF/email, NON lo tocchiamo.
-        DatiPasseggero dpEsistente = null;
-        try {
-            dpEsistente = datiPasseggeroDAO.findByCodiceFiscale(codiceFiscale);
-        } catch (Exception ignored) {}
-
-        DatiPasseggero dpForPren;
-        if (dpEsistente != null) {
-            // Usa i dati già presenti (ma NON fare update)
-            dpForPren = dpEsistente;
-        } else {
-            // Crea un oggetto in memoria; NON chiamare insert/update su datipasseggeri
-            dpForPren = new DatiPasseggero(nome, cognome, codiceFiscale, email);
+        // Controlla se esiste già un datapasseggero
+        DatiPasseggero dp = datiPasseggeroDAO.findByCodiceFiscale(codiceFiscale);
+        if (dp == null) {
+            dp = new DatiPasseggero(nome, cognome, codiceFiscale, email);
         }
 
-        // Normalizza il posto (se non valido => null, così lo genera il DAO)
         String postoNormalizzato = normalizeSeatOrNull(posto);
 
-        Prenotazione pren = new Prenotazione(numeroBiglietto, postoNormalizzato, stato, utenteGenerico, dpForPren, v);
+        Prenotazione pren = new Prenotazione(numeroBiglietto, postoNormalizzato, stato, utenteGenerico, dp, v);
 
-        if (!prenotazioneDAO.insert(pren)) {
-            throw new RuntimeException("Impossibile inserire prenotazione " + numeroBiglietto);
+        // Inserimento robusto
+        boolean inserito = prenotazioneDAO.insert(pren);
+        if (!inserito) {
+            System.err.printf("ERRORE: impossibile inserire prenotazione %s per volo %s%n", numeroBiglietto, numeroVolo);
+            return null;
         }
 
         System.out.printf("OK prenotazione: biglietto=%s, posto=%s, stato=%s, emailutente=%s, idvolo=%s%n",
                 pren.getNumBiglietto(),
                 pren.getPostoAssegnato(),
                 pren.getStato().name(),
-                dpForPren != null ? dpForPren.getEmail() : null,
+                dp.getEmail(),
                 v.getCodiceUnivoco());
 
-        prenotazioni.add(pren);
+        prenotazioni.add(pren); // aggiorna cache
         return pren;
     }
+
+
+    public List<Prenotazione> getPrenotazioniUtente(UtenteGenerico utente) {
+        if (utente == null) return Collections.emptyList();
+
+        List<Prenotazione> result = new ArrayList<>();
+        for (Prenotazione p : prenotazioni) {
+            if (p.getUtenteGenerico() != null &&
+                    utente.getNomeUtente() != null &&
+                    utente.getNomeUtente().equalsIgnoreCase(p.getUtenteGenerico().getNomeUtente())) {
+                result.add(p);
+            }
+        }
+
+        // Se la cache non contiene tutte le prenotazioni, caricale dal DB
+        try {
+            List<Prenotazione> dalDB = prenotazioneDAO.findByEmailUtente(utente.getNomeUtente());
+            for (Prenotazione p : dalDB) {
+                if (!prenotazioni.contains(p)) prenotazioni.add(p);
+                if (!result.contains(p)) result.add(p);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return result;
+    }
+
 
     // Helper: ritorna sedile valido "A12" o null se raw è vuoto/non valido/"auto"
     private String normalizeSeatOrNull(String raw) {

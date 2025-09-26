@@ -2,6 +2,8 @@ package gui;
 
 import javax.swing.*;
 import java.awt.event.ActionListener;
+import java.util.List;
+
 import controller.Controller;
 import model.*;
 
@@ -44,14 +46,15 @@ public class CercaModificaPrenotazioneGUI {
         setCampiPrenotazioneAbilitati(false);
 
         listaModel = new DefaultListModel<>();
-        if (utente instanceof UtenteGenerico) {
-            UtenteGenerico ug = (UtenteGenerico) utente;
-            java.util.LinkedHashSet<String> unici = new java.util.LinkedHashSet<>(ug.getCodiciPrenotazioni());
-            for (String codice : unici) {
-                listaModel.addElement(codice);
-            }
+        // Carica le prenotazioni persistenti di questo utente
+        List<Prenotazione> prenotazioniUtente = controller.getPrenotazioniUtente((UtenteGenerico) utente);
+        for (Prenotazione p : prenotazioniUtente) {
+            listaModel.addElement(p.getNumBiglietto());
         }
+
         listaPrenotazioni = new JList<>(listaModel);
+
+        // Mantieni il CellRenderer per mostrare "Codice Prenotazione: ..."
         listaPrenotazioni.setCellRenderer(new DefaultListCellRenderer() {
             @Override
             public java.awt.Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
@@ -62,7 +65,9 @@ public class CercaModificaPrenotazioneGUI {
                 return c;
             }
         });
+
         listaPrenotazioniScrollPane.setViewportView(listaPrenotazioni);
+
 
         listaPrenotazioni.addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {

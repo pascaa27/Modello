@@ -62,6 +62,12 @@ public class Volo {
         // vuoto, necessario per mapping e riflessioni
     }
 
+    // Costruttore “solo codice univoco” per DAO e mapping rapido
+    public Volo(String codiceUnivoco) {
+        this.codiceUnivoco = codiceUnivoco;
+    }
+
+
     public List<Prenotazione> getPrenotazioni() {
         return prenotazioni;
     }

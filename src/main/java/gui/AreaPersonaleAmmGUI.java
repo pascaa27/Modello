@@ -332,7 +332,7 @@ public class AreaPersonaleAmmGUI {
         ricercaPanel.add(codiceBagaglioTextField);
 
         ricercaPanel.add(new JLabel("Stato:"));
-        statoBagaglioComboBox = new JComboBox<>(new String[]{"", "Caricato", "Smarrito"});
+        statoBagaglioComboBox = new JComboBox<>(new String[]{"", "Caricato", "Smarrito", "Registrato", "Trovato"});
         ricercaPanel.add(statoBagaglioComboBox);
 
         panel.add(ricercaPanel);

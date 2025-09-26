@@ -14,11 +14,14 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
 
     private final Connection conn;
     private Controller controller; // opzionale
+    private final UtenteGenericoDAOPostgres utenteDao = new UtenteGenericoDAOPostgres();
+    private final DatiPasseggeroDAOPostgres dpDao;
 
     public PrenotazioneDAOPostgres() {
         try {
             this.conn = ConnessioneDatabase.getInstance().getConnection();
-            this.conn.setAutoCommit(true); // esplicito
+            this.conn.setAutoCommit(true);
+            this.dpDao = new DatiPasseggeroDAOPostgres(); // inizializzazione del DAO dei passeggeri
         } catch (SQLException e) {
             throw new RuntimeException("Errore nella connessione al database", e);
         }
@@ -30,14 +33,15 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
 
     private static final String BASE_SELECT =
             "SELECT p.numbiglietto, p.postoassegnato, p.stato, p.emailutente, p.idvolo, " +
-                    "       d.nome AS dp_nome, d.cognome AS dp_cognome, d.codicefiscale AS dp_codicefiscale, d.email AS dp_email, " +
-                    "       v.compagniaaerea AS v_compagniaaerea, v.datavolo AS v_datavolo, v.orarioprevisto AS v_orarioprevisto, " +
-                    "       v.orariostimato AS v_orariostimato, v.stato AS v_stato, v.aeroporto AS v_aeroporto, v.gate AS v_gate, v.arrivopartenza AS v_arrivopartenza " +
+                    "       p.dp_nome, p.dp_cognome, p.dp_codicefiscale, " +
+                    "       v.compagniaaerea AS v_compagniaaerea, v.datavolo AS v_datavolo, " +
+                    "       v.orarioprevisto AS v_orarioprevisto, v.orariostimato AS v_orariostimato, " +
+                    "       v.stato AS v_stato, v.aeroporto AS v_aeroporto, v.gate AS v_gate, " +
+                    "       v.arrivopartenza AS v_arrivopartenza " +
                     "FROM public.prenotazioni p " +
-                    "LEFT JOIN public.datipasseggeri d ON d.email = p.emailutente " +
-                    "LEFT JOIN public.voli v ON v.codiceunivoco = p.idvolo ";
+                    "LEFT JOIN public.voli v ON v.codiceunivoco = p.idvolo";
 
-    // Parametri generazione posti: colonne A..F e file 1..30
+
     private static final char[] SEAT_LETTERS = "ABCDEF".toCharArray();
     private static final int SEAT_MAX_NUMBER = 30;
 
@@ -46,35 +50,28 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
         char letter = SEAT_LETTERS[r.nextInt(SEAT_LETTERS.length)];
         int number = r.nextInt(1, SEAT_MAX_NUMBER + 1);
         return letter + String.valueOf(number);
+
     }
 
-    // Normalizza l'input utente: rimuove caratteri non alfanumerici e porta in upper case
     private static String norm(String s) {
         if (s == null) return "";
         return s.trim().toUpperCase().replaceAll("[^A-Z0-9]", "");
     }
 
-    // Normalizza email (trim + lower)
     private static String normalizeEmail(String email) {
         return email == null ? null : email.trim().toLowerCase();
     }
 
-    // Ritorna un posto valido (es. "A12") se l'input corrisponde al formato A..F + 1..30; altrimenti null (=> auto)
     private String parseSeatOrNull(String raw) {
         String t = norm(raw);
-        // Esplicite parole chiave per "auto"
         if (t.isEmpty() || t.equals("AUTO") || t.equals("POSTO") || t.equals("POSTOAUTO")) return null;
-
         if (t.length() < 2) return null;
         char letter = t.charAt(0);
         if (letter < 'A' || letter > 'F') return null;
-        String numStr = t.substring(1);
         try {
-            int n = Integer.parseInt(numStr);
-            if (n >= 1 && n <= SEAT_MAX_NUMBER) {
-                return letter + String.valueOf(n);
-            }
-        } catch (NumberFormatException ignored) { }
+            int n = Integer.parseInt(t.substring(1));
+            if (n >= 1 && n <= SEAT_MAX_NUMBER) return letter + String.valueOf(n);
+        } catch (NumberFormatException ignored) {}
         return null;
     }
 
@@ -90,12 +87,10 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
     }
 
     private String generateAvailableSeat(String idVolo) throws SQLException {
-        // Tentativi random
         for (int attempt = 0; attempt < 200; attempt++) {
             String candidate = generateRandomSeat();
             if (!seatExists(idVolo, candidate)) return candidate;
         }
-        // Fallback deterministico
         for (char letter : SEAT_LETTERS) {
             for (int num = 1; num <= SEAT_MAX_NUMBER; num++) {
                 String candidate = letter + String.valueOf(num);
@@ -105,9 +100,6 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
         throw new SQLException("Nessun posto disponibile per il volo " + idVolo);
     }
 
-    // ====== NUOVI HELPER: prevenzione duplicati per emailutente + data del volo ======
-
-    // Legge la data del volo (così evitiamo sub-query complicate nella exists)
     private String getFlightDate(String idVolo) throws SQLException {
         final String sql = "SELECT datavolo FROM public.voli WHERE codiceunivoco = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -119,20 +111,15 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
         return null;
     }
 
-    // Controlla se esiste già una prenotazione per la stessa emailutente nella stessa data (indipendente da datipasseggeri)
     private boolean existsBookingSameDay(String normalizedEmail, String idVolo, String excludeNum) throws SQLException {
         if (normalizedEmail == null || normalizedEmail.isBlank() || idVolo == null || idVolo.isBlank()) return false;
         String flightDate = getFlightDate(idVolo);
         if (flightDate == null) return false;
 
-        String sql = "SELECT 1 " +
-                "FROM public.prenotazioni p " +
+        String sql = "SELECT 1 FROM public.prenotazioni p " +
                 "JOIN public.voli v ON v.codiceunivoco = p.idvolo " +
-                "WHERE LOWER(BTRIM(p.emailutente)) = ? " +
-                "  AND v.datavolo = ? ";
-        if (excludeNum != null) {
-            sql += "  AND p.numbiglietto <> ? ";
-        }
+                "WHERE LOWER(BTRIM(p.emailutente)) = ? AND v.datavolo = ? ";
+        if (excludeNum != null) sql += "AND p.numbiglietto <> ? ";
         sql += "LIMIT 1";
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -145,29 +132,59 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
         }
     }
 
+    // ----------------- QUERY -----------------
+
     @Override
-    public Prenotazione findByCodice(String codice) {
-        String sql = BASE_SELECT + "WHERE p.numbiglietto = ?";
+    public List<Prenotazione> findByEmailUtente(String emailUtente) {
+        List<Prenotazione> out = new ArrayList<>();
+        final String normalizedEmail = emailUtente == null ? null : emailUtente.trim().toLowerCase();
+
+        String sql = BASE_SELECT + " WHERE LOWER(p.emailutente) = ? ORDER BY p.numbiglietto";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, codice);
+            ps.setString(1, normalizedEmail);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return mapRow(rs);
+                while (rs.next()) {
+                    DatiPasseggero dp = dpDao.findByEmail(rs.getString("emailutente")); // prendi i dati passeggero
+                    Volo volo = new Volo(rs.getString("idvolo")); // costruttore breve sufficiente
+                    Prenotazione p = new Prenotazione(
+                            rs.getString("numbiglietto"),
+                            rs.getString("postoassegnato"),
+                            rs.getString("stato") != null ? StatoPrenotazione.valueOf(rs.getString("stato")) : null,
+                            dp,
+                            volo
+                    );
+                    out.add(p);
+                }
             }
         } catch (SQLException e) {
-            System.err.println("Errore findByCodice: " + e.getMessage());
+            System.err.println("Errore findByEmailUtente: " + e.getMessage());
             e.printStackTrace();
         }
-        return null;
+        return out;
     }
 
     @Override
     public List<Prenotazione> findAllByUtente(String emailUtente) {
         List<Prenotazione> out = new ArrayList<>();
-        String sql = BASE_SELECT + "WHERE p.emailutente = ? ORDER BY p.numbiglietto";
+        String sql = BASE_SELECT + " WHERE p.emailutente = ? ORDER BY p.numbiglietto";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, emailUtente);
             try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) out.add(mapRow(rs));
+                while (rs.next()) {
+                    // recupera i dati del passeggero
+                    DatiPasseggero dp = dpDao.findByEmail(rs.getString("emailutente"));
+
+                    // crea la prenotazione
+                    Prenotazione p = new Prenotazione(
+                            rs.getString("numbiglietto"),
+                            rs.getString("postoassegnato"),
+                            rs.getString("stato") != null ? StatoPrenotazione.valueOf(rs.getString("stato")) : null,
+                            dp,
+                            new Volo(rs.getString("idvolo")) // qui puoi usare un costruttore di Volo più completo se vuoi
+                    );
+
+                    out.add(p);
+                }
             }
         } catch (SQLException e) {
             System.err.println("Errore findAllByUtente: " + e.getMessage());
@@ -179,10 +196,32 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
     @Override
     public List<Prenotazione> findAll() {
         List<Prenotazione> out = new ArrayList<>();
-        String sql = BASE_SELECT + "ORDER BY p.numbiglietto";
+        String sql = "SELECT numbiglietto, postoassegnato, stato, emailutente, idvolo, " +
+                "dp_nome, dp_cognome, dp_codicefiscale " +
+                "FROM public.prenotazioni ORDER BY numbiglietto";
+
         try (PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) out.add(mapRow(rs));
+
+            while (rs.next()) {
+                DatiPasseggero dp = new DatiPasseggero(
+                        rs.getString("dp_nome"),
+                        rs.getString("dp_cognome"),
+                        null, // telefono opzionale
+                        rs.getString("emailutente"),
+                        null  // password non necessaria qui
+                );
+                dp.setCodiceFiscale(rs.getString("dp_codicefiscale"));
+
+                Prenotazione p = new Prenotazione(
+                        rs.getString("numbiglietto"),
+                        rs.getString("postoassegnato"),
+                        rs.getString("stato") != null ? StatoPrenotazione.valueOf(rs.getString("stato")) : null,
+                        dp,
+                        new Volo(rs.getString("idvolo"))
+                );
+                out.add(p);
+            }
         } catch (SQLException e) {
             System.err.println("Errore findAll: " + e.getMessage());
             e.printStackTrace();
@@ -190,155 +229,158 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
         return out;
     }
 
+
+    @Override
+    public Prenotazione findByCodice(String codice) {
+        final String sql = BASE_SELECT + " WHERE p.numbiglietto = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, codice);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    DatiPasseggero dp = dpDao.findByEmail(rs.getString("emailutente"));
+                    Volo volo = new Volo(rs.getString("idvolo"));
+                    return new Prenotazione(
+                            rs.getString("numbiglietto"),
+                            rs.getString("postoassegnato"),
+                            rs.getString("stato") != null ? StatoPrenotazione.valueOf(rs.getString("stato")) : null,
+                            dp,
+                            volo
+                    );
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Errore findByCodice: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    // ----------------- INSERT / UPDATE / DELETE -----------------
+
     @Override
     public boolean insert(Prenotazione p) {
-        if (p == null) { System.err.println("Prenotazione nulla"); return false; }
-        if (p.getNumBiglietto() == null || p.getNumBiglietto().isBlank()) { System.err.println("numbiglietto mancante"); return false; }
-        if (p.getStato() == null) { System.err.println("stato mancante"); return false; }
-        if (p.getVolo() == null || p.getVolo().getCodiceUnivoco() == null || p.getVolo().getCodiceUnivoco().isBlank()) { System.err.println("idvolo mancante"); return false; }
-        if (p.getDatiPasseggero() == null || p.getDatiPasseggero().getEmail() == null || p.getDatiPasseggero().getEmail().isBlank()) { System.err.println("emailutente mancante"); return false; }
+        // Validazione base
+        if (p == null || p.getNumBiglietto() == null || p.getNumBiglietto().isBlank() ||
+                p.getStato() == null || p.getVolo() == null || p.getVolo().getCodiceUnivoco() == null ||
+                p.getVolo().getCodiceUnivoco().isBlank() || p.getDatiPasseggero() == null ||
+                p.getDatiPasseggero().getEmail() == null || p.getDatiPasseggero().getEmail().isBlank() ||
+                p.getDatiPasseggero().getNome() == null || p.getDatiPasseggero().getCognome() == null ||
+                p.getDatiPasseggero().getCodiceFiscale() == null) {
+            System.err.println("Prenotazione non valida");
+            return false;
+        }
 
-        final String idVolo = p.getVolo().getCodiceUnivoco();
         String normalizedEmail = normalizeEmail(p.getDatiPasseggero().getEmail());
 
-        // VINCOLO APPLICATIVO: 1 prenotazione per emailutente per data volo
-        try {
-            if (existsBookingSameDay(normalizedEmail, idVolo, null)) {
-                System.err.println("ERRORE: prenotazione duplicata per email '" + normalizedEmail + "' nella stessa data del volo " + idVolo);
-                return false;
-            }
-        } catch (SQLException ex) {
-            ex.printStackTrace();
+        // 1. Verifica che l'email corrisponda a un utente registrato
+        if (!utenteDao.existsByEmail(normalizedEmail)) {
+            System.err.println("Email non registrata, prenotazione non consentita");
             return false;
         }
 
-        String posto = parseSeatOrNull(p.getPostoAssegnato());
-        try {
-            if (posto == null) {
-                posto = generateAvailableSeat(idVolo); // A..F + 1..30, non occupato
-                p.setPostoAssegnato(posto);            // aggiorna l’oggetto per mostrarlo in UI
-            } else if (seatExists(idVolo, posto)) {
-                System.err.println("Il posto " + posto + " per il volo " + idVolo + " è già occupato");
-                return false;
-            }
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-            return false;
-        }
+        final String idVolo = p.getVolo().getCodiceUnivoco();
 
-        final String sql = "INSERT INTO public.prenotazioni (numbiglietto, postoassegnato, stato, emailutente, idvolo) VALUES (?, ?, ?, ?, ?)";
-
-        // Retry in caso di collisione concorrente (unique 23505)
-        final int MAX_RETRY = 3;
-        for (int attempt = 0; attempt <= MAX_RETRY; attempt++) {
-            try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.setString(1, p.getNumBiglietto());
-                ps.setString(2, posto);
-                ps.setString(3, p.getStato().name());
-                ps.setString(4, normalizedEmail); // scriviamo l'email normalizzata
-                ps.setString(5, idVolo);
-                return ps.executeUpdate() > 0;
-            } catch (SQLException e) {
-                if ("23505".equals(e.getSQLState())) {
-                    // Collisione su (idvolo, postoassegnato)
-                    if (attempt == MAX_RETRY) {
-                        System.err.println("ERRORE INSERT prenotazioni: collisione ripetuta su posto. Ultimo msg: " + e.getMessage());
-                        return false;
-                    }
-                    try {
-                        posto = generateAvailableSeat(idVolo);
-                        p.setPostoAssegnato(posto);
-                    } catch (SQLException ex) {
-                        System.err.println("Errore nel ricalcolo del posto dopo 23505: " + ex.getMessage());
-                        ex.printStackTrace();
-                        return false;
-                    }
-                    continue;
-                }
-                System.err.println("ERRORE INSERT prenotazioni: sqlState=" + e.getSQLState() + " code=" + e.getErrorCode() + " msg=" + e.getMessage());
-                e.printStackTrace();
-                return false;
-            }
-        }
-        return false;
-    }
-
-    // NUOVO: controlla se il posto è preso da un'altra prenotazione (esclude numbiglietto corrente)
-    private boolean seatTakenByAnother(String idVolo, String seat, String numBigliettoCorrente) throws SQLException {
-        final String sql =
-                "SELECT 1 " +
-                        "FROM public.prenotazioni " +
-                        "WHERE idvolo = ? AND postoassegnato = ? AND numbiglietto <> ? " +
-                        "LIMIT 1";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, idVolo);
-            ps.setString(2, seat);
-            ps.setString(3, numBigliettoCorrente);
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next();
-            }
-        }
-    }
-
-    @Override
-    public boolean update(Prenotazione p) {
-        if (p == null || p.getNumBiglietto() == null || p.getNumBiglietto().isBlank()) {
-            System.err.println("Update Prenotazione fallita: oggetto nullo o numbiglietto mancante");
-            return false;
-        }
-        final String idVolo = (p.getVolo() != null) ? p.getVolo().getCodiceUnivoco() : null;
-        if (idVolo == null) {
-            System.err.println("Update Prenotazione fallita: idvolo mancante");
-            return false;
-        }
-        String normalizedEmail = (p.getDatiPasseggero() != null) ? normalizeEmail(p.getDatiPasseggero().getEmail()) : null;
-
-        // VINCOLO APPLICATIVO anche in UPDATE
-        try {
-            if (existsBookingSameDay(normalizedEmail, idVolo, p.getNumBiglietto())) {
-                System.err.println("ERRORE: prenotazione duplicata (update) per email '" + normalizedEmail + "' nella stessa data del volo " + idVolo);
-                return false;
-            }
-        } catch (SQLException ex) {
-            System.err.println("Errore nel controllo duplicati (update): " + ex.getMessage());
-            ex.printStackTrace();
-            return false;
-        }
-
-        // Se posto nullo/non valido => rigenera; se valido, NON considerarlo “occupato” se è la stessa prenotazione
+        // 2. Gestione del posto
         String posto = parseSeatOrNull(p.getPostoAssegnato());
         try {
             if (posto == null) {
                 posto = generateAvailableSeat(idVolo);
                 p.setPostoAssegnato(posto);
-            } else if (seatTakenByAnother(idVolo, posto, p.getNumBiglietto())) {
-                System.err.printf("Update: posto %s per volo %s occupato da un'altra prenotazione%n", posto, idVolo);
+            } else if (seatExists(idVolo, posto)) {
+                System.err.println("Il posto " + posto + " è già occupato");
                 return false;
             }
         } catch (SQLException ex) {
-            System.err.println("Errore durante la generazione/verifica del posto (update): " + ex.getMessage());
             ex.printStackTrace();
             return false;
         }
 
-        final String sql =
-                "UPDATE public.prenotazioni " +
-                        "SET postoassegnato = ?, stato = ?, emailutente = ?, idvolo = ? " +
-                        "WHERE numbiglietto = ?";
+        // 3. Inserimento in tabella prenotazioni
+        final String sqlInsert = "INSERT INTO public.prenotazioni " +
+                "(numbiglietto, postoassegnato, stato, emailutente, idvolo, dp_nome, dp_cognome, dp_codicefiscale) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
+        try (PreparedStatement ps = conn.prepareStatement(sqlInsert)) {
+            ps.setString(1, p.getNumBiglietto());
+            ps.setString(2, posto);
+            ps.setString(3, p.getStato().name());
+            ps.setString(4, normalizedEmail);
+            ps.setString(5, idVolo);
+            ps.setString(6, p.getDatiPasseggero().getNome());
+            ps.setString(7, p.getDatiPasseggero().getCognome());
+            ps.setString(8, p.getDatiPasseggero().getCodiceFiscale());
+
+            ps.executeUpdate();
+            System.out.printf("OK prenotazione: biglietto=%s, posto=%s, stato=%s, emailutente=%s, idvolo=%s%n",
+                    p.getNumBiglietto(), posto, p.getStato().name(), normalizedEmail, idVolo);
+            return true;
+
+        } catch (SQLException e) {
+            // Gestione duplicati passeggero
+            if ("P0001".equals(e.getSQLState()) || e.getMessage().contains("Prenotazione duplicata")) {
+                System.err.println("Il passeggero ha già una prenotazione su questo volo");
+            } else {
+                e.printStackTrace();
+            }
+            return false;
+        }
+    }
+
+
+    @Override
+    public boolean update(Prenotazione p) {
+        if (p == null || p.getNumBiglietto() == null || p.getNumBiglietto().isBlank() ||
+                p.getVolo() == null || p.getVolo().getCodiceUnivoco() == null ||
+                p.getVolo().getCodiceUnivoco().isBlank() ||
+                p.getDatiPasseggero() == null ||
+                p.getDatiPasseggero().getNome() == null ||
+                p.getDatiPasseggero().getCognome() == null ||
+                p.getDatiPasseggero().getCodiceFiscale() == null) {
+            System.err.println("Prenotazione non valida per update");
+            return false;
+        }
+
+        String idVolo = p.getVolo().getCodiceUnivoco();
+        String normalizedEmail = normalizeEmail(p.getDatiPasseggero().getEmail());
+        String posto = parseSeatOrNull(p.getPostoAssegnato());
+
+        try {
+            if (posto == null) {
+                posto = generateAvailableSeat(idVolo);
+                p.setPostoAssegnato(posto);
+            } else if (seatTakenByAnother(idVolo, posto, p.getNumBiglietto())) {
+                System.err.println("Il posto " + posto + " è già occupato da un altro passeggero");
+                return false;
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            return false;
+        }
+
+        final String sql = "UPDATE public.prenotazioni " +
+                "SET postoassegnato = ?, stato = ?, emailutente = ?, idvolo = ?, " +
+                "dp_nome = ?, dp_cognome = ?, dp_codicefiscale = ? " +
+                "WHERE numbiglietto = ?";
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, posto);
             ps.setString(2, p.getStato() != null ? p.getStato().name() : null);
             ps.setString(3, normalizedEmail);
             ps.setString(4, idVolo);
-            ps.setString(5, p.getNumBiglietto());
+            ps.setString(5, p.getDatiPasseggero().getNome());
+            ps.setString(6, p.getDatiPasseggero().getCognome());
+            ps.setString(7, p.getDatiPasseggero().getCodiceFiscale());
+            ps.setString(8, p.getNumBiglietto());
+
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
-            System.err.println("Errore UPDATE prenotazioni: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
     }
+
+
+
 
     @Override
     public boolean delete(String codicePrenotazione) {
@@ -346,12 +388,10 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, codicePrenotazione);
             return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            System.err.println("Errore DELETE prenotazioni: " + e.getMessage());
-            e.printStackTrace();
-            return false;
-        }
+        } catch (SQLException e) { e.printStackTrace(); return false; }
     }
+
+    // ----------------- MAP ROW -----------------
 
     private Prenotazione mapRow(ResultSet rs) throws SQLException {
         String numBiglietto = rs.getString("numbiglietto");
@@ -359,11 +399,11 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
         StatoPrenotazione stato = parseStatoPren(rs.getString("stato"));
         String emailUtente = rs.getString("emailutente");
 
+        // Lettura dati volo
         String codiceVolo = rs.getString("idvolo");
         Volo volo = null;
         if (controller != null) volo = controller.getVoloByCodice(codiceVolo);
         if (volo == null) {
-            // Costruzione robusta: costruttore vuoto + setter
             volo = new Volo();
             volo.setCodiceUnivoco(codiceVolo);
             volo.setCompagniaAerea(rs.getString("v_compagniaaerea"));
@@ -376,27 +416,26 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
             volo.setArrivoPartenza(rs.getString("v_arrivopartenza"));
         }
 
-        DatiPasseggero dp = null;
-        String dpEmail = rs.getString("dp_email");
-        if (dpEmail != null) {
-            dp = new DatiPasseggero(
-                    rs.getString("dp_nome"),
-                    rs.getString("dp_cognome"),
-                    rs.getString("dp_codicefiscale"),
-                    dpEmail
-            );
-        }
+        // Lettura dati passeggero direttamente da prenotazioni
+        DatiPasseggero dp = new DatiPasseggero(
+                rs.getString("dp_nome"),
+                rs.getString("dp_cognome"),
+                rs.getString("dp_codicefiscale"),
+                emailUtente
+        );
 
+        // Recupero utente registrato
         UtenteGenerico utente = null;
         if (controller != null && emailUtente != null) {
             utente = controller.getUtenteByEmail(emailUtente);
-            if (utente == null) {
-                utente = controller.creaUtenteGenerico(emailUtente); // rimuovi se non vuoi side-effect
-            }
+            if (utente == null) utente = controller.creaUtenteGenerico(emailUtente);
         }
 
         return new Prenotazione(numBiglietto, posto, stato, utente, dp, volo);
     }
+
+
+    // ----------------- HELPERS -----------------
 
     private static StatoPrenotazione parseStatoPren(String s) {
         if (s == null) return null;
@@ -410,7 +449,13 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
         catch (IllegalArgumentException ex) { return null; }
     }
 
-    private static boolean isBlank(String s) {
-        return s == null || s.trim().isEmpty();
+    private boolean seatTakenByAnother(String idVolo, String seat, String numBigliettoCorrente) throws SQLException {
+        final String sql = "SELECT 1 FROM public.prenotazioni WHERE idvolo = ? AND postoassegnato = ? AND numbiglietto <> ? LIMIT 1";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, idVolo);
+            ps.setString(2, seat);
+            ps.setString(3, numBigliettoCorrente);
+            try (ResultSet rs = ps.executeQuery()) { return rs.next(); }
+        }
     }
 }

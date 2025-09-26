@@ -25,6 +25,17 @@ public class Prenotazione {
         // vuoto, necessario per il framework nel controller
     }
 
+    // Costruttore per DAO e mapping rapido
+    public Prenotazione(String numBiglietto, String postoAssegnato,
+                        StatoPrenotazione stato, DatiPasseggero datiPasseggero, Volo volo) {
+        this.numBiglietto = numBiglietto;
+        this.postoAssegnato = postoAssegnato;
+        this.stato = stato;
+        this.datiPasseggero = datiPasseggero;
+        this.volo = volo;
+    }
+
+
     public Volo getVolo() {
         return volo;
     }
