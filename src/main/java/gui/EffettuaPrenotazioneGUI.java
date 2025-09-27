@@ -4,6 +4,7 @@ import controller.Controller;
 import model.Prenotazione;
 import model.StatoPrenotazione;
 import model.UtenteGenerico;
+import model.Volo;
 
 import javax.swing.*;
 import java.awt.event.ActionListener;
@@ -110,16 +111,18 @@ public class EffettuaPrenotazioneGUI {
         String cognome = cognomeTextField.getText().trim();
         String codiceFiscale = codiceFiscaleTextField.getText().trim();
         String email = emailTextField.getText().trim();
-        String aeroporto = aeroportoDestinazioneTextField.getText().trim().toUpperCase();
+        String destinazione = aeroportoDestinazioneTextField.getText().trim().toUpperCase();
 
         // Validazione base
-        if (nome.isEmpty() || cognome.isEmpty() || codiceFiscale.isEmpty() || aeroporto.isEmpty()) {
-            JOptionPane.showMessageDialog(effettuaPrenotazionePanel, "Tutti i campi devono essere compilati.", "Errore", JOptionPane.ERROR_MESSAGE);
+        if (nome.isEmpty() || cognome.isEmpty() || codiceFiscale.isEmpty() || destinazione.isEmpty()) {
+            JOptionPane.showMessageDialog(effettuaPrenotazionePanel,
+                    "Tutti i campi devono essere compilati.", "Errore", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
         if (!Character.isUpperCase(nome.charAt(0)) || !Character.isUpperCase(cognome.charAt(0))) {
-            JOptionPane.showMessageDialog(effettuaPrenotazionePanel, "Nome e Cognome devono iniziare con lettera maiuscola.", "Errore", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(effettuaPrenotazionePanel,
+                    "Nome e Cognome devono iniziare con lettera maiuscola.", "Errore", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
@@ -135,28 +138,35 @@ public class EffettuaPrenotazioneGUI {
         );
 
         if (dataFine.isBefore(dataInizio)) {
-            JOptionPane.showMessageDialog(effettuaPrenotazionePanel, "La data di fine deve essere successiva o uguale alla data di inizio.", "Errore", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(effettuaPrenotazionePanel,
+                    "La data di fine deve essere successiva o uguale alla data di inizio.", "Errore", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        Prenotazione pren = null;
-
         try {
-            // Recupera il volo corrispondente dall'amministratore / database
-            String codiceVolo = controller.getVoloByAeroporto(aeroporto); // metodo da implementare nel Controller
-
-            if (codiceVolo == null) {
-                JOptionPane.showMessageDialog(effettuaPrenotazionePanel, "Non esiste alcun volo per l'aeroporto inserito.", "Errore", JOptionPane.ERROR_MESSAGE);
+            // Cerca il volo corretto per destinazione e data
+            Volo volo = controller.cercaVoloPerDestinazioneEData(destinazione, dataInizio.toString());
+            if (volo == null) {
+                JOptionPane.showMessageDialog(effettuaPrenotazionePanel,
+                        "Nessun volo trovato per questa destinazione e data!", "Errore", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
+            // Controllo duplicati per lo stesso utente sullo stesso volo
+            if (controller.utenteHaPrenotazionePerVolo(utente.getLogin(), volo.getCodiceUnivoco())) {
+                JOptionPane.showMessageDialog(effettuaPrenotazionePanel,
+                        "Hai già una prenotazione per questo volo!", "Errore", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+
             String numeroBiglietto = UUID.randomUUID().toString().substring(0, 8);
 
-            pren = controller.aggiungiPrenotazione(
+            Prenotazione pren = controller.aggiungiPrenotazione(
                     numeroBiglietto,
                     "",
                     StatoPrenotazione.CONFERMATA,
-                    codiceVolo, // ora passa il volo corretto
+                    volo.getCodiceUnivoco(), // passa il volo giusto
                     utente,
                     nome,
                     cognome,
@@ -164,8 +174,10 @@ public class EffettuaPrenotazioneGUI {
                     email,
                     null
             );
+
             if (pren == null) {
-                JOptionPane.showMessageDialog(effettuaPrenotazionePanel, "Creazione prenotazione fallita.", "Errore", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(effettuaPrenotazionePanel,
+                        "Creazione prenotazione fallita.", "Errore", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
@@ -175,6 +187,7 @@ public class EffettuaPrenotazioneGUI {
                             "Dal " + dataInizio + " al " + dataFine,
                     "Successo",
                     JOptionPane.INFORMATION_MESSAGE);
+
             if (utente != null) {
                 utente.aggiungiCodicePrenotazione(pren.getNumBiglietto());
             }
@@ -184,8 +197,10 @@ public class EffettuaPrenotazioneGUI {
                     "Errore durante la prenotazione: " + ex.getMessage(),
                     "Errore",
                     JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
         }
     }
+
 
     public JPanel getPanel() {
         return effettuaPrenotazionePanel;

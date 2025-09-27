@@ -96,7 +96,7 @@ public class GestioneVoliGUI {
         String compagnia = safeText(compagniaTextField);
         String data = safeText(dataTextField);
         String orarioPrevisto = safeText(orarioPrevistoTextField);
-        String orarioStimato = safeText(orarioStimatoTextField); // non usato nel controller/DAO, ma validato se vuoi
+        String orarioStimato = safeText(orarioStimatoTextField);
         String otherAirport = safeText(altroAeroportoTextField).toUpperCase();
         String gate = safeText(gateTextField);
 
@@ -121,21 +121,30 @@ public class GestioneVoliGUI {
             return;
         }
 
-        controller.aggiungiVolo(
-                codice,
-                compagnia,
-                data,
-                orarioPrevisto,
-                orarioStimato,
-                stato,
-                direzione,
-                otherAirport,
-                gate
-        );
-
-        JOptionPane.showMessageDialog(gestioneVoliPanel, "Volo aggiunto con successo!");
-        pulisci();
-        areaAmmGUI.aggiornaTabellaOrario();
+        // --- GESTIONE ECCEZIONE ---
+        try {
+            controller.aggiungiVolo(
+                    codice,
+                    compagnia,
+                    data,
+                    orarioPrevisto,
+                    orarioStimato,
+                    stato,
+                    direzione,
+                    otherAirport,
+                    gate
+            );
+            JOptionPane.showMessageDialog(gestioneVoliPanel, "Volo aggiunto con successo!");
+            pulisci();
+            areaAmmGUI.aggiornaTabellaOrario();
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(
+                    gestioneVoliPanel,
+                    "Errore: esiste già un volo con questo codice univoco!\nDettaglio: " + ex.getMessage(),
+                    "Errore inserimento volo",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        }
     }
 
     private void rimuoviVolo() {

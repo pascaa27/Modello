@@ -15,6 +15,7 @@ public class AreaPersonaleUtenteGUI {
     private JButton effettuaPrenotazioneButton;
     private Controller controller;
     private UtenteGenerico utente;
+    private JFrame prenotazioneFrame;
 
     public AreaPersonaleUtenteGUI(Controller controller, UtenteGenerico utente) {
         this.controller = controller;
@@ -68,12 +69,28 @@ public class AreaPersonaleUtenteGUI {
 
     // Metodo che apre la GUI EffettuaPrenotazione
     private void apriEffettuaPrenotazione() {
-        JFrame frame = new JFrame("Effettua Prenotazione");
-        frame.setContentPane(new EffettuaPrenotazioneGUI(controller, utente).getPanel());
-        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        frame.pack();
-        frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
+        if (prenotazioneFrame != null) {
+            // Se il frame esiste già, portalo in primo piano
+            prenotazioneFrame.toFront();
+            prenotazioneFrame.requestFocus();
+            return;
+        }
+
+        // Crea il frame
+        prenotazioneFrame = new JFrame("Effettua Prenotazione");
+        prenotazioneFrame.setContentPane(new EffettuaPrenotazioneGUI(controller, utente).getPanel());
+        prenotazioneFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        prenotazioneFrame.pack();
+        prenotazioneFrame.setLocationRelativeTo(null);
+        prenotazioneFrame.setVisible(true);
+
+        // Quando il frame viene chiuso, resetta la variabile
+        prenotazioneFrame.addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosed(java.awt.event.WindowEvent windowEvent) {
+                prenotazioneFrame = null;
+            }
+        });
     }
 
     // Metodo che apre la GUI Cerca/Modifica Prenotazione

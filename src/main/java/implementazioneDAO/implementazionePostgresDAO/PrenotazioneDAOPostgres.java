@@ -270,17 +270,9 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
             return false;
         }
 
-        String normalizedEmail = normalizeEmail(p.getDatiPasseggero().getEmail());
-
-        // 1. Verifica che l'email corrisponda a un utente registrato
-        if (!utenteDao.existsByEmail(normalizedEmail)) {
-            System.err.println("Email non registrata, prenotazione non consentita");
-            return false;
-        }
-
         final String idVolo = p.getVolo().getCodiceUnivoco();
 
-        // 2. Gestione del posto
+        // 1. Gestione del posto
         String posto = parseSeatOrNull(p.getPostoAssegnato());
         try {
             if (posto == null) {
@@ -288,6 +280,17 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
                 p.setPostoAssegnato(posto);
             } else if (seatExists(idVolo, posto)) {
                 System.err.println("Il posto " + posto + " è già occupato");
+                return false;
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            return false;
+        }
+
+        // 2. Controllo duplicati per stesso volo e stesso utente completo
+        try {
+            if (existsPrenotazionePerVoloEUtente(p.getDatiPasseggero(), idVolo)) {
+                System.err.println("Il passeggero ha già una prenotazione per questo volo");
                 return false;
             }
         } catch (SQLException ex) {
@@ -304,7 +307,7 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
             ps.setString(1, p.getNumBiglietto());
             ps.setString(2, posto);
             ps.setString(3, p.getStato().name());
-            ps.setString(4, normalizedEmail);
+            ps.setString(4, normalizeEmail(p.getDatiPasseggero().getEmail()));
             ps.setString(5, idVolo);
             ps.setString(6, p.getDatiPasseggero().getNome());
             ps.setString(7, p.getDatiPasseggero().getCognome());
@@ -312,19 +315,15 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
 
             ps.executeUpdate();
             System.out.printf("OK prenotazione: biglietto=%s, posto=%s, stato=%s, emailutente=%s, idvolo=%s%n",
-                    p.getNumBiglietto(), posto, p.getStato().name(), normalizedEmail, idVolo);
+                    p.getNumBiglietto(), posto, p.getStato().name(), p.getDatiPasseggero().getEmail(), idVolo);
             return true;
 
         } catch (SQLException e) {
-            // Gestione duplicati passeggero
-            if ("P0001".equals(e.getSQLState()) || e.getMessage().contains("Prenotazione duplicata")) {
-                System.err.println("Il passeggero ha già una prenotazione su questo volo");
-            } else {
-                e.printStackTrace();
-            }
+            e.printStackTrace();
             return false;
         }
     }
+
 
 
     @Override
@@ -458,4 +457,34 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
             try (ResultSet rs = ps.executeQuery()) { return rs.next(); }
         }
     }
+
+    public boolean existsPrenotazionePerVolo(String email, String idVolo) throws SQLException {
+        String sql = "SELECT 1 FROM public.prenotazioni WHERE LOWER(emailutente) = ? AND idvolo = ? LIMIT 1";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, email.toLowerCase());
+            ps.setString(2, idVolo);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+    // Metodo di supporto per verificare prenotazioni duplicati lato Java
+    private boolean existsPrenotazionePerVoloEUtente(DatiPasseggero dp, String idVolo) throws SQLException {
+        final String sql = "SELECT 1 FROM prenotazioni WHERE idvolo = ? AND dp_nome = ? AND dp_cognome = ? AND dp_codicefiscale = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, idVolo);
+            ps.setString(2, dp.getNome());
+            ps.setString(3, dp.getCognome());
+            ps.setString(4, dp.getCodiceFiscale());
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+
+
+
+
 }

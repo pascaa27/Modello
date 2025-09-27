@@ -188,6 +188,38 @@ public class Controller {
         return null;
     }
 
+    public Volo cercaVoloPerDestinazioneEData(String dest, String data) {
+        for (Volo v : voliGestiti) {
+            // Assicurati che i formati siano comparabili (String YYYY-MM-DD)
+            if (v.getAeroporto().equalsIgnoreCase(dest) && v.getDataVolo().equals(data)) {
+                return v;
+            }
+        }
+        return null;
+    }
+
+    // Nuovo metodo opzionale: lista di voli per una destinazione
+    public List<Volo> cercaVoliPerDestinazione(String dest) {
+        List<Volo> result = new ArrayList<>();
+        for (Volo v : voliGestiti) {
+            if (v.getAeroporto().equalsIgnoreCase(dest)) {
+                result.add(v);
+            }
+        }
+        return result;
+    }
+
+    public boolean utenteHaPrenotazionePerVolo(String email, String codiceVolo) {
+        List<Prenotazione> prenotazioni = prenotazioneDAO.findByEmailUtente(email);
+        for (Prenotazione p : prenotazioni) {
+            if (p.getVolo() != null && codiceVolo.equals(p.getVolo().getCodiceUnivoco())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
     // ==========================
     // Prenotazioni (persistenti)
     // ==========================
@@ -219,12 +251,15 @@ public class Controller {
         if (email == null || email.isBlank())
             throw new IllegalArgumentException("Email mancante");
 
+        // Recupera il volo
         Volo v = getVoloByCodice(numeroVolo);
         if (v == null) throw new IllegalArgumentException("Volo inesistente: " + numeroVolo);
 
-        // Controlla se esiste già un datapasseggero
+        // Controlla se esiste già un passeggero con quel codice fiscale
         DatiPasseggero dp = datiPasseggeroDAO.findByCodiceFiscale(codiceFiscale);
-        if (dp == null) {
+
+        // Se il codice fiscale non esiste, crealo sempre come nuovo passeggero
+        if (dp == null || !dp.getEmail().equalsIgnoreCase(email)) {
             dp = new DatiPasseggero(nome, cognome, codiceFiscale, email);
         }
 
@@ -249,6 +284,7 @@ public class Controller {
         prenotazioni.add(pren); // aggiorna cache
         return pren;
     }
+
 
 
     public List<Prenotazione> getPrenotazioniUtente(UtenteGenerico utente) {
