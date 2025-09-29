@@ -228,7 +228,7 @@ public class AreaPersonaleAmmGUI {
             tabellaOrarioGUI.aggiornaVoli(controller.tuttiVoli());
         });
 
-        JButton tuttiButton = gradientButton("Tutti");
+        JButton tuttiButton = gradientButton("Mostra tutti");
         tuttiButton.addActionListener(e -> tabellaOrarioGUI.aggiornaVoli(controller.tuttiVoli()));
 
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
