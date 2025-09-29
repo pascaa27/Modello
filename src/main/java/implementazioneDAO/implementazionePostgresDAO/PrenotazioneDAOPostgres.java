@@ -324,8 +324,6 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
         }
     }
 
-
-
     @Override
     public boolean update(Prenotazione p) {
         if (p == null || p.getNumBiglietto() == null || p.getNumBiglietto().isBlank() ||
@@ -371,15 +369,14 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
             ps.setString(7, p.getDatiPasseggero().getCodiceFiscale());
             ps.setString(8, p.getNumBiglietto());
 
-            return ps.executeUpdate() > 0;
+            int rows = ps.executeUpdate();
+            System.out.println("UPDATE prenotazioni: " + rows + " righe aggiornate");
+            return rows > 0;
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
         }
     }
-
-
-
 
     @Override
     public boolean delete(String codicePrenotazione) {

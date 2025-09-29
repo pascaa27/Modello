@@ -299,12 +299,27 @@ public class Controller {
             }
         }
 
-        // Se la cache non contiene tutte le prenotazioni, caricale dal DB
+        // Carica dal DB solo le prenotazioni mancanti
         try {
             List<Prenotazione> dalDB = prenotazioneDAO.findByEmailUtente(utente.getNomeUtente());
             for (Prenotazione p : dalDB) {
-                if (!prenotazioni.contains(p)) prenotazioni.add(p);
-                if (!result.contains(p)) result.add(p);
+                boolean existsInCache = false;
+                for (Prenotazione q : prenotazioni) {
+                    if (q.getNumBiglietto().equals(p.getNumBiglietto())) {
+                        existsInCache = true;
+                        break;
+                    }
+                }
+                if (!existsInCache) prenotazioni.add(p);
+
+                boolean existsInResult = false;
+                for (Prenotazione q : result) {
+                    if (q.getNumBiglietto().equals(p.getNumBiglietto())) {
+                        existsInResult = true;
+                        break;
+                    }
+                }
+                if (!existsInResult) result.add(p);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -312,6 +327,7 @@ public class Controller {
 
         return result;
     }
+
 
 
     // Helper: ritorna sedile valido "A12" o null se raw è vuoto/non valido/"auto"
@@ -348,20 +364,28 @@ public class Controller {
         // Se non è in cache, prova a leggere dal DB
         Prenotazione dalDB = prenotazioneDAO.findByCodice(numeroBiglietto);
         if (dalDB != null) {
-            prenotazioni.add(dalDB); // aggiorna la cache
+            // aggiungi solo se non è già presente
+            boolean exists = false;
+            for (Prenotazione p : prenotazioni) {
+                if (p.getNumBiglietto().equals(dalDB.getNumBiglietto())) {
+                    exists = true;
+                    break;
+                }
+            }
+            if (!exists) prenotazioni.add(dalDB); // aggiorna la cache
         }
+
         return dalDB;
     }
 
     public boolean salvaPrenotazione(Prenotazione prenotazione) {
         if (prenotazione == null) return false;
 
-        // Persisti anche eventuali modifiche al passeggero
         DatiPasseggero dp = prenotazione.getDatiPasseggero();
         if (dp != null) {
             try {
-                // update “morbido”: aggiorna solo se esiste
-                if (datiPasseggeroDAO.findByCodiceFiscale(dp.getCodiceFiscale()) != null) {
+                // aggiorna SOLO se il passeggero è registrato
+                if (datiPasseggeroDAO.findByEmail(dp.getEmail()) != null) {
                     if (!datiPasseggeroDAO.update(dp)) return false;
                 }
             } catch (Exception e) {
@@ -370,23 +394,26 @@ public class Controller {
             }
         }
 
+        // aggiorna la prenotazione (tabella prenotazioni)
         if (!prenotazioneDAO.update(prenotazione)) return false;
 
-        // riallinea la cache
+        // riallinea la cache SENZA duplicati
+        boolean found = false;
         for (int i = 0; i < prenotazioni.size(); i++) {
             if (prenotazioni.get(i).getNumBiglietto().equals(prenotazione.getNumBiglietto())) {
                 prenotazioni.set(i, prenotazione);
-                return true;
+                found = true;
+                break;
             }
         }
-        prenotazioni.add(prenotazione);
+        if (!found) prenotazioni.add(prenotazione);
+
         return true;
     }
 
     public boolean annullaPrenotazione(Prenotazione prenotazione) {
         if (prenotazione == null) return false;
-        prenotazione.setStato(StatoPrenotazione.CANCELLATA);
-        return salvaPrenotazione(prenotazione);
+        return prenotazioneDAO.delete(prenotazione.getNumBiglietto());
     }
 
     // ==========================
