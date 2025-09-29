@@ -131,10 +131,17 @@ public class CercaModificaPrenotazioneGUI {
         // Lista prenotazioni a sinistra SOLO se esistono
         List<Prenotazione> prenotazioniUtente = controller.getPrenotazioniUtente((UtenteGenerico) utente);
         if (prenotazioniUtente != null && !prenotazioniUtente.isEmpty()) {
-            listaModel = new DefaultListModel<>();
-            for (Prenotazione p : prenotazioniUtente) {
-                listaModel.addElement(p.getNumBiglietto());
+            if (listaModel == null) {
+                listaModel = new DefaultListModel<>();
+                listaPrenotazioni = new JList<>(listaModel);
+                // eventuale renderer e scrollPane
             }
+            for (Prenotazione p : prenotazioniUtente) {
+                if (!listaModel.contains(p.getNumBiglietto())) {
+                    listaModel.addElement(p.getNumBiglietto());
+                }
+            }
+
             listaPrenotazioni = new JList<>(listaModel);
             listaPrenotazioni.setFont(new Font("Segoe UI", Font.PLAIN, 13));
             listaPrenotazioni.setCellRenderer(new DefaultListCellRenderer() {
@@ -293,6 +300,19 @@ public class CercaModificaPrenotazioneGUI {
             return;
         }
 
+        int scelta = JOptionPane.showConfirmDialog(
+                panelCercaModificaPrenotazione,
+                "Vuoi salvare le modifiche a questa prenotazione?",
+                "Conferma salvataggio",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE
+        );
+
+        if (scelta != JOptionPane.YES_OPTION) {
+            return; // l’utente ha annullato
+        }
+
+        // --- qui aggiorni l’oggetto come già fai ---
         prenotazioneCorrente.getDatiPasseggero().setNome(nomeTextField.getText());
         prenotazioneCorrente.getDatiPasseggero().setCognome(cognomeTextField.getText());
         prenotazioneCorrente.getDatiPasseggero().setEmail(emailTextField.getText());
@@ -315,6 +335,7 @@ public class CercaModificaPrenotazioneGUI {
         }
         prenotazioneCorrente.setStato(stato);
 
+        // --- salvataggio effettivo ---
         boolean successo = controller.salvaPrenotazione(prenotazioneCorrente);
         if(successo) {
             messaggioTextArea.setText("Modifiche salvate con successo!");
@@ -326,23 +347,50 @@ public class CercaModificaPrenotazioneGUI {
         } else {
             messaggioTextArea.setText("Errore nel salvataggio delle modifiche.");
         }
+
+        aggiornaListaPrenotazioni();
     }
 
     private void annullaPrenotazione() {
-        if(prenotazioneCorrente == null) {
+        if (prenotazioneCorrente == null) {
             messaggioTextArea.setText("Nessuna prenotazione da annullare.");
             return;
         }
 
+        int scelta = JOptionPane.showConfirmDialog(
+                panelCercaModificaPrenotazione,
+                "Sei sicuro di voler annullare PERMANENTEMENTE la prenotazione?",
+                "Conferma annullamento",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE
+        );
+
+        if (scelta != JOptionPane.YES_OPTION) {
+            return; // l’utente ha annullato l’operazione
+        }
+
         boolean successo = controller.annullaPrenotazione(prenotazioneCorrente);
-        if(successo) {
-            messaggioTextArea.setText("Prenotazione annullata!");
+        if (successo) {
+            messaggioTextArea.setText("Prenotazione annullata definitivamente!");
+
             pulisciCampiPrenotazione();
             setCampiPrenotazioneAbilitati(false);
-
             codiceInserimentoTextField.setEditable(true);
+            prenotazioneCorrente = null;
         } else {
             messaggioTextArea.setText("Errore nell'annullamento.");
+        }
+
+        aggiornaListaPrenotazioni();
+    }
+
+    private void aggiornaListaPrenotazioni() {
+        listaModel.clear();  // svuota prima
+        List<Prenotazione> prenotazioniUtente = controller.getPrenotazioniUtente((UtenteGenerico) utente);
+        if (prenotazioniUtente != null) {
+            for (Prenotazione p : prenotazioniUtente) {
+                listaModel.addElement(p.getNumBiglietto());
+            }
         }
     }
 

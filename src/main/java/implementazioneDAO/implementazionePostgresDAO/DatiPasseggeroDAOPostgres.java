@@ -79,13 +79,20 @@ public class DatiPasseggeroDAOPostgres implements DatiPasseggeroDAO {
             System.err.println("Update datipasseggeri fallita: oggetto nullo o email mancante");
             return false;
         }
-        final String sql = "UPDATE public.datipasseggeri SET nome = ?, cognome = ?, password = ? WHERE email = LOWER(BTRIM(?))";
+
+        final String sql = "UPDATE public.datipasseggeri " +
+                "SET nome = ?, cognome = ?, password = ? " +
+                "WHERE email = LOWER(BTRIM(?))";
+
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, p.getNome());
             ps.setString(2, p.getCognome());
             ps.setString(3, p.getPassword() == null ? "" : p.getPassword());
             ps.setString(4, p.getEmail());
-            return ps.executeUpdate() > 0;
+
+            int rows = ps.executeUpdate();
+            System.out.println("UPDATE datipasseggeri: " + rows + " righe aggiornate");
+            return rows > 0;
         } catch (SQLException e) {
             System.err.println("Errore UPDATE datipasseggeri: " + e.getMessage());
             e.printStackTrace();
