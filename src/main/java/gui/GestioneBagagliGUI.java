@@ -77,10 +77,7 @@ public class GestioneBagagliGUI {
         bottoniPanel.add(rimuoviBagaglioButton);
         panelBagaglio.add(bottoniPanel, gbc);
 
-        // Popola combo stato
-        for (StatoBagaglio stato : StatoBagaglio.values()) {
-            statoBagaglioComboBox.addItem(stato);
-        }
+        // NON aggiungere di nuovo gli item! (RIMUOVI il ciclo for duplicato!)
 
         // Listener pulsanti
         aggiungiBagaglioButton.addActionListener(e -> aggiungiBagaglio());
