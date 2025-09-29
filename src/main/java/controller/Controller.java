@@ -493,8 +493,7 @@ public class Controller {
     }
     // ==========================
     // Passeggeri (su cache, alimentata quando inserisci/aggiorni/ricarichi)
-    // ==========================
-    // Sostituisci la firma esistente con questa (8 parametri)
+
     public List<Object[]> ricercaPasseggeri(String nome,
                                             String cognome,
                                             String email,

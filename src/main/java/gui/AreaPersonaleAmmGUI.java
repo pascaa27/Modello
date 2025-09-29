@@ -323,10 +323,44 @@ public class AreaPersonaleAmmGUI {
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBackground(panelBgColor);
 
-        JPanel ricercaPanel = createSearchPanel(new Object[][]{
-                {"Codice bagaglio:", codiceBagaglioTextField = styledTextFieldBlue("", 10)},
-                {"Stato:", statoBagaglioComboBox = styledComboBoxBlue(new String[]{"", "Caricato", "Smarrito", "Registrato", "Trovato"})}
-        });
+        // --- RICERCA PANEL BAGAGLI IN STILE AZZURRO ---
+        JPanel ricercaPanel = new JPanel(new GridBagLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                int w = getWidth(), h = getHeight();
+                g2d.setColor(searchPanelBg);
+                g2d.fillRoundRect(0, 0, w, h, 16, 16);
+            }
+        };
+        ricercaPanel.setOpaque(false);
+        ricercaPanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(searchBorderColor, 1, true),
+                BorderFactory.createEmptyBorder(8, 10, 8, 10)
+        ));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        gbc.gridy = 0;
+
+        // CODICE BAGAGLIO
+        gbc.gridx = 0;
+        ricercaPanel.add(styledLabelBlue("Codice bagaglio:"), gbc);
+        gbc.gridx = 1;
+        codiceBagaglioTextField = styledTextFieldBlue("", 10); // <--- CAMBIA QUI
+        ricercaPanel.add(codiceBagaglioTextField, gbc);
+        gbc.gridy++;
+
+        // STATO
+        gbc.gridx = 0;
+        ricercaPanel.add(styledLabelBlue("Stato:"), gbc);
+        gbc.gridx = 1;
+        statoBagaglioComboBox = styledComboBoxBlue(new String[]{"", "Caricato", "Smarrito", "Registrato", "Trovato"}); // <--- CAMBIA QUI
+        ricercaPanel.add(statoBagaglioComboBox, gbc);
+        gbc.gridy++;
 
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
         btnPanel.setOpaque(false);
