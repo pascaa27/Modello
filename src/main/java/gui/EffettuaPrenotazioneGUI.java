@@ -194,12 +194,12 @@ public class EffettuaPrenotazioneGUI {
         String email = emailTextField.getText().trim();
         String destinazione = aeroportoDestinazioneTextField.getText().trim().toUpperCase();
 
+        // Validazioni base
         if (nome.isEmpty() || cognome.isEmpty() || codiceFiscale.isEmpty() || destinazione.isEmpty()) {
             JOptionPane.showMessageDialog(effettuaPrenotazionePanel,
                     "Tutti i campi devono essere compilati.", "Errore", JOptionPane.ERROR_MESSAGE);
             return;
         }
-
         if (!Character.isUpperCase(nome.charAt(0)) || !Character.isUpperCase(cognome.charAt(0))) {
             JOptionPane.showMessageDialog(effettuaPrenotazionePanel,
                     "Nome e Cognome devono iniziare con lettera maiuscola.", "Errore", JOptionPane.ERROR_MESSAGE);
@@ -231,14 +231,23 @@ public class EffettuaPrenotazioneGUI {
                 return;
             }
 
-            if (controller.utenteHaPrenotazionePerVolo(utente.getLogin(), volo.getCodiceUnivoco())) {
-                JOptionPane.showMessageDialog(effettuaPrenotazionePanel,
-                        "Hai già una prenotazione per questo volo!", "Errore", JOptionPane.ERROR_MESSAGE);
-                return;
+            // Controllo duplicati / email registrata
+            if (utente != null && utente.isRegistrato()) {
+                if (controller.utenteHaPrenotazionePerVolo(utente.getLogin(), volo.getCodiceUnivoco())) {
+                    JOptionPane.showMessageDialog(effettuaPrenotazionePanel,
+                            "Hai già una prenotazione per questo volo!", "Errore", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+            } else {
+                // Utente anonimo: deve avere email registrata
+                if (!controller.emailRegistrata(email)) {
+                    JOptionPane.showMessageDialog(effettuaPrenotazionePanel,
+                            "Devi registrarti prima di prenotare con questa email.", "Errore", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
             }
 
             String numeroBiglietto = UUID.randomUUID().toString().substring(0, 8);
-
             Prenotazione pren = controller.aggiungiPrenotazione(
                     numeroBiglietto,
                     "",

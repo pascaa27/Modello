@@ -128,44 +128,45 @@ public class CercaModificaPrenotazioneGUI {
 
         panelCercaModificaPrenotazione.add(cardPanel, BorderLayout.CENTER);
 
-        // Lista prenotazioni a sinistra SOLO se esistono
+// Lista prenotazioni a sinistra SOLO se esistono
         List<Prenotazione> prenotazioniUtente = controller.getPrenotazioniUtente((UtenteGenerico) utente);
         if (prenotazioniUtente != null && !prenotazioniUtente.isEmpty()) {
+
             if (listaModel == null) {
                 listaModel = new DefaultListModel<>();
                 listaPrenotazioni = new JList<>(listaModel);
-                // eventuale renderer e scrollPane
-            }
-            for (Prenotazione p : prenotazioniUtente) {
-                if (!listaModel.contains(p.getNumBiglietto())) {
-                    listaModel.addElement(p.getNumBiglietto());
-                }
-            }
-
-            listaPrenotazioni = new JList<>(listaModel);
-            listaPrenotazioni.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-            listaPrenotazioni.setCellRenderer(new DefaultListCellRenderer() {
-                @Override
-                public java.awt.Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-                    java.awt.Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                    if (c instanceof JLabel && value != null) {
-                        ((JLabel) c).setText("Codice Prenotazione: " + value.toString());
+                listaPrenotazioni.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+                listaPrenotazioni.setCellRenderer(new DefaultListCellRenderer() {
+                    @Override
+                    public java.awt.Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                        java.awt.Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                        if (c instanceof JLabel && value != null) {
+                            ((JLabel) c).setText("Codice Prenotazione: " + value.toString());
+                        }
+                        return c;
                     }
-                    return c;
-                }
-            });
-            listaPrenotazioniScrollPane = new JScrollPane(listaPrenotazioni);
-            listaPrenotazioniScrollPane.setPreferredSize(new Dimension(220, 420));
-            panelCercaModificaPrenotazione.add(listaPrenotazioniScrollPane, BorderLayout.WEST);
+                });
 
-            listaPrenotazioni.addListSelectionListener(e -> {
-                if (!e.getValueIsAdjusting()) {
-                    String codiceSelezionato = listaPrenotazioni.getSelectedValue();
-                    codiceInserimentoTextField.setText(codiceSelezionato);
-                    cercaPrenotazione();
-                }
-            });
+                listaPrenotazioniScrollPane = new JScrollPane(listaPrenotazioni);
+                listaPrenotazioniScrollPane.setPreferredSize(new Dimension(220, 420));
+                panelCercaModificaPrenotazione.add(listaPrenotazioniScrollPane, BorderLayout.WEST);
+
+                listaPrenotazioni.addListSelectionListener(e -> {
+                    if (!e.getValueIsAdjusting()) {
+                        String codiceSelezionato = listaPrenotazioni.getSelectedValue();
+                        codiceInserimentoTextField.setText(codiceSelezionato);
+                        cercaPrenotazione();
+                    }
+                });
+            }
+
+            // Popola il modello senza ricreare la JList
+            listaModel.clear();
+            for (Prenotazione p : prenotazioniUtente) {
+                listaModel.addElement(p.getNumBiglietto());
+            }
         }
+
 
         // Popola la comboBox con tutti gli stati disponibili
         statoVoloComboBox.removeAllItems();
@@ -365,24 +366,23 @@ public class CercaModificaPrenotazioneGUI {
                 JOptionPane.WARNING_MESSAGE
         );
 
-        if (scelta != JOptionPane.YES_OPTION) {
-            return; // l’utente ha annullato l’operazione
-        }
+        if (scelta != JOptionPane.YES_OPTION) return;
 
         boolean successo = controller.annullaPrenotazione(prenotazioneCorrente);
-        if (successo) {
-            messaggioTextArea.setText("Prenotazione annullata definitivamente!");
 
+        if (successo) {
+            messaggioTextArea.setText("Prenotazione eliminata dal database!");
             pulisciCampiPrenotazione();
             setCampiPrenotazioneAbilitati(false);
             codiceInserimentoTextField.setEditable(true);
             prenotazioneCorrente = null;
         } else {
-            messaggioTextArea.setText("Errore nell'annullamento.");
+            messaggioTextArea.setText("Errore nell'annullamento della prenotazione.");
         }
 
         aggiornaListaPrenotazioni();
     }
+
 
     private void aggiornaListaPrenotazioni() {
         listaModel.clear();  // svuota prima

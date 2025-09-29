@@ -67,6 +67,11 @@ public class UtenteGenerico extends Utente {
         return codiciPrenotazioni;
     }
 
+    public boolean isRegistrato() {
+        return getLogin() != null && !getLogin().isBlank() &&
+                getPassword() != null && !getPassword().isBlank();
+    }
+
     public void aggiungiCodicePrenotazione(String codice) {
         if (codice != null && !codice.isBlank() && !codiciPrenotazioni.contains(codice)) {
             codiciPrenotazioni.add(codice);

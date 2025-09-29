@@ -56,6 +56,21 @@ public class UtenteGenericoDAOPostgres implements UtenteGenericoDAO {
         }
     }
 
+    // UtenteGenericoDAOPostgres.java
+    public boolean emailEsiste(String email) {
+        if (email == null || email.isBlank()) return false;
+        final String sql = "SELECT 1 FROM datipasseggeri WHERE LOWER(email) = ? LIMIT 1";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, email.toLowerCase());
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
 
     @Override
     public boolean insert(UtenteGenerico u) {

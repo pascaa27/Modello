@@ -258,7 +258,7 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
     // ----------------- INSERT / UPDATE / DELETE -----------------
 
     @Override
-    public boolean insert(Prenotazione p) {
+    public boolean insert(Prenotazione p, UtenteGenerico utente) {
         // Validazione base
         if (p == null || p.getNumBiglietto() == null || p.getNumBiglietto().isBlank() ||
                 p.getStato() == null || p.getVolo() == null || p.getVolo().getCodiceUnivoco() == null ||
@@ -289,7 +289,7 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
 
         // 2. Controllo duplicati per stesso volo e stesso utente completo
         try {
-            if (existsPrenotazionePerVoloEUtente(p.getDatiPasseggero(), idVolo)) {
+            if (existsPrenotazionePerVoloEUtente(p.getDatiPasseggero(), idVolo, utente)) {
                 System.err.println("Il passeggero ha già una prenotazione per questo volo");
                 return false;
             }
@@ -380,12 +380,29 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
 
     @Override
     public boolean delete(String codicePrenotazione) {
+        if (codicePrenotazione == null || codicePrenotazione.isBlank()) {
+            System.err.println("Delete fallito: codice prenotazione nullo o vuoto");
+            return false;
+        }
+
+        codicePrenotazione = codicePrenotazione.trim(); // rimuove spazi
+
         final String sql = "DELETE FROM public.prenotazioni WHERE numbiglietto = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, codicePrenotazione);
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) { e.printStackTrace(); return false; }
+
+            int rows = ps.executeUpdate();
+            System.out.println("Delete prenotazione [" + codicePrenotazione + "]: righe eliminate = " + rows);
+
+            if (!conn.getAutoCommit()) conn.commit(); // forza commit se non autoCommit
+            return rows > 0;
+        } catch (SQLException e) {
+            System.err.println("Errore nel delete prenotazione: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
     }
+
 
     // ----------------- MAP ROW -----------------
 
@@ -467,21 +484,23 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
     }
 
     // Metodo di supporto per verificare prenotazioni duplicati lato Java
-    private boolean existsPrenotazionePerVoloEUtente(DatiPasseggero dp, String idVolo) throws SQLException {
-        final String sql = "SELECT 1 FROM prenotazioni WHERE idvolo = ? AND dp_nome = ? AND dp_cognome = ? AND dp_codicefiscale = ?";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, idVolo);
-            ps.setString(2, dp.getNome());
-            ps.setString(3, dp.getCognome());
-            ps.setString(4, dp.getCodiceFiscale());
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next();
+    private boolean existsPrenotazionePerVoloEUtente(DatiPasseggero dp, String idVolo, UtenteGenerico utente) throws SQLException {
+        if (utente != null && utente.isRegistrato()) {
+            // utente registrato: controllo normale
+            final String sql = "SELECT 1 FROM prenotazioni WHERE idvolo = ? AND emailutente = ? LIMIT 1";
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, idVolo);
+                ps.setString(2, normalizeEmail(dp.getEmail()));
+                try (ResultSet rs = ps.executeQuery()) { return rs.next(); }
             }
+        } else {
+            // utente anonimo: controlla se l'email esiste nel DB degli utenti
+            if (!utenteDao.emailEsiste(dp.getEmail())) {
+                // email non registrata: non può prenotare
+                throw new IllegalArgumentException("Email non registrata. Devi registrarti prima di prenotare.");
+            }
+            // se l’email esiste, blocca comunque la prenotazione per sicurezza
+            return true;
         }
     }
-
-
-
-
-
 }

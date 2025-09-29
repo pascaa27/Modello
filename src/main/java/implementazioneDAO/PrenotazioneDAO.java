@@ -1,6 +1,7 @@
 package implementazioneDAO;
 
 import model.Prenotazione;
+import model.UtenteGenerico;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -19,7 +20,7 @@ public interface PrenotazioneDAO {
 
 
     // Scrittura
-    boolean insert(Prenotazione p);
+    boolean insert(Prenotazione p, UtenteGenerico utente);
     boolean update(Prenotazione p);
     boolean delete(String codicePrenotazione);
 }

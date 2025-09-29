@@ -268,7 +268,7 @@ public class Controller {
         Prenotazione pren = new Prenotazione(numeroBiglietto, postoNormalizzato, stato, utenteGenerico, dp, v);
 
         // Inserimento robusto
-        boolean inserito = prenotazioneDAO.insert(pren);
+        boolean inserito = prenotazioneDAO.insert(pren, utenteGenerico);
         if (!inserito) {
             System.err.printf("ERRORE: impossibile inserire prenotazione %s per volo %s%n", numeroBiglietto, numeroVolo);
             return null;
@@ -301,7 +301,7 @@ public class Controller {
 
         // Carica dal DB solo le prenotazioni mancanti
         try {
-            List<Prenotazione> dalDB = prenotazioneDAO.findByEmailUtente(utente.getNomeUtente());
+            List<Prenotazione> dalDB = prenotazioneDAO.findByEmailUtente(utente.getLogin());
             for (Prenotazione p : dalDB) {
                 boolean existsInCache = false;
                 for (Prenotazione q : prenotazioni) {
@@ -411,9 +411,15 @@ public class Controller {
         return true;
     }
 
-    public boolean annullaPrenotazione(Prenotazione prenotazione) {
-        if (prenotazione == null) return false;
-        return prenotazioneDAO.delete(prenotazione.getNumBiglietto());
+    public boolean annullaPrenotazione(Prenotazione p) {
+        if (p == null) return false;
+
+        return prenotazioneDAO.delete(p.getNumBiglietto());
+    }
+
+
+    public boolean emailRegistrata(String email) {
+        return utentiDAO.emailEsiste(email);
     }
 
     // ==========================

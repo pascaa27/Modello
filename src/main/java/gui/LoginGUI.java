@@ -131,7 +131,7 @@ public class LoginGUI {
                 return;
             }
             if (!Character.isUpperCase(nome.charAt(0)) || !Character.isUpperCase(cognome.charAt(0))) {
-                JOptionPane.showMessageDialog(null, "Nome e Cognome devono iniziare con lettera MAIUSCOLA.");
+                JOptionPane.showMessageDialog(null, "Nome e Cognome devono iniziare con lettera maiuscola.");
                 return;
             }
             if (!email.equals(email.toLowerCase())) {
