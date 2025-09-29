@@ -89,10 +89,12 @@ public class GestionePrenotazioniGUI {
         bottoniPanel.add(rimuoviPrenotazioneButton);
         panelPrenotazione.add(bottoniPanel, gbc);
 
-        // popola combo stato
-        for (StatoPrenotazione stato : StatoPrenotazione.values()) {
-            statoPrenotazioneComboBox.addItem(stato);
-        }
+        // *** NON aggiungere gli elementi di nuovo! ***
+        // RIMUOVI QUESTO BLOCCO:
+        // for (StatoPrenotazione stato : StatoPrenotazione.values()) {
+        //     statoPrenotazioneComboBox.addItem(stato);
+        // }
+        // Gli stati sono già aggiunti nel metodo styledComboBoxStato!
 
         UtenteGenerico utenteGenerico;
         if (controller.getUtenteByEmail(utente.getNomeUtente()) == null) {
@@ -101,7 +103,6 @@ public class GestionePrenotazioniGUI {
             utenteGenerico = controller.getUtenteByEmail(utente.getNomeUtente());
         }
 
-        // listener aggiungi prenotazione
         aggiungiPrenotazioneButton.addActionListener(e -> {
             String numeroBiglietto = numeroPrenotazioneTextField.getText().trim();
             String posto = postoTextField.getText().trim();
