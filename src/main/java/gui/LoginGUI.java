@@ -1,6 +1,7 @@
 package gui;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.*;
 import controller.Controller;
 import model.Amministratore;
@@ -22,12 +23,76 @@ public class LoginGUI {
     private static final String ADMIN_EMAIL = "a";
     private static final String ADMIN_PASS = "a";
 
+    // Palette colori
+    private final Color mainGradientStart = new Color(30, 87, 153);
+    private final Color mainGradientEnd   = new Color(125, 185, 232);
+    private final Color panelBgColor      = new Color(245, 249, 255);
+    private final Color buttonColor       = new Color(60, 130, 200);
+    private final Color buttonHoverColor  = new Color(30, 87, 153);
+
     // DAO per salvataggio su DB di datipasseggeri
     private final DatiPasseggeroDAO datiPasseggeroDAO;
 
     public LoginGUI(Controller controller, Amministratore amministratore) {
         this.controller = controller;
         this.datiPasseggeroDAO = new DatiPasseggeroDAOPostgres();
+
+        // Gradient panel
+        loginPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                int w = getWidth(), h = getHeight();
+                GradientPaint gp = new GradientPaint(0, 0, mainGradientStart, 0, h, mainGradientEnd);
+                g2d.setPaint(gp);
+                g2d.fillRect(0, 0, w, h);
+            }
+        };
+        loginPanel.setLayout(new GridBagLayout());
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(14, 18, 8, 18);
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+
+        // Campi
+        gbc.gridx = 0; gbc.gridy = 0;
+        loginPanel.add(styledLabelWhite("Nome:"), gbc);
+        gbc.gridx = 1;
+        nomeTextField = styledTextFieldWhite("");
+        loginPanel.add(nomeTextField, gbc);
+
+        gbc.gridx = 0; gbc.gridy++;
+        loginPanel.add(styledLabelWhite("Cognome:"), gbc);
+        gbc.gridx = 1;
+        cognomeTextField1 = styledTextFieldWhite("");
+        loginPanel.add(cognomeTextField1, gbc);
+
+        gbc.gridx = 0; gbc.gridy++;
+        loginPanel.add(styledLabelWhite("Email:"), gbc);
+        gbc.gridx = 1;
+        emailTextField = styledTextFieldWhite("");
+        loginPanel.add(emailTextField, gbc);
+
+        gbc.gridx = 0; gbc.gridy++;
+        loginPanel.add(styledLabelWhite("Password:"), gbc);
+        gbc.gridx = 1;
+        passwordTextField = styledTextFieldWhite("");
+        loginPanel.add(passwordTextField, gbc);
+
+        // Bottoni
+        gbc.gridx = 0; gbc.gridy++;
+        gbc.gridwidth = 2;
+        gbc.insets = new Insets(20, 18, 10, 18);
+        JPanel bottoniPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 24, 4));
+        bottoniPanel.setOpaque(false);
+        accediButton = gradientButton("Accedi");
+        registratiButton = gradientButton("Registrati");
+        bottoniPanel.add(accediButton);
+        bottoniPanel.add(registratiButton);
+        loginPanel.add(bottoniPanel, gbc);
 
         accediButton.addActionListener(e -> {
             String email = emailTextField.getText().trim();
@@ -41,7 +106,7 @@ public class LoginGUI {
                 JFrame nuovoFrame = new JFrame("Area Personale Amministratore");
                 nuovoFrame.setContentPane(new AreaPersonaleAmmGUI(controller, amministratore).getAreaPersonaleAmmPanel());
                 nuovoFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-                nuovoFrame.pack();
+                nuovoFrame.setSize(1100, 750);
                 nuovoFrame.setLocationRelativeTo(null);
                 nuovoFrame.setVisible(true);
                 return;
@@ -65,7 +130,7 @@ public class LoginGUI {
                 JFrame nuovoFrame = new JFrame("Area Personale Utente");
                 nuovoFrame.setContentPane(new AreaPersonaleUtenteGUI(controller, utente).getPanel());
                 nuovoFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-                nuovoFrame.pack();
+                nuovoFrame.setSize(1100, 750);
                 nuovoFrame.setLocationRelativeTo(null);
                 nuovoFrame.setVisible(true);
             } else {
@@ -107,6 +172,59 @@ public class LoginGUI {
         });
     }
 
+    private JLabel styledLabelWhite(String text) {
+        JLabel l = new JLabel(text);
+        l.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        l.setForeground(Color.WHITE);
+        return l;
+    }
+    private JTextField styledTextFieldWhite(String text) {
+        JTextField tf = new JTextField(text, 13);
+        tf.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        tf.setBackground(panelBgColor);
+        tf.setForeground(mainGradientStart);
+        tf.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(255,255,255,180), 1, true),
+                BorderFactory.createEmptyBorder(5, 14, 5, 14)
+        ));
+        tf.setCaretColor(mainGradientStart);
+        return tf;
+    }
+    private JButton gradientButton(String text) {
+        JButton b = new JButton(text);
+        b.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        b.setForeground(Color.WHITE);
+        b.setFocusPainted(false);
+        b.setBorderPainted(false);
+        b.setContentAreaFilled(false);
+        b.setOpaque(false);
+        b.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        b.setBorder(BorderFactory.createEmptyBorder(8, 32, 8, 32));
+        b.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                b.setForeground(Color.WHITE);
+                b.repaint();
+            }
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                b.setForeground(Color.WHITE);
+                b.repaint();
+            }
+        });
+        b.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
+            @Override
+            public void paint(Graphics g, JComponent c) {
+                Graphics2D g2 = (Graphics2D) g;
+                GradientPaint gp = new GradientPaint(0, 0, buttonColor, 0, c.getHeight(), buttonHoverColor);
+                g2.setPaint(gp);
+                g2.fillRoundRect(0, 0, c.getWidth(), c.getHeight(), 16, 16);
+                super.paint(g, c);
+            }
+        });
+        return b;
+    }
+
     public JPanel getLoginPanel() {
         return loginPanel;
     }
@@ -118,7 +236,8 @@ public class LoginGUI {
             JFrame frame = new JFrame("Area Login - Aeroporto");
             frame.setContentPane(new LoginGUI(controller, amministratore).getLoginPanel());
             frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-            frame.pack();
+
+            frame.setSize(500, 350);
             frame.setLocationRelativeTo(null);
             frame.setVisible(true);
         });

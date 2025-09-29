@@ -5,6 +5,7 @@ import model.StatoVolo;
 import model.Volo;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.regex.Pattern;
 
 public class GestioneVoliGUI {
@@ -22,8 +23,6 @@ public class GestioneVoliGUI {
     private JComboBox<StatoVolo> statoVoloComboBox;
     private JButton aggiungiVoloButton;
     private JButton rimuoviVoloButton;
-
-    // NUOVI pulsanti che devi inserire nel .form con questi variable name:
     private JButton cercaCodiceButton;
     private JButton confermaModificheButton;
 
@@ -31,52 +30,142 @@ public class GestioneVoliGUI {
     private final AreaPersonaleAmmGUI areaAmmGUI;
     private static final String AEROPORTO_LOCALE = "NAP";
 
-    // Tiene traccia del volo caricato in "modifica"
     private String codiceVoloSelezionato = null;
+
+    // Palette colori
+    private final Color mainGradientStart = new Color(30, 87, 153);
+    private final Color mainGradientEnd   = new Color(125, 185, 232);
+    private final Color panelBgColor      = new Color(245, 249, 255);
+    private final Color buttonColor       = new Color(60, 130, 200);
+    private final Color buttonHoverColor  = new Color(30, 87, 153);
 
     public GestioneVoliGUI(Controller controller, AreaPersonaleAmmGUI areaAmmGUI) {
         this.controller = controller;
         this.areaAmmGUI = areaAmmGUI;
 
-        // Gruppo radio
+        // Gradient panel
+        gestioneVoliPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                int w = getWidth(), h = getHeight();
+                GradientPaint gp = new GradientPaint(0, 0, mainGradientStart, 0, h, mainGradientEnd);
+                g2d.setPaint(gp);
+                g2d.fillRect(0, 0, w, h);
+            }
+        };
+        gestioneVoliPanel.setLayout(new GridBagLayout());
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(12, 18, 8, 18);
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+
+        // Codice
+        gbc.gridx = 0; gbc.gridy = 0;
+        gestioneVoliPanel.add(styledLabelWhite("Codice Univoco:"), gbc);
+        gbc.gridx = 1;
+        codiceUnivocoTextField = styledTextFieldWhite("");
+        gestioneVoliPanel.add(codiceUnivocoTextField, gbc);
+
+        // Compagnia
+        gbc.gridx = 0; gbc.gridy++;
+        gestioneVoliPanel.add(styledLabelWhite("Compagnia:"), gbc);
+        gbc.gridx = 1;
+        compagniaTextField = styledTextFieldWhite("");
+        gestioneVoliPanel.add(compagniaTextField, gbc);
+
+        // Data
+        gbc.gridx = 0; gbc.gridy++;
+        gestioneVoliPanel.add(styledLabelWhite("Data:"), gbc);
+        gbc.gridx = 1;
+        dataTextField = styledTextFieldWhite("");
+        gestioneVoliPanel.add(dataTextField, gbc);
+
+        // Aeroporto destinazione/origine
+        gbc.gridx = 0; gbc.gridy++;
+        gestioneVoliPanel.add(styledLabelWhite("Altro Aeroporto:"), gbc);
+        gbc.gridx = 1;
+        altroAeroportoTextField = styledTextFieldWhite("");
+        gestioneVoliPanel.add(altroAeroportoTextField, gbc);
+
+        // Orario previsto
+        gbc.gridx = 0; gbc.gridy++;
+        gestioneVoliPanel.add(styledLabelWhite("Orario Previsto:"), gbc);
+        gbc.gridx = 1;
+        orarioPrevistoTextField = styledTextFieldWhite("");
+        gestioneVoliPanel.add(orarioPrevistoTextField, gbc);
+
+        // Orario stimato
+        gbc.gridx = 0; gbc.gridy++;
+        gestioneVoliPanel.add(styledLabelWhite("Orario Stimato:"), gbc);
+        gbc.gridx = 1;
+        orarioStimatoTextField = styledTextFieldWhite("");
+        gestioneVoliPanel.add(orarioStimatoTextField, gbc);
+
+        // Gate
+        gbc.gridx = 0; gbc.gridy++;
+        gestioneVoliPanel.add(styledLabelWhite("Gate:"), gbc);
+        gbc.gridx = 1;
+        gateTextField = styledTextFieldWhite("");
+        gestioneVoliPanel.add(gateTextField, gbc);
+
+        // Direzione (radio)
+        gbc.gridx = 0; gbc.gridy++;
+        gestioneVoliPanel.add(styledLabelWhite("Arrivo/Partenza:"), gbc);
+        gbc.gridx = 1;
+        JPanel direzionePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
+        direzionePanel.setOpaque(false);
+        arrivoRadioButton = new JRadioButton("Arrivo");
+        partenzaRadioButton = new JRadioButton("Partenza");
         ButtonGroup direzioneGroup = new ButtonGroup();
         direzioneGroup.add(arrivoRadioButton);
         direzioneGroup.add(partenzaRadioButton);
+        direzionePanel.add(arrivoRadioButton);
+        direzionePanel.add(partenzaRadioButton);
+        gestioneVoliPanel.add(direzionePanel, gbc);
         setDirezioneDefault();
 
-        // Popola combo stato se presente
-        if (statoVoloComboBox != null) {
-            statoVoloComboBox.removeAllItems();
-            for (StatoVolo sv : StatoVolo.values()) {
-                statoVoloComboBox.addItem(sv);
-            }
+        // Stato volo
+        gbc.gridx = 0; gbc.gridy++;
+        gestioneVoliPanel.add(styledLabelWhite("Stato Volo:"), gbc);
+        gbc.gridx = 1;
+        statoVoloComboBox = styledComboBoxStato(StatoVolo.values());
+        gestioneVoliPanel.add(statoVoloComboBox, gbc);
+
+        // Bottoni principali
+        gbc.gridx = 0; gbc.gridy++;
+        gbc.gridwidth = 2;
+        gbc.insets = new Insets(20, 18, 10, 18);
+        JPanel bottoniPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 18, 4));
+        bottoniPanel.setOpaque(false);
+        aggiungiVoloButton = gradientButton("Aggiungi Volo");
+        rimuoviVoloButton = gradientButton("Rimuovi Volo");
+        cercaCodiceButton = gradientButton("Cerca per Codice");
+        confermaModificheButton = gradientButton("Conferma Modifiche");
+        bottoniPanel.add(aggiungiVoloButton);
+        bottoniPanel.add(rimuoviVoloButton);
+        bottoniPanel.add(cercaCodiceButton);
+        bottoniPanel.add(confermaModificheButton);
+        gestioneVoliPanel.add(bottoniPanel, gbc);
+
+        // Combo stato
+        statoVoloComboBox.removeAllItems();
+        for (StatoVolo sv : StatoVolo.values()) {
+            statoVoloComboBox.addItem(sv);
         }
 
-        // Listener direzione
-        if (arrivoRadioButton != null) arrivoRadioButton.addActionListener(e -> toggleDirezione());
-        if (partenzaRadioButton != null) partenzaRadioButton.addActionListener(e -> toggleDirezione());
+        arrivoRadioButton.addActionListener(e -> toggleDirezione());
+        partenzaRadioButton.addActionListener(e -> toggleDirezione());
         toggleDirezione();
 
-        // Pulsante Aggiungi
-        if (aggiungiVoloButton != null) {
-            aggiungiVoloButton.addActionListener(e -> aggiungiVolo());
-        }
-
-        // Pulsante Rimuovi
-        if (rimuoviVoloButton != null) {
-            rimuoviVoloButton.addActionListener(e -> rimuoviVolo());
-        }
-
-        // NUOVO: Pulsante Cerca (usa Controller.cercaVolo)
-        if (cercaCodiceButton != null) {
-            cercaCodiceButton.addActionListener(e -> cercaVoloPerCodice());
-        }
-
-        // NUOVO: Pulsante Conferma Modifiche (usa Controller.aggiornaVolo(codice, stato, nuovoOrarioPrevisto))
-        if (confermaModificheButton != null) {
-            confermaModificheButton.addActionListener(e -> confermaModifiche());
-            confermaModificheButton.setEnabled(false); // attivo solo dopo una "cerca" riuscita
-        }
+        aggiungiVoloButton.addActionListener(e -> aggiungiVolo());
+        rimuoviVoloButton.addActionListener(e -> rimuoviVolo());
+        cercaCodiceButton.addActionListener(e -> cercaVoloPerCodice());
+        confermaModificheButton.addActionListener(e -> confermaModifiche());
+        confermaModificheButton.setEnabled(false);
     }
 
     private void setDirezioneDefault() {
@@ -121,7 +210,6 @@ public class GestioneVoliGUI {
             return;
         }
 
-        // --- GESTIONE ECCEZIONE ---
         try {
             controller.aggiungiVolo(
                     codice,
@@ -190,7 +278,6 @@ public class GestioneVoliGUI {
         }
     }
 
-    // --- CERCA PER CODICE (usa Controller.cercaVolo) ---
     private void cercaVoloPerCodice() {
         String codice = safeText(codiceUnivocoTextField);
         if (codice.isEmpty()) {
@@ -209,12 +296,11 @@ public class GestioneVoliGUI {
                 return;
             }
 
-            // Popola i campi
             codiceUnivocoTextField.setText(v.getCodiceUnivoco());
             compagniaTextField.setText(v.getCompagniaAerea());
             dataTextField.setText(v.getDataVolo());
             orarioPrevistoTextField.setText(v.getOrarioPrevisto());
-            orarioStimatoTextField.setText(v.getOrarioStimato());   // <— IMPORTANTE
+            orarioStimatoTextField.setText(v.getOrarioStimato());
             altroAeroportoTextField.setText(v.getAeroporto());
             gateTextField.setText(v.getGate());
 
@@ -231,7 +317,7 @@ public class GestioneVoliGUI {
 
             setLockCodice(true);
             codiceVoloSelezionato = v.getCodiceUnivoco();
-            if (confermaModificheButton != null) confermaModificheButton.setEnabled(true);
+            confermaModificheButton.setEnabled(true);
 
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(gestioneVoliPanel,
@@ -240,10 +326,6 @@ public class GestioneVoliGUI {
         }
     }
 
-    // --- CONFERMA MODIFICHE ---
-    // Si allinea alla firma del Controller:
-    // public void aggiornaVolo(String codiceUnivoco, StatoVolo nuovoStato, String nuovoOrario)
-    // NOTA: nuovoOrario = orarioPrevisto (dato il tuo Controller aggiorna orarioPrevisto)
     private void confermaModifiche() {
         if (codiceVoloSelezionato == null || codiceVoloSelezionato.isEmpty()) {
             JOptionPane.showMessageDialog(gestioneVoliPanel,
@@ -252,17 +334,15 @@ public class GestioneVoliGUI {
             return;
         }
 
-        // Leggi tutti i campi
         String compagnia = safeText(compagniaTextField);
         String data = safeText(dataTextField);
         String orarioPrevisto = safeText(orarioPrevistoTextField);
-        String orarioStimato = safeText(orarioStimatoTextField); // non usato dal DAO attuale
+        String orarioStimato = safeText(orarioStimatoTextField);
         String aeroporto = safeText(altroAeroportoTextField).toUpperCase();
         String gate = safeText(gateTextField);
         StatoVolo stato = (StatoVolo) statoVoloComboBox.getSelectedItem();
         String direzione = arrivoRadioButton.isSelected() ? "in arrivo" : "in partenza";
 
-        // Riutilizzo la validazione "completa" che già avevi
         String errore = valida(codiceVoloSelezionato, compagnia, data, aeroporto, orarioPrevisto, orarioStimato, gate, direzione, stato);
         if (errore != null) {
             JOptionPane.showMessageDialog(gestioneVoliPanel, errore, "Errore modifica volo", JOptionPane.ERROR_MESSAGE);
@@ -282,7 +362,7 @@ public class GestioneVoliGUI {
                     gate
             );
             JOptionPane.showMessageDialog(gestioneVoliPanel, "Volo aggiornato con successo!");
-            areaAmmGUI.aggiornaTabellaOrario(); // ricarica i voli nella tabella
+            areaAmmGUI.aggiornaTabellaOrario();
             pulisci();
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(gestioneVoliPanel,
@@ -326,7 +406,6 @@ public class GestioneVoliGUI {
         return null;
     }
 
-    // Validazione “light” per la modifica (aggiorni solo stato e orario previsto)
     private String validaModifica(String nuovoOrarioPrevisto, StatoVolo nuovoStato) {
         if (nuovoStato == null) return "Seleziona uno stato del volo.";
         if (nuovoOrarioPrevisto == null || !Pattern.matches("\\d{2}:\\d{2}", nuovoOrarioPrevisto))
@@ -339,7 +418,6 @@ public class GestioneVoliGUI {
         compagniaTextField.setText("");
         dataTextField.setText("");
         altroAeroportoTextField.setText("");
-
         if (orarioPrevistoTextField != null) orarioPrevistoTextField.setText("");
         if (orarioStimatoTextField != null) orarioStimatoTextField.setText("");
         if (gateTextField != null) gateTextField.setText("");
@@ -351,7 +429,7 @@ public class GestioneVoliGUI {
         setLockCodice(false);
         codiceVoloSelezionato = null;
 
-        if (confermaModificheButton != null) confermaModificheButton.setEnabled(false);
+        confermaModificheButton.setEnabled(false);
     }
 
     private void setLockCodice(boolean lock) {
@@ -359,7 +437,7 @@ public class GestioneVoliGUI {
             codiceUnivocoTextField.setEditable(!lock);
         }
         if (cercaCodiceButton != null) {
-            cercaCodiceButton.setEnabled(!lock); // opzionale: evita di ricercare mentre modifichi
+            cercaCodiceButton.setEnabled(!lock);
         }
     }
 
@@ -369,6 +447,72 @@ public class GestioneVoliGUI {
 
     private String nullToEmpty(String s) {
         return s == null ? "" : s;
+    }
+
+    // --- Stile componenti ---
+    private JLabel styledLabelWhite(String text) {
+        JLabel l = new JLabel(text);
+        l.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        l.setForeground(Color.WHITE);
+        return l;
+    }
+    private JTextField styledTextFieldWhite(String text) {
+        JTextField tf = new JTextField(text, 13);
+        tf.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        tf.setBackground(panelBgColor);
+        tf.setForeground(mainGradientStart);
+        tf.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(255,255,255,180), 1, true),
+                BorderFactory.createEmptyBorder(5, 14, 5, 14)
+        ));
+        tf.setCaretColor(mainGradientStart);
+        return tf;
+    }
+    private JComboBox<StatoVolo> styledComboBoxStato(StatoVolo[] items) {
+        JComboBox<StatoVolo> cb = new JComboBox<>();
+        cb.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        cb.setBackground(Color.WHITE);
+        cb.setForeground(mainGradientStart);
+        cb.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(mainGradientStart, 1, true),
+                BorderFactory.createEmptyBorder(2, 8, 2, 8)
+        ));
+        for (StatoVolo s : items) cb.addItem(s);
+        return cb;
+    }
+    private JButton gradientButton(String text) {
+        JButton b = new JButton(text);
+        b.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        b.setForeground(Color.WHITE);
+        b.setFocusPainted(false);
+        b.setBorderPainted(false);
+        b.setContentAreaFilled(false);
+        b.setOpaque(false);
+        b.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        b.setBorder(BorderFactory.createEmptyBorder(8, 32, 8, 32));
+        b.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                b.setForeground(Color.WHITE);
+                b.repaint();
+            }
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                b.setForeground(Color.WHITE);
+                b.repaint();
+            }
+        });
+        b.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
+            @Override
+            public void paint(Graphics g, JComponent c) {
+                Graphics2D g2 = (Graphics2D) g;
+                GradientPaint gp = new GradientPaint(0, 0, buttonColor, 0, c.getHeight(), buttonHoverColor);
+                g2.setPaint(gp);
+                g2.fillRoundRect(0, 0, c.getWidth(), c.getHeight(), 16, 16);
+                super.paint(g, c);
+            }
+        });
+        return b;
     }
 
     public JPanel getPanelDatiVolo() {

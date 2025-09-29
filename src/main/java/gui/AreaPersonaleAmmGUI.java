@@ -4,7 +4,6 @@ import javax.swing.*;
 import controller.Controller;
 import model.Amministratore;
 import model.StatoPrenotazione;
-
 import java.awt.*;
 import java.util.List;
 import javax.swing.event.ChangeEvent;
@@ -12,7 +11,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.table.DefaultTableModel;
 
 /**
- * Versione modificata per integrare TabellaPasseggeroGUI come componente della tab "Passeggeri".
+ * Versione desktop con layout BorderLayout, bottoni gestione visibili e tabella ben centrata.
  */
 public class AreaPersonaleAmmGUI {
     private JTextField nomeTextField;
@@ -34,8 +33,6 @@ public class AreaPersonaleAmmGUI {
     private JButton cercaVoloButton;
     private JButton cercaPasseggeroButton;
     private JTextField codiceBagaglioTextField;
-    private JTextField numeroVoloBagaglioTextField; // (non utilizzato attualmente nella ricerca bagagli)
-    private JTextField nomePasseggeroBagaglioTextField; // (non utilizzato attualmente)
     private JComboBox<String> statoBagaglioComboBox;
     private JButton cercaBagaglioButton;
     private JButton gestioneVoliButton;
@@ -44,12 +41,8 @@ public class AreaPersonaleAmmGUI {
     private JTextField orarioTextField;
     private boolean passwordVisibile = false;
     private TabellaOrarioGUI tabellaOrarioGUI;
-    private JTable risultatiRicercaTable;
     private JTable risultatiRicercaPasseggeroTable;
-
-    // NUOVO: componente tabella passeggeri
     private TabellaPasseggeroGUI tabellaPasseggeroGUI;
-    // NUOVO: tabella bagagli (manteniamo JTable diretta o potresti farne un pannello analogo)
     private JTable risultatiRicercaBagaglioTable;
     private JTextField aeroportoTextField;
     private JTextField gateTextField;
@@ -58,56 +51,89 @@ public class AreaPersonaleAmmGUI {
     private JTextField postoAssegnatoTextField;
     private JComboBox<StatoPrenotazione> statoPrenotazioneComboBox;
     private JTextField emailPasseggeroTextField;
+    private JTable risultatiRicercaTable;
+
+    // Palette colori
+    private final Color mainGradientStart = new Color(30, 87, 153);
+    private final Color mainGradientEnd = new Color(125, 185, 232);
+    private final Color panelBgColor = new Color(245, 249, 255);
+    private final Color buttonColor = new Color(60, 130, 200);
+    private final Color buttonHoverColor = new Color(30, 87, 153);
+    private final Color tabSelectedColor = new Color(220, 235, 250);
+    private final Color searchPanelBg = new Color(237, 243, 251);
+    private final Color searchBorderColor = new Color(210, 220, 237);
+
+
+
 
     public AreaPersonaleAmmGUI(Controller controller, Amministratore amministratore) {
         this.controller = controller;
 
-        areaPersonaleAmmPanel = new JPanel();
-        areaPersonaleAmmPanel.setLayout(new BoxLayout(areaPersonaleAmmPanel, BoxLayout.Y_AXIS));
+        // Layout principale desktop!
+        areaPersonaleAmmPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                int w = getWidth(), h = getHeight();
+                GradientPaint gp = new GradientPaint(0, 0, mainGradientStart, 0, h, mainGradientEnd);
+                g2d.setPaint(gp);
+                g2d.fillRect(0, 0, w, h);
+            }
+        };
+        areaPersonaleAmmPanel.setLayout(new BorderLayout(0, 0)); // <--- DESKTOP LAYOUT!
 
-        // Dati amministratore
-        JPanel datiPanel = new JPanel(new GridLayout(5, 3, 10, 10));
-        datiPanel.add(new JLabel("Nome:"));
-        nomeTextField = new JTextField(amministratore.getNomeUtente());
+        // Dati amministratore (in alto)
+        JPanel datiPanel = new JPanel(new GridLayout(5, 3, 8, 8));
+        datiPanel.setOpaque(false);
+
+        datiPanel.add(styledLabelWhite("Nome:"));
+        nomeTextField = styledTextFieldWhite(amministratore.getNomeUtente());
         nomeTextField.setEditable(false);
         datiPanel.add(nomeTextField);
 
-        datiPanel.add(new JLabel("Cognome:"));
-        cognomeTextField = new JTextField(amministratore.getCognomeUtente());
+        datiPanel.add(styledLabelWhite("Cognome:"));
+        cognomeTextField = styledTextFieldWhite(amministratore.getCognomeUtente());
         cognomeTextField.setEditable(false);
         datiPanel.add(cognomeTextField);
 
-        datiPanel.add(new JLabel("Email:"));
-        emailTextField = new JTextField(amministratore.getLogin());
+        datiPanel.add(styledLabelWhite("Email:"));
+        emailTextField = styledTextFieldWhite(amministratore.getLogin());
         emailTextField.setEditable(false);
         datiPanel.add(emailTextField);
 
-        datiPanel.add(new JLabel("Password:"));
+        datiPanel.add(styledLabelWhite("Password:"));
         passwordField = new JPasswordField(amministratore.getPassword());
         passwordField.setEditable(false);
         passwordField.setEchoChar('•');
+        passwordField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        passwordField.setBackground(panelBgColor);
 
-        mostraPasswordButton = new JButton("Show");
-        mostraPasswordButton.setPreferredSize(new Dimension(60, 28));
-        mostraPasswordButton.setFocusPainted(false);
-        mostraPasswordButton.setMargin(new Insets(2, 2, 2, 2));
-        mostraPasswordButton.setBorderPainted(false);
+        mostraPasswordButton = gradientButton("Show");
+        mostraPasswordButton.setPreferredSize(new Dimension(70, 28));
         mostraPasswordButton.addActionListener(e -> mostraNascondiPassword());
 
         JPanel passwordPanel = new JPanel(new BorderLayout());
+        passwordPanel.setOpaque(false);
         passwordPanel.add(passwordField, BorderLayout.CENTER);
         passwordPanel.add(mostraPasswordButton, BorderLayout.EAST);
         datiPanel.add(passwordPanel);
 
-        areaPersonaleAmmPanel.add(datiPanel);
+        // Tabs centrale
+        tabbedPane1 = new JTabbedPane() {
+            @Override
+            public void setUI(javax.swing.plaf.TabbedPaneUI ui) {
+                super.setUI(ui);
+                setBackground(panelBgColor);
+            }
+        };
+        tabbedPane1.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        tabbedPane1.setBackground(panelBgColor);
 
-        // Tabs
-        tabbedPane1 = new JTabbedPane();
         tabbedPane1.addTab("Voli", creaTabVoli());
         tabbedPane1.addTab("Passeggeri", creaTabPasseggeri());
         tabbedPane1.addTab("Bagagli", creaTabBagagli());
 
-        // NEW: ricarica automaticamente i bagagli quando apri la tab "Bagagli"
         tabbedPane1.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
@@ -121,17 +147,29 @@ public class AreaPersonaleAmmGUI {
             }
         });
 
-        areaPersonaleAmmPanel.add(tabbedPane1);
 
-        JPanel bottoniPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
-        gestioneVoliButton = new JButton("Gestione Voli");
-        gestionePrenotazioniButton = new JButton("Gestione Prenotazioni");
-        gestioneBagagliButton = new JButton("Gestione Bagagli");
+        // Bottoni gestione in basso
+        JPanel bottoniPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 18, 10)) {
+            @Override
+            public Dimension getPreferredSize() {
+                // Altezza minima garantita per mostrare tutti i bottoni
+                return new Dimension(super.getPreferredSize().width, 60);
+            }
+        };
+        bottoniPanel.setOpaque(false);
+        gestioneVoliButton = gradientButton("Gestione Voli");
+        gestionePrenotazioniButton = gradientButton("Gestione Prenotazioni");
+        gestioneBagagliButton = gradientButton("Gestione Bagagli");
         bottoniPanel.add(gestioneVoliButton);
         bottoniPanel.add(gestionePrenotazioniButton);
         bottoniPanel.add(gestioneBagagliButton);
 
-        areaPersonaleAmmPanel.add(bottoniPanel);
+// In BorderLayout, aggiungi così:
+        areaPersonaleAmmPanel.add(bottoniPanel, BorderLayout.SOUTH);
+
+        areaPersonaleAmmPanel.add(datiPanel, BorderLayout.NORTH);
+        areaPersonaleAmmPanel.add(tabbedPane1, BorderLayout.CENTER);
+        areaPersonaleAmmPanel.add(bottoniPanel, BorderLayout.SOUTH);
 
         gestioneVoliButton.addActionListener(e -> {
             GestioneVoliGUI gestioneVoli = new GestioneVoliGUI(controller, this);
@@ -161,8 +199,6 @@ public class AreaPersonaleAmmGUI {
         });
 
         aggiornaTabellaOrario();
-
-        // NEW: carica subito tutti i bagagli all'avvio dell'Area Personale
         caricaTuttiBagagli();
     }
 
@@ -170,52 +206,43 @@ public class AreaPersonaleAmmGUI {
     private JPanel creaTabVoli() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBackground(panelBgColor);
 
-        int GAP_COPPIE = 28;
-        int GAP_LABEL_CAMPO = 4;
+        JPanel ricercaPanel = createSearchPanel(new Object[][]{
+                {"Numero volo:", numeroVoloTextField = styledTextFieldBlue("", 8)},
+                {"Compagnia:", compagniaTextField = styledTextFieldBlue("", 10)},
+                {"Stato:", statoComboBox = styledComboBoxBlue(new String[]{"", "PROGRAMMATO", "IMBARCO", "DECOLLATO", "CANCELLATO", "INRITARDO", "ATTERRATO"})},
+                {"Data:", dataTextField = styledTextFieldBlue("", 8)},
+                {"Orario:", orarioTextField = styledTextFieldBlue("", 6)},
+                {"Aeroporto:", aeroportoTextField = styledTextFieldBlue("", 10)},
+                {"Gate:", gateTextField = styledTextFieldBlue("", 10)},
+                {"Arrivo/Partenza:", arrivoPartenzaComboBox = styledComboBoxBlue(new String[]{"", "In arrivo", "In partenza"})},
+        });
 
-        JPanel ricercaPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, GAP_COPPIE, 4));
-
-        numeroVoloTextField = new JTextField(8);
-        compagniaTextField = new JTextField(10);
-        statoComboBox = new JComboBox<>(new String[]{"", "PROGRAMMATO", "IMBARCO", "DECOLLATO", "CANCELLATO", "INRITARDO", "ATTERRATO"});
-        dataTextField = new JTextField(8);
-        orarioTextField = new JTextField(6);
-        aeroportoTextField = new JTextField(10);
-        gateTextField = new JTextField(10);
-        arrivoPartenzaComboBox = new JComboBox<>(new String[]{"", "In arrivo", "In partenza"});
-
-        ricercaPanel.add(creaPair("Numero volo:", numeroVoloTextField, GAP_LABEL_CAMPO));
-        ricercaPanel.add(creaPair("Compagnia:", compagniaTextField, GAP_LABEL_CAMPO));
-        ricercaPanel.add(creaPair("Stato:", statoComboBox, GAP_LABEL_CAMPO));
-        ricercaPanel.add(creaPair("Data:", dataTextField, GAP_LABEL_CAMPO));
-        ricercaPanel.add(creaPair("Orario:", orarioTextField, GAP_LABEL_CAMPO));
-        ricercaPanel.add(creaPair("Aeroporto:", aeroportoTextField, GAP_LABEL_CAMPO));
-        ricercaPanel.add(creaPair("Gate:", gateTextField, GAP_LABEL_CAMPO));
-        ricercaPanel.add(creaPair("Arrivo/Partenza:", arrivoPartenzaComboBox, GAP_LABEL_CAMPO));
-
-        cercaVoloButton = new JButton("Cerca");
+        cercaVoloButton = gradientButton("Cerca");
         cercaVoloButton.addActionListener(e -> ricercaVoli());
 
-        JButton resetFiltriButton = new JButton("Reset");
+        JButton resetFiltriButton = gradientButton("Reset");
         resetFiltriButton.addActionListener(e -> {
             resetFiltriVoli();
-            // INVECE di svuotare, ricarichiamo tutti i voli (più intuitivo)
             tabellaOrarioGUI.aggiornaVoli(controller.tuttiVoli());
         });
 
-        JButton tuttiButton = new JButton("Tutti");
+        JButton tuttiButton = gradientButton("Tutti");
         tuttiButton.addActionListener(e -> tabellaOrarioGUI.aggiornaVoli(controller.tuttiVoli()));
 
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        btnPanel.setOpaque(false);
         btnPanel.add(cercaVoloButton);
         btnPanel.add(tuttiButton);
         btnPanel.add(resetFiltriButton);
 
+        panel.add(Box.createVerticalStrut(8));
         panel.add(ricercaPanel);
         panel.add(btnPanel);
 
         tabellaOrarioGUI = new TabellaOrarioGUI(controller);
+        panel.add(Box.createVerticalStrut(8));
         panel.add(tabellaOrarioGUI.getPanel());
 
         return panel;
@@ -238,64 +265,28 @@ public class AreaPersonaleAmmGUI {
         arrivoPartenzaComboBox.setSelectedIndex(0);
     }
 
-    private JPanel creaPair(String labelText, JComponent campo, int gapLabelCampo) {
-        JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, gapLabelCampo, 0));
-        p.setOpaque(false);
-        if(labelText != null && !labelText.isEmpty()) {
-            p.add(new JLabel(labelText));
-        }
-        p.add(campo);
-        return p;
-    }
-
     // ---- TAB PASSEGGERI ----
     private JPanel creaTabPasseggeri() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBackground(panelBgColor);
 
-        JPanel ricercaPanel = new JPanel(new GridLayout(0, 2, 8, 8));
-        ricercaPanel.add(new JLabel("Nome:"));
-        nomePasseggeroTextField = new JTextField(10);
-        ricercaPanel.add(nomePasseggeroTextField);
-
-        ricercaPanel.add(new JLabel("Cognome:"));
-        cognomePasseggeroTextField = new JTextField(10);
-        ricercaPanel.add(cognomePasseggeroTextField);
-
-        ricercaPanel.add(new JLabel("Email:"));
-        emailPasseggeroTextField = new JTextField(10);
-        ricercaPanel.add(emailPasseggeroTextField);
-
-        ricercaPanel.add(new JLabel("Codice Fiscale:"));
-        codiceFiscaleTextField = new JTextField(10);
-        ricercaPanel.add(codiceFiscaleTextField);
-
-        ricercaPanel.add(new JLabel("Numero volo:"));
-        numeroVoloPasseggeroTextField = new JTextField(10);
-        ricercaPanel.add(numeroVoloPasseggeroTextField);
-
-        ricercaPanel.add(new JLabel("Numero prenotazione:"));
-        numeroPrenotazionePasseggeroTextField = new JTextField(10);
-        ricercaPanel.add(numeroPrenotazionePasseggeroTextField);
-
-        ricercaPanel.add(new JLabel("Posto assegnato: "));
-        postoAssegnatoTextField = new JTextField(10);
-        ricercaPanel.add(postoAssegnatoTextField);
-
-        ricercaPanel.add(new JLabel("Stato prenotazione:"));
-        statoPrenotazioneComboBox = new JComboBox<>();
-        statoPrenotazioneComboBox.addItem(null); // vuoto = qualsiasi
-        for (StatoPrenotazione sp : StatoPrenotazione.values()) {
-            statoPrenotazioneComboBox.addItem(sp);
-        }
-        ricercaPanel.add(statoPrenotazioneComboBox);
-
-        panel.add(ricercaPanel);
+        JPanel ricercaPanel = createSearchPanel(new Object[][]{
+                {"Nome:", nomePasseggeroTextField = styledTextFieldBlue("", 10)},
+                {"Cognome:", cognomePasseggeroTextField = styledTextFieldBlue("", 10)},
+                {"Email:", emailPasseggeroTextField = styledTextFieldBlue("", 10)},
+                {"Codice Fiscale:", codiceFiscaleTextField = styledTextFieldBlue("", 10)},
+                {"Numero volo:", numeroVoloPasseggeroTextField = styledTextFieldBlue("", 10)},
+                {"Numero prenotazione:", numeroPrenotazionePasseggeroTextField = styledTextFieldBlue("", 10)},
+                {"Posto assegnato: ", postoAssegnatoTextField = styledTextFieldBlue("", 10)},
+                {"Stato prenotazione:", statoPrenotazioneComboBox = styledComboBoxBlueEnum(StatoPrenotazione.values())}
+        });
 
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
-        cercaPasseggeroButton = new JButton("Cerca");
-        JButton mostraTuttiBtn = new JButton("Mostra tutti");
-        JButton resetBtn = new JButton("Reset");
+        btnPanel.setOpaque(false);
+        cercaPasseggeroButton = gradientButton("Cerca");
+        JButton mostraTuttiBtn = gradientButton("Mostra tutti");
+        JButton resetBtn = gradientButton("Reset");
 
         cercaPasseggeroButton.addActionListener(e -> ricercaPasseggeri());
         mostraTuttiBtn.addActionListener(e -> caricaTuttiPasseggeri());
@@ -307,15 +298,20 @@ public class AreaPersonaleAmmGUI {
             numeroVoloPasseggeroTextField.setText("");
             numeroPrenotazionePasseggeroTextField.setText("");
             postoAssegnatoTextField.setText("");
+            statoPrenotazioneComboBox.setSelectedIndex(0);
             tabellaPasseggeroGUI.setRows(java.util.Collections.emptyList());
         });
 
         btnPanel.add(cercaPasseggeroButton);
         btnPanel.add(mostraTuttiBtn);
         btnPanel.add(resetBtn);
+
+        panel.add(Box.createVerticalStrut(8));
+        panel.add(ricercaPanel);
         panel.add(btnPanel);
 
         tabellaPasseggeroGUI = new TabellaPasseggeroGUI();
+        panel.add(Box.createVerticalStrut(8));
         panel.add(tabellaPasseggeroGUI.getPanel());
 
         return panel;
@@ -325,46 +321,50 @@ public class AreaPersonaleAmmGUI {
     private JPanel creaTabBagagli() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBackground(panelBgColor);
 
-        JPanel ricercaPanel = new JPanel(new GridLayout(1, 4, 8, 8));
-        ricercaPanel.add(new JLabel("Codice bagaglio:"));
-        codiceBagaglioTextField = new JTextField(10);
-        ricercaPanel.add(codiceBagaglioTextField);
-
-        ricercaPanel.add(new JLabel("Stato:"));
-        statoBagaglioComboBox = new JComboBox<>(new String[]{"", "Caricato", "Smarrito", "Registrato", "Trovato"});
-        ricercaPanel.add(statoBagaglioComboBox);
-
-        panel.add(ricercaPanel);
+        JPanel ricercaPanel = createSearchPanel(new Object[][]{
+                {"Codice bagaglio:", codiceBagaglioTextField = styledTextFieldBlue("", 10)},
+                {"Stato:", statoBagaglioComboBox = styledComboBoxBlue(new String[]{"", "Caricato", "Smarrito", "Registrato", "Trovato"})}
+        });
 
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
-        cercaBagaglioButton = new JButton("Cerca");
-        JButton mostraTuttiBagagliBtn = new JButton("Mostra tutti");
-        JButton resetBagagliBtn = new JButton("Reset");
+        btnPanel.setOpaque(false);
+        cercaBagaglioButton = gradientButton("Cerca");
+        JButton mostraTuttiBagagliBtn = gradientButton("Mostra tutti");
+        JButton resetBagagliBtn = gradientButton("Reset");
         btnPanel.add(cercaBagaglioButton);
         btnPanel.add(mostraTuttiBagagliBtn);
         btnPanel.add(resetBagagliBtn);
-        panel.add(btnPanel);
 
         cercaBagaglioButton.addActionListener(e -> ricercaBagagli());
         mostraTuttiBagagliBtn.addActionListener(e -> caricaTuttiBagagli());
         resetBagagliBtn.addActionListener(e -> {
             codiceBagaglioTextField.setText("");
             statoBagaglioComboBox.setSelectedIndex(0);
-            // Svuota tabella
-            if(risultatiRicercaBagaglioTable != null && risultatiRicercaBagaglioTable.getModel() instanceof DefaultTableModel m) {
+            if (risultatiRicercaBagaglioTable != null && risultatiRicercaBagaglioTable.getModel() instanceof DefaultTableModel m) {
                 m.setRowCount(0);
             }
         });
 
+        panel.add(Box.createVerticalStrut(8));
+        panel.add(ricercaPanel);
+        panel.add(btnPanel);
+
         risultatiRicercaBagaglioTable = new JTable(new DefaultTableModel(new String[]{"Codice Bagaglio", "Stato"}, 0) {
-            @Override public boolean isCellEditable(int r, int c) { return false; }
+            @Override
+            public boolean isCellEditable(int r, int c) {
+                return false;
+            }
         });
         risultatiRicercaBagaglioTable.setAutoCreateRowSorter(true);
+        risultatiRicercaBagaglioTable.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        risultatiRicercaBagaglioTable.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
+        risultatiRicercaBagaglioTable.setBackground(Color.WHITE);
         JScrollPane scrollPane = new JScrollPane(risultatiRicercaBagaglioTable);
+        panel.add(Box.createVerticalStrut(8));
         panel.add(scrollPane);
 
-        // NEW: carica subito tutti i bagagli la prima volta che si crea la tab
         SwingUtilities.invokeLater(this::caricaTuttiBagagli);
 
         return panel;
@@ -429,7 +429,7 @@ public class AreaPersonaleAmmGUI {
 
         DefaultTableModel model = (DefaultTableModel) risultatiRicercaBagaglioTable.getModel();
         model.setRowCount(0);
-        for(Object[] r : risultati) {
+        for (Object[] r : risultati) {
             model.addRow(r);
         }
     }
@@ -439,19 +439,19 @@ public class AreaPersonaleAmmGUI {
         List<Object[]> risultati = controller.tuttiBagagliRows();
         DefaultTableModel model = (DefaultTableModel) risultatiRicercaBagaglioTable.getModel();
         model.setRowCount(0);
-        for(Object[] r : risultati) {
+        for (Object[] r : risultati) {
             model.addRow(r);
         }
     }
 
     private String trimOrNull(String s) {
-        if(s == null) return null;
+        if (s == null) return null;
         s = s.trim();
         return s.isEmpty() ? null : s;
     }
 
     private void mostraNascondiPassword() {
-        if(passwordVisibile) {
+        if (passwordVisibile) {
             passwordField.setEchoChar('•');
             mostraPasswordButton.setText("Show");
         } else {
@@ -469,5 +469,143 @@ public class AreaPersonaleAmmGUI {
         if (tabellaPasseggeroGUI != null) {
             tabellaPasseggeroGUI.setRows(controller.tuttiPasseggeri());
         }
+    }
+
+    // ------ STILE COMPONENTI ------
+    private JLabel styledLabelWhite(String text) {
+        JLabel l = new JLabel(text);
+        l.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        l.setForeground(Color.WHITE);
+        return l;
+    }
+
+    private JTextField styledTextFieldWhite(String text) {
+        JTextField tf = new JTextField(text, 13);
+        tf.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        tf.setBackground(panelBgColor);
+        tf.setForeground(mainGradientStart);
+        tf.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(255, 255, 255, 180), 1, true),
+                BorderFactory.createEmptyBorder(3, 7, 3, 7)
+        ));
+        tf.setCaretColor(mainGradientStart);
+        return tf;
+    }
+
+    private JLabel styledLabelBlue(String text) {
+        JLabel l = new JLabel(text);
+        l.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        l.setForeground(mainGradientStart);
+        return l;
+    }
+
+    private JTextField styledTextFieldBlue(String text, int columns) {
+        JTextField tf = new JTextField(text, columns);
+        tf.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        tf.setBackground(Color.WHITE);
+        tf.setForeground(mainGradientStart);
+        tf.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(mainGradientStart, 1, true),
+                BorderFactory.createEmptyBorder(3, 7, 3, 7)
+        ));
+        tf.setCaretColor(mainGradientStart);
+        return tf;
+    }
+
+    private JComboBox<String> styledComboBoxBlue(String[] items) {
+        JComboBox<String> cb = new JComboBox<>(items);
+        cb.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        cb.setBackground(Color.WHITE);
+        cb.setForeground(mainGradientStart);
+        cb.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(mainGradientStart, 1, true),
+                BorderFactory.createEmptyBorder(2, 6, 2, 6)
+        ));
+        return cb;
+    }
+
+    private JComboBox<StatoPrenotazione> styledComboBoxBlueEnum(StatoPrenotazione[] items) {
+        JComboBox<StatoPrenotazione> cb = new JComboBox<>();
+        cb.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        cb.setBackground(Color.WHITE);
+        cb.setForeground(mainGradientStart);
+        cb.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(mainGradientStart, 1, true),
+                BorderFactory.createEmptyBorder(2, 6, 2, 6)
+        ));
+        cb.addItem(null); // vuoto
+        for (StatoPrenotazione sp : items) cb.addItem(sp);
+        return cb;
+    }
+
+    private JButton gradientButton(String text) {
+        JButton b = new JButton(text);
+        b.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        b.setForeground(Color.WHITE);
+        b.setFocusPainted(false);
+        b.setBorderPainted(false);
+        b.setContentAreaFilled(false);
+        b.setOpaque(false);
+        b.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        b.setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 15));
+        b.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                b.setForeground(Color.WHITE);
+                b.repaint();
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                b.setForeground(Color.WHITE);
+                b.repaint();
+            }
+        });
+        b.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
+            @Override
+            public void paint(Graphics g, JComponent c) {
+                Graphics2D g2 = (Graphics2D) g;
+                GradientPaint gp = new GradientPaint(0, 0, buttonColor, 0, c.getHeight(), buttonHoverColor);
+                g2.setPaint(gp);
+                g2.fillRoundRect(0, 0, c.getWidth(), c.getHeight(), 16, 16);
+                super.paint(g, c);
+            }
+        });
+        return b;
+    }
+
+    private JPanel createSearchPanel(Object[][] pairs) {
+        JPanel bgPanel = new JPanel(new GridBagLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g;
+                int w = getWidth(), h = getHeight();
+                g2.setColor(searchPanelBg);
+                g2.fillRoundRect(0, 0, w, h, 16, 16);
+            }
+        };
+        bgPanel.setOpaque(false);
+        bgPanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(searchBorderColor, 1, true),
+                BorderFactory.createEmptyBorder(8, 10, 8, 10)
+        ));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        gbc.gridy = 0;
+
+        for (Object[] pair : pairs) {
+            String label = (String) pair[0];
+            JComponent field = (JComponent) pair[1];
+            gbc.gridx = 0;
+            bgPanel.add(styledLabelBlue(label), gbc);
+            gbc.gridx = 1;
+            bgPanel.add(field, gbc);
+            gbc.gridy++;
+        }
+        return bgPanel;
     }
 }

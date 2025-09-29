@@ -4,8 +4,8 @@ import controller.Controller;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import java.awt.*;
 import java.util.List;
-
 
 public class TabellaPasseggeroGUI {
     private JPanel tabellaPasseggeroPanel;
@@ -16,18 +16,22 @@ public class TabellaPasseggeroGUI {
 
     private static final String[] COLONNE = {"Nome", "Cognome","Email", "Codice Fiscale", "Numero Volo", "Numero Prenotazione", "Posto assegnato", "Stato Prenotazione"};
 
+    // Palette colori per coerenza con l'app
+    private final Color mainGradientStart = new Color(30, 87, 153);
+    private final Color mainGradientEnd   = new Color(125, 185, 232);
+    private final Color tableHeaderColor  = new Color(60, 130, 200);
+    private final Color tableRowColor     = new Color(245, 249, 255);
+
     public TabellaPasseggeroGUI(Controller controller) {
         this.controller = controller;
-        $$$setupUI$$$(); // (se IntelliJ già la inserisce, non duplicarla)
+        inizializzaPanel();
         inizializzaModel();
     }
 
-     //Costruttore vuoto se vuoi istanziarla senza controller
     public TabellaPasseggeroGUI() {
-        $$$setupUI$$$();
+        inizializzaPanel();
         inizializzaModel();
     }
-
 
     private void inizializzaModel() {
         model = new DefaultTableModel(COLONNE, 0) {
@@ -35,6 +39,35 @@ public class TabellaPasseggeroGUI {
         };
         tabellaPasseggeroTable.setModel(model);
         tabellaPasseggeroTable.setAutoCreateRowSorter(true);
+
+        // Stile tabella
+        tabellaPasseggeroTable.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
+        tabellaPasseggeroTable.getTableHeader().setBackground(tableHeaderColor);
+        tabellaPasseggeroTable.getTableHeader().setForeground(Color.WHITE);
+        tabellaPasseggeroTable.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        tabellaPasseggeroTable.setRowHeight(26);
+        tabellaPasseggeroTable.setBackground(tableRowColor);
+        tabellaPasseggeroTable.setSelectionBackground(new Color(190, 215, 250));
+        tabellaPasseggeroTable.setSelectionForeground(mainGradientStart);
+    }
+
+    private void inizializzaPanel() {
+        tabellaPasseggeroTable = new JTable();
+        tabellaPasseggeroPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                int w = getWidth(), h = getHeight();
+                GradientPaint gp = new GradientPaint(0, 0, mainGradientStart, 0, h, mainGradientEnd);
+                g2d.setPaint(gp);
+                g2d.fillRect(0, 0, w, h);
+            }
+        };
+        tabellaPasseggeroPanel.setLayout(new BorderLayout());
+        JScrollPane scrollPane = new JScrollPane(tabellaPasseggeroTable);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder(12, 18, 12, 18));
+        tabellaPasseggeroPanel.add(scrollPane, BorderLayout.CENTER);
     }
 
     public void setRows(List<Object[]> rows) {
@@ -54,11 +87,8 @@ public class TabellaPasseggeroGUI {
         return tabellaPasseggeroTable;
     }
 
-    // Metodo creato automaticamente dal Designer (placeholder se non presente):
-    private void $$$setupUI$$$() {
-    }
-
-    // Se vuoi usare il Designer per generare componenti custom, puoi usare createUIComponents().
+    // Designer placeholder
+    private void $$$setupUI$$$() {}
     private void createUIComponents() {
         tabellaPasseggeroTable = new JTable();
     }

@@ -4,8 +4,8 @@ import controller.Controller;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import java.awt.*;
 import java.util.List;
-
 
 public class TabellaBagaglioGUI {
     private JPanel tabellaBagaglioPanel;
@@ -14,58 +14,85 @@ public class TabellaBagaglioGUI {
     private DefaultTableModel model;
     private Controller controller;
 
-    private static final String[] COLONNE = {"Codice bagaglio", "stato"};
+    private static final String[] COLONNE = {"Codice bagaglio", "Stato"};
+
+    // Palette colori per coerenza con l'app
+    private final Color mainGradientStart = new Color(30, 87, 153);
+    private final Color mainGradientEnd   = new Color(125, 185, 232);
+    private final Color tableHeaderColor  = new Color(60, 130, 200);
+    private final Color tableRowColor     = new Color(245, 249, 255);
 
     public TabellaBagaglioGUI(Controller controller) {
         this.controller = controller;
-        inizializzaModel();
+        inizializzaModel();   // crea la tabella e il model
+        inizializzaPanel();   // crea il pannello con gradient e la tabella
     }
 
     private void inizializzaModel() {
         model = new DefaultTableModel(COLONNE, 0) {
-            @Override public boolean isCellEditable(int r, int c) { return false; }
+            @Override
+            public boolean isCellEditable(int r, int c) { return false; }
         };
         tabellaBagaglioTable = new JTable(model);
         tabellaBagaglioTable.setAutoCreateRowSorter(true);
+
+        // Stile tabella
+        tabellaBagaglioTable.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
+        tabellaBagaglioTable.getTableHeader().setBackground(tableHeaderColor);
+        tabellaBagaglioTable.getTableHeader().setForeground(Color.WHITE);
+        tabellaBagaglioTable.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        tabellaBagaglioTable.setRowHeight(26);
+        tabellaBagaglioTable.setBackground(tableRowColor);
+        tabellaBagaglioTable.setSelectionBackground(new Color(190, 215, 250));
+        tabellaBagaglioTable.setSelectionForeground(mainGradientStart);
+    }
+
+    private void inizializzaPanel() {
+        tabellaBagaglioPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                int w = getWidth(), h = getHeight();
+                GradientPaint gp = new GradientPaint(0, 0, mainGradientStart, 0, h, mainGradientEnd);
+                g2d.setPaint(gp);
+                g2d.fillRect(0, 0, w, h);
+            }
+        };
+        tabellaBagaglioPanel.setLayout(new BorderLayout());
+        JScrollPane scrollPane = new JScrollPane(tabellaBagaglioTable);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder(12, 18, 12, 18));
+        tabellaBagaglioPanel.add(scrollPane, BorderLayout.CENTER);
     }
 
     public void setRows(List<Object[]> rows) {
-        if(model == null) return;
+        if (model == null) return;
         model.setRowCount(0);
-        if(rows != null) {
-            for(Object[] r : rows) model.addRow(r);
+        if (rows != null) {
+            for (Object[] r : rows) model.addRow(r);
         }
     }
 
-    /**
-     * Carica tutti i bagagli dal controller (richiede metodo tuttiBagagliRows()).
-     */
     public void caricaTuttiBagagli() {
-        if(controller == null) return;
+        if (controller == null) return;
         try {
             List<Object[]> rows = controller.tuttiBagagliRows();
             setRows(rows);
-        } catch(Exception ignored) {
+        } catch (Exception ignored) {
         }
     }
 
-    /**
-     * Aggiunge una singola riga.
-     */
     public void addRow(Object[] row) {
         if (model != null && row != null) model.addRow(row);
     }
 
-    /**
-     * Restituisce l'array di valori della riga selezionata (null se nessuna selezione).
-     */
     public Object[] getSelectedRow() {
-        if(tabellaBagaglioTable == null) return null;
+        if (tabellaBagaglioTable == null) return null;
         int viewRow = tabellaBagaglioTable.getSelectedRow();
-        if(viewRow < 0) return null;
+        if (viewRow < 0) return null;
         int modelRow = tabellaBagaglioTable.convertRowIndexToModel(viewRow);
         Object[] out = new Object[model.getColumnCount()];
-        for(int c = 0; c < model.getColumnCount(); c++) {
+        for (int c = 0; c < model.getColumnCount(); c++) {
             out[c] = model.getValueAt(modelRow, c);
         }
         return out;

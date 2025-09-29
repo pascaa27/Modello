@@ -17,52 +17,146 @@ public class AreaPersonaleUtenteGUI {
     private UtenteGenerico utente;
     private JFrame prenotazioneFrame;
 
+    // Palette colori
+    private final Color mainGradientStart = new Color(30, 87, 153);
+    private final Color mainGradientEnd   = new Color(125, 185, 232);
+    private final Color panelBgColor      = new Color(245, 249, 255);
+    private final Color buttonColor       = new Color(60, 130, 200);
+    private final Color buttonHoverColor  = new Color(30, 87, 153);
+
     public AreaPersonaleUtenteGUI(Controller controller, UtenteGenerico utente) {
         this.controller = controller;
         this.utente = utente;
 
-        areaPersonaleUtentePanel = new JPanel(new GridLayout(5, 2, 10, 10));
+        // Gradient desktop panel
+        areaPersonaleUtentePanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                int w = getWidth(), h = getHeight();
+                GradientPaint gp = new GradientPaint(0, 0, mainGradientStart, 0, h, mainGradientEnd);
+                g2d.setPaint(gp);
+                g2d.fillRect(0, 0, w, h);
+            }
+        };
+        areaPersonaleUtentePanel.setLayout(new BorderLayout(0, 0));
 
-        areaPersonaleUtentePanel.add(new JLabel("Nome:"));
-        nomeUtenteTextField = new JTextField(utente.getNomeUtente());
+        // Card dati utente
+        JPanel datiPanel = new JPanel(new GridBagLayout());
+        datiPanel.setOpaque(false);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 18, 10, 18);
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+
+        gbc.gridy = 0;
+        datiPanel.add(styledLabelWhite("Nome:"), gbc);
+        gbc.gridx = 1;
+        nomeUtenteTextField = styledTextFieldWhite(utente.getNomeUtente());
         nomeUtenteTextField.setEditable(false);
-        areaPersonaleUtentePanel.add(nomeUtenteTextField);
+        datiPanel.add(nomeUtenteTextField, gbc);
 
-        areaPersonaleUtentePanel.add(new JLabel("Cognome:"));
-        cognomeUtenteTextField = new JTextField(utente.getCognomeUtente());
+        gbc.gridx = 0; gbc.gridy++;
+        datiPanel.add(styledLabelWhite("Cognome:"), gbc);
+        gbc.gridx = 1;
+        cognomeUtenteTextField = styledTextFieldWhite(utente.getCognomeUtente());
         cognomeUtenteTextField.setEditable(false);
-        areaPersonaleUtentePanel.add(cognomeUtenteTextField);
+        datiPanel.add(cognomeUtenteTextField, gbc);
 
-        areaPersonaleUtentePanel.add(new JLabel("Email:"));
-        emailUtenteTextField = new JTextField(utente.getLogin());
+        gbc.gridx = 0; gbc.gridy++;
+        datiPanel.add(styledLabelWhite("Email:"), gbc);
+        gbc.gridx = 1;
+        emailUtenteTextField = styledTextFieldWhite(utente.getLogin());
         emailUtenteTextField.setEditable(false);
-        areaPersonaleUtentePanel.add(emailUtenteTextField);
+        datiPanel.add(emailUtenteTextField, gbc);
 
-        tabellaOrarioButton = new JButton("Tabella Orario");
-        effettuaPrenotazioneButton = new JButton("Effettua Prenotazione");
-        cercaModificaButton = new JButton("Cerca/Modifica Prenotazione");
+        areaPersonaleUtentePanel.add(datiPanel, BorderLayout.NORTH);
 
-        areaPersonaleUtentePanel.add(tabellaOrarioButton);
-        areaPersonaleUtentePanel.add(effettuaPrenotazioneButton);
-        areaPersonaleUtentePanel.add(cercaModificaButton);
+        // Bottoni principali desktop
+        JPanel bottoniPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 26, 18));
+        bottoniPanel.setOpaque(false);
+        tabellaOrarioButton = gradientButton("Tabella Orario");
+        effettuaPrenotazioneButton = gradientButton("Effettua Prenotazione");
+        cercaModificaButton = gradientButton("Cerca/Modifica Prenotazione");
 
-        // Listener per Tabella Orario
+        bottoniPanel.add(tabellaOrarioButton);
+        bottoniPanel.add(effettuaPrenotazioneButton);
+        bottoniPanel.add(cercaModificaButton);
+
+        areaPersonaleUtentePanel.add(bottoniPanel, BorderLayout.CENTER);
+
+        // Listeners
         tabellaOrarioButton.addActionListener(e -> apriTabellaOrario());
-
-        // Listener per Effettua Prenotazione
         effettuaPrenotazioneButton.addActionListener(e -> apriEffettuaPrenotazione());
-
-        // Listener per Cerca/Modifica Prenotazione
         cercaModificaButton.addActionListener(e -> apriCercaModificaPrenotazione());
+    }
+
+    // Desktop label
+    private JLabel styledLabelWhite(String text) {
+        JLabel l = new JLabel(text);
+        l.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        l.setForeground(Color.WHITE);
+        return l;
+    }
+    // Desktop field
+    private JTextField styledTextFieldWhite(String text) {
+        JTextField tf = new JTextField(text, 13);
+        tf.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        tf.setBackground(panelBgColor);
+        tf.setForeground(mainGradientStart);
+        tf.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(255,255,255, 180), 1, true),
+                BorderFactory.createEmptyBorder(4, 12, 4, 12)
+        ));
+        tf.setCaretColor(mainGradientStart);
+        return tf;
+    }
+    // Desktop button
+    private JButton gradientButton(String text) {
+        JButton b = new JButton(text);
+        b.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        b.setForeground(Color.WHITE);
+        b.setFocusPainted(false);
+        b.setBorderPainted(false);
+        b.setContentAreaFilled(false);
+        b.setOpaque(false);
+        b.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        // Solo padding, no larghezza minima fissa!
+        b.setBorder(BorderFactory.createEmptyBorder(7, 32, 7, 32));
+        b.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                b.setForeground(Color.WHITE);
+                b.repaint();
+            }
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                b.setForeground(Color.WHITE);
+                b.repaint();
+            }
+        });
+        b.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
+            @Override
+            public void paint(Graphics g, JComponent c) {
+                Graphics2D g2 = (Graphics2D) g;
+                GradientPaint gp = new GradientPaint(0, 0, buttonColor, 0, c.getHeight(), buttonHoverColor);
+                g2.setPaint(gp);
+                g2.fillRoundRect(0, 0, c.getWidth(), c.getHeight(), 16, 16);
+                super.paint(g, c);
+            }
+        });
+        return b;
     }
 
     // Metodo che apre la GUI TabellaOrario
     private void apriTabellaOrario() {
-        TabellaOrarioGUI gui = new TabellaOrarioGUI(controller); // già carica dati
+        TabellaOrarioGUI gui = new TabellaOrarioGUI(controller);
         JFrame frame = new JFrame("Tabella Orario");
         frame.setContentPane(gui.getPanel());
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        frame.pack();
+        frame.setSize(950, 500);
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
     }
@@ -70,21 +164,17 @@ public class AreaPersonaleUtenteGUI {
     // Metodo che apre la GUI EffettuaPrenotazione
     private void apriEffettuaPrenotazione() {
         if (prenotazioneFrame != null) {
-            // Se il frame esiste già, portalo in primo piano
             prenotazioneFrame.toFront();
             prenotazioneFrame.requestFocus();
             return;
         }
-
-        // Crea il frame
         prenotazioneFrame = new JFrame("Effettua Prenotazione");
         prenotazioneFrame.setContentPane(new EffettuaPrenotazioneGUI(controller, utente).getPanel());
         prenotazioneFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        prenotazioneFrame.pack();
+        prenotazioneFrame.setSize(650, 450);
         prenotazioneFrame.setLocationRelativeTo(null);
         prenotazioneFrame.setVisible(true);
 
-        // Quando il frame viene chiuso, resetta la variabile
         prenotazioneFrame.addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
             public void windowClosed(java.awt.event.WindowEvent windowEvent) {
@@ -100,7 +190,7 @@ public class AreaPersonaleUtenteGUI {
                 new CercaModificaPrenotazioneGUI(controller, utente, utente.getUltimoCodicePrenotazione()).getPanel()
         );
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        frame.pack();
+        frame.setSize(600, 400);
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
     }
