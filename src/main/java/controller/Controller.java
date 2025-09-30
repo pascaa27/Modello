@@ -432,35 +432,18 @@ public class Controller {
     }
 
     public Prenotazione aggiungiPrenotazione(PrenotazioneInput in) {
-        // Validazioni
-        if (in.base.numeroBiglietto == null || in.base.numeroBiglietto.isBlank())
-            throw new IllegalArgumentException("Numero biglietto mancante");
-        if (in.base.stato == null)
-            throw new IllegalArgumentException("Stato prenotazione mancante");
-        if (in.volo.numeroVolo == null || in.volo.numeroVolo.isBlank())
-            throw new IllegalArgumentException("Numero volo mancante");
-        if (in.passeggero.codiceFiscale == null || in.passeggero.codiceFiscale.isBlank())
-            throw new IllegalArgumentException("Codice fiscale mancante");
-        if (in.passeggero.email == null || in.passeggero.email.isBlank())
-            throw new IllegalArgumentException("Email mancante");
+        // 1) Validazioni di input (estratte)
+        validatePrenotazioneInput(in);
 
-        // Recupera il volo
-        Volo v = getVoloByCodice(in.volo.numeroVolo);
-        if (v == null) throw new IllegalArgumentException("Volo inesistente: " + in.volo.numeroVolo);
+        // 2) Recupero entità necessarie (estratte)
+        Volo v = getAndValidateVolo(in.volo.numeroVolo);
+        DatiPasseggero dp = resolvePasseggero(in);
 
-        // Verifica/crea passeggero via email
-        DatiPasseggero dp = datiPasseggeroDAO.findByEmail(in.passeggero.email);
-        if (dp == null) {
-            dp = new DatiPasseggero(in.passeggero.nome, in.passeggero.cognome, in.passeggero.codiceFiscale, in.passeggero.email);
-        } else if (dp.getCodiceFiscale() == null || !dp.getCodiceFiscale().equalsIgnoreCase(in.passeggero.codiceFiscale)) {
-            dp.setCodiceFiscale(in.passeggero.codiceFiscale);
-        }
-
-        // Assicura che l'utente (per quell'email) esista su DB – utile quando l'admin crea prenotazioni per utenti non registrati
+        // 3) Assicura che l'utente esista su DB (già presente nel tuo Controller)
         UtenteGenerico utenteEffettivo = ensureUserRegistered(in.passeggero.email, in.volo.utenteGenerico);
 
+        // 4) Costruzione prenotazione e inserimento
         String postoNormalizzato = normalizeSeatOrNull(in.base.posto);
-
         Prenotazione pren = new Prenotazione(
                 in.base.numeroBiglietto,
                 postoNormalizzato,
@@ -470,23 +453,8 @@ public class Controller {
                 v
         );
 
-        boolean inserito;
-        try {
-            inserito = prenotazioneDAO.insert(pren, utenteEffettivo);
-        } catch (IllegalArgumentException ie) {
-            // Evita che l'EDT venga abbattuto: logga e torna null (la GUI può mostrare un messaggio)
-            LOGGER.log(Level.WARNING, "Inserimento prenotazione rifiutato: {0}", ie.getMessage());
-            LOGGER.log(Level.FINE, LOG_DETAILS, ie);
-            return null;
-        } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "Errore imprevisto in inserimento prenotazione per email={0}", in.passeggero.email);
-            LOGGER.log(Level.FINE, LOG_DETAILS, e);
-            return null;
-        }
-
-        if (!inserito) {
-            LOGGER.log(Level.WARNING, () -> "Impossibile inserire prenotazione " + in.base.numeroBiglietto + " per volo " + in.volo.numeroVolo);
-            return null;
+        if (!tryInsertPrenotazione(pren, utenteEffettivo, in.passeggero.email)) {
+            return null; // errore già loggato
         }
 
         LOGGER.log(Level.INFO,
@@ -495,6 +463,69 @@ public class Controller {
 
         prenotazioni.add(pren);
         return pren;
+    }
+
+    // Valida tutti i campi richiesti dell'input
+    private void validatePrenotazioneInput(PrenotazioneInput in) {
+        if (in == null || in.base == null || in.volo == null || in.passeggero == null) {
+            throw new IllegalArgumentException("Input prenotazione mancante o incompleto");
+        }
+        if (in.base.numeroBiglietto == null || in.base.numeroBiglietto.isBlank()) {
+            throw new IllegalArgumentException("Numero biglietto mancante");
+        }
+        if (in.base.stato == null) {
+            throw new IllegalArgumentException("Stato prenotazione mancante");
+        }
+        if (in.volo.numeroVolo == null || in.volo.numeroVolo.isBlank()) {
+            throw new IllegalArgumentException("Numero volo mancante");
+        }
+        if (in.passeggero.codiceFiscale == null || in.passeggero.codiceFiscale.isBlank()) {
+            throw new IllegalArgumentException("Codice fiscale mancante");
+        }
+        if (in.passeggero.email == null || in.passeggero.email.isBlank()) {
+            throw new IllegalArgumentException("Email mancante");
+        }
+    }
+
+    // Recupera il volo e solleva se non esiste
+    private Volo getAndValidateVolo(String numeroVolo) {
+        Volo v = getVoloByCodice(numeroVolo);
+        if (v == null) {
+            throw new IllegalArgumentException("Volo inesistente: " + numeroVolo);
+        }
+        return v;
+    }
+
+    // Trova/crea/aggiorna i dati passeggero coerentemente
+    private DatiPasseggero resolvePasseggero(PrenotazioneInput in) {
+        DatiPasseggero dp = datiPasseggeroDAO.findByEmail(in.passeggero.email);
+        if (dp == null) {
+            return new DatiPasseggero(in.passeggero.nome, in.passeggero.cognome, in.passeggero.codiceFiscale, in.passeggero.email);
+        }
+        if (dp.getCodiceFiscale() == null || !dp.getCodiceFiscale().equalsIgnoreCase(in.passeggero.codiceFiscale)) {
+            dp.setCodiceFiscale(in.passeggero.codiceFiscale);
+        }
+        return dp;
+    }
+
+    // Incapsula il try/catch dell'inserimento
+    private boolean tryInsertPrenotazione(Prenotazione pren, UtenteGenerico utenteEffettivo, String emailPasseggero) {
+        try {
+            boolean ok = prenotazioneDAO.insert(pren, utenteEffettivo);
+            if (!ok) {
+                LOGGER.log(Level.WARNING, () -> "Impossibile inserire prenotazione " + pren.getNumBiglietto()
+                        + " per volo " + (pren.getVolo() != null ? pren.getVolo().getCodiceUnivoco() : "?"));
+            }
+            return ok;
+        } catch (IllegalArgumentException ie) {
+            LOGGER.log(Level.WARNING, "Inserimento prenotazione rifiutato: {0}", ie.getMessage());
+            LOGGER.log(Level.FINE, LOG_DETAILS, ie);
+            return false;
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Errore imprevisto in inserimento prenotazione per email={0}", emailPasseggero);
+            LOGGER.log(Level.FINE, LOG_DETAILS, e);
+            return false;
+        }
     }
 
     /**
