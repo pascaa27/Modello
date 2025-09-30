@@ -486,7 +486,6 @@ public class AreaPersonaleAmmGUI {
             tabellaOrarioGUI.aggiornaVoli(risultati);
         }
         // In alternativa, se vuoi popolare una JTable del Designer (risultatiRicercaTable), abilita qui:
-        // if (risultatiRicercaTable != null) setRowsIntoTable(risultatiRicercaTable, risultati);
     }
 
     private void ricercaPasseggeri() {
