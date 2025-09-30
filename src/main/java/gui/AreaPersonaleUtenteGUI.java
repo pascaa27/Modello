@@ -1,11 +1,14 @@
 package gui;
 
 import javax.swing.*;
+import javax.swing.WindowConstants;
 import controller.Controller;
 import model.UtenteGenerico;
 import java.awt.*;
 
 public class AreaPersonaleUtenteGUI {
+    private static final String FONT_FAMILY = "Segoe UI";
+
     private JTextField nomeUtenteTextField;
     private JTextField cognomeUtenteTextField;
     private JButton tabellaOrarioButton;
@@ -34,7 +37,8 @@ public class AreaPersonaleUtenteGUI {
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
-                int w = getWidth(), h = getHeight();
+                int w = getWidth();
+                int h = getHeight();
                 GradientPaint gp = new GradientPaint(0, 0, mainGradientStart, 0, h, mainGradientEnd);
                 g2d.setPaint(gp);
                 g2d.fillRect(0, 0, w, h);
@@ -96,14 +100,15 @@ public class AreaPersonaleUtenteGUI {
     // Desktop label
     private JLabel styledLabelWhite(String text) {
         JLabel l = new JLabel(text);
-        l.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        l.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
         l.setForeground(Color.WHITE);
         return l;
     }
+
     // Desktop field
     private JTextField styledTextFieldWhite(String text) {
         JTextField tf = new JTextField(text, 13);
-        tf.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        tf.setFont(new Font(FONT_FAMILY, Font.PLAIN, 14));
         tf.setBackground(panelBgColor);
         tf.setForeground(mainGradientStart);
         tf.setBorder(BorderFactory.createCompoundBorder(
@@ -113,10 +118,11 @@ public class AreaPersonaleUtenteGUI {
         tf.setCaretColor(mainGradientStart);
         return tf;
     }
+
     // Desktop button
     private JButton gradientButton(String text) {
         JButton b = new JButton(text);
-        b.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        b.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
         b.setForeground(Color.WHITE);
         b.setFocusPainted(false);
         b.setBorderPainted(false);
@@ -131,11 +137,7 @@ public class AreaPersonaleUtenteGUI {
                 b.setForeground(Color.WHITE);
                 b.repaint();
             }
-            @Override
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                b.setForeground(Color.WHITE);
-                b.repaint();
-            }
+            // mouseExited rimosso per evitare duplicazione con mouseEntered (S4144)
         });
         b.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
             @Override
@@ -155,7 +157,7 @@ public class AreaPersonaleUtenteGUI {
         TabellaOrarioGUI gui = new TabellaOrarioGUI(controller);
         JFrame frame = new JFrame("Tabella Orario");
         frame.setContentPane(gui.getPanel());
-        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         frame.setSize(950, 500);
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
@@ -170,7 +172,7 @@ public class AreaPersonaleUtenteGUI {
         }
         prenotazioneFrame = new JFrame("Effettua Prenotazione");
         prenotazioneFrame.setContentPane(new EffettuaPrenotazioneGUI(controller, utente).getPanel());
-        prenotazioneFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        prenotazioneFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         prenotazioneFrame.setSize(650, 450);
         prenotazioneFrame.setLocationRelativeTo(null);
         prenotazioneFrame.setVisible(true);
@@ -189,7 +191,7 @@ public class AreaPersonaleUtenteGUI {
         frame.setContentPane(
                 new CercaModificaPrenotazioneGUI(controller, utente, utente.getUltimoCodicePrenotazione()).getPanel()
         );
-        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         frame.setSize(600, 400);
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);

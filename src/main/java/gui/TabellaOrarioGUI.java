@@ -1,11 +1,11 @@
 package gui;
 
-import controller.Controller;
-
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.util.Arrays;
 import java.util.List;
+import controller.Controller;
 
 public class TabellaOrarioGUI {
     private JPanel tabellaOrarioPanel;   // generato dal .form
@@ -67,7 +67,8 @@ public class TabellaOrarioGUI {
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
-                int w = getWidth(), h = getHeight();
+                int w = getWidth();
+                int h = getHeight();
                 GradientPaint gp = new GradientPaint(0, 0, mainGradientStart, 0, h, mainGradientEnd);
                 g2d.setPaint(gp);
                 g2d.fillRect(0, 0, w, h);
@@ -86,62 +87,77 @@ public class TabellaOrarioGUI {
     public void aggiornaVoli(List<Object[]> righe) {
         DefaultTableModel model = (DefaultTableModel) tabellaOrarioTable.getModel();
         model.setRowCount(0);
-        if (righe != null) {
-            for (Object[] r : righe) {
-                if (r == null) continue;
+        if (righe == null) return;
 
-                if (r.length >= 10) {
-                    model.addRow(r);
-                    continue;
-                }
-
-                if (r.length >= 9) {
-                    String numeroVolo = safeStr(r[0]);
-                    String compagnia = safeStr(r[1]);
-                    String stato = safeStr(r[2]);
-                    String data = safeStr(r[3]);
-                    String orarioPrevisto = safeStr(r[4]);
-                    String orarioStimato = safeStr(r[5]);
-                    String aeroportoAltroEstremo = safeStr(r[6]);
-                    String gate = safeStr(r[7]);
-                    String direzione = safeStr(r[8]); // "in arrivo" | "in partenza"
-
-                    String origine;
-                    String destinazione;
-
-                    if (equalsIgnoreCaseTrim(direzione, "in partenza")) {
-                        origine = "NAP";
-                        destinazione = aeroportoAltroEstremo;
-                    } else if (equalsIgnoreCaseTrim(direzione, "in arrivo")) {
-                        origine = aeroportoAltroEstremo;
-                        destinazione = "NAP";
-                    } else {
-                        origine = aeroportoAltroEstremo;
-                        destinazione = aeroportoAltroEstremo;
-                    }
-
-                    Object[] nuovo = new Object[] {
-                            numeroVolo,
-                            compagnia,
-                            stato,
-                            data,
-                            orarioPrevisto,
-                            orarioStimato,
-                            origine,
-                            destinazione,
-                            gate,
-                            direzione
-                    };
-                    model.addRow(nuovo);
-                } else {
-                    Object[] nuovo = new Object[10];
-                    for (int i = 0; i < Math.min(r.length, nuovo.length); i++) {
-                        nuovo[i] = r[i];
-                    }
-                    model.addRow(nuovo);
-                }
-            }
+        for (Object[] r : righe) {
+            Object[] normalized = normalizeRow(r);
+            model.addRow(normalized);
         }
+    }
+
+    // Normalizza una riga alla struttura da 10 colonne richiesta dalla tabella
+    private Object[] normalizeRow(Object[] r) {
+        if (r == null) {
+            return new Object[10];
+        }
+
+        // Caso già completo
+        if (r.length >= 10) {
+            return Arrays.copyOf(r, 10);
+        }
+
+        // Caso con 9 colonne (senza "Aeroporto di origine"): deriviamo origine/destinazione da direzione
+        if (r.length >= 9) {
+            return normalizeRowFrom9(r);
+        }
+
+        // Caso generico: copiamo i valori disponibili e riempiamo il resto con null
+        Object[] nuovo = Arrays.copyOf(r, 10);
+        return nuovo;
+    }
+
+    private Object[] normalizeRowFrom9(Object[] r) {
+        String numeroVolo = safeStr(r[0]);
+        String compagnia = safeStr(r[1]);
+        String stato = safeStr(r[2]);
+        String data = safeStr(r[3]);
+        String orarioPrevisto = safeStr(r[4]);
+        String orarioStimato = safeStr(r[5]);
+        String aeroportoAltroEstremo = safeStr(r[6]);
+        String gate = safeStr(r[7]);
+        String direzione = safeStr(r[8]); // "in arrivo" | "in partenza"
+
+        String[] od = computeOriginDest(aeroportoAltroEstremo, direzione);
+
+        return new Object[] {
+                numeroVolo,
+                compagnia,
+                stato,
+                data,
+                orarioPrevisto,
+                orarioStimato,
+                od[0],            // origine
+                od[1],            // destinazione
+                gate,
+                direzione
+        };
+    }
+
+    private String[] computeOriginDest(String aeroportoAltroEstremo, String direzione) {
+        String origine;
+        String destinazione;
+
+        if (equalsIgnoreCaseTrim(direzione, "in partenza")) {
+            origine = "NAP";
+            destinazione = aeroportoAltroEstremo;
+        } else if (equalsIgnoreCaseTrim(direzione, "in arrivo")) {
+            origine = aeroportoAltroEstremo;
+            destinazione = "NAP";
+        } else {
+            origine = aeroportoAltroEstremo;
+            destinazione = aeroportoAltroEstremo;
+        }
+        return new String[] { origine, destinazione };
     }
 
     private static String safeStr(Object o) {

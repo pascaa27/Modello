@@ -1,4 +1,4 @@
-package implementazioneDAO;
+package dao;
 
 import model.UtenteGenerico;
 

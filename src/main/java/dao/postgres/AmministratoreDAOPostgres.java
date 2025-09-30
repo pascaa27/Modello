@@ -1,6 +1,6 @@
-package implementazioneDAO.implementazionePostgresDAO;
+package dao.postgres;
 
-import implementazioneDAO.AmministratoreDAO;
+import dao.AmministratoreDAO;
 import model.Amministratore;
 import database.ConnessioneDatabase;
 import controller.Controller;
@@ -15,8 +15,9 @@ public class AmministratoreDAOPostgres implements AmministratoreDAO {
     public AmministratoreDAOPostgres() {
         try {
             this.conn = ConnessioneDatabase.getInstance().getConnection();
-        } catch(SQLException e) {
-            throw new RuntimeException("Errore nella connessione al database", e);
+        } catch (SQLException e) {
+            // Eccezione dedicata invece di una generica RuntimeException
+            throw new DatabaseInitializationException("Errore nella connessione al database", e);
         }
     }
 
@@ -26,15 +27,19 @@ public class AmministratoreDAOPostgres implements AmministratoreDAO {
 
     @Override
     public Amministratore findByEmail(String email) {
-        // Seleziona solo utenti con ruolo 'amministratore'
-        String sql = "SELECT * FROM registrazioneutente WHERE email = ? AND ruolo = 'amministratore'";
+        // Seleziona solo le colonne necessarie (niente SELECT *)
+        final String sql = "SELECT email, password, nome, cognome " +
+                "FROM registrazioneutente " +
+                "WHERE email = ? AND ruolo = 'amministratore'";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, email);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return mapResultSetToAmministratore(rs);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapResultSetToAmministratore(rs);
+                }
             }
-        } catch(SQLException e) {
+        } catch (SQLException e) {
+            // Mantengo il comportamento attuale (puoi sostituire con logging se preferisci)
             e.printStackTrace();
         }
         return null; // se non trovato
@@ -47,5 +52,11 @@ public class AmministratoreDAOPostgres implements AmministratoreDAO {
         String cognome = rs.getString("cognome");
 
         return controller.creaAmministratore(email, password, nome, cognome);
+    }
+
+    public class DatabaseInitializationException extends RuntimeException {
+        public DatabaseInitializationException(String message, Throwable cause) {
+            super(message, cause);
+        }
     }
 }

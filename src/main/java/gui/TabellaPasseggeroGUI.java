@@ -8,13 +8,24 @@ import java.awt.*;
 import java.util.List;
 
 public class TabellaPasseggeroGUI {
+    private static final String FONT_FAMILY = "Segoe UI";
+
     private JPanel tabellaPasseggeroPanel;
     private JTable tabellaPasseggeroTable;
 
     private DefaultTableModel model;
     private Controller controller;
 
-    private static final String[] COLONNE = {"Nome", "Cognome","Email", "Codice Fiscale", "Numero Volo", "Numero Prenotazione", "Posto assegnato", "Stato Prenotazione"};
+    private static final String[] COLONNE = {
+            "Nome",
+            "Cognome",
+            "Email",
+            "Codice Fiscale",
+            "Numero Volo",
+            "Numero Prenotazione",
+            "Posto assegnato",
+            "Stato Prenotazione"
+    };
 
     // Palette colori per coerenza con l'app
     private final Color mainGradientStart = new Color(30, 87, 153);
@@ -41,10 +52,10 @@ public class TabellaPasseggeroGUI {
         tabellaPasseggeroTable.setAutoCreateRowSorter(true);
 
         // Stile tabella
-        tabellaPasseggeroTable.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
+        tabellaPasseggeroTable.getTableHeader().setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
         tabellaPasseggeroTable.getTableHeader().setBackground(tableHeaderColor);
         tabellaPasseggeroTable.getTableHeader().setForeground(Color.WHITE);
-        tabellaPasseggeroTable.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        tabellaPasseggeroTable.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
         tabellaPasseggeroTable.setRowHeight(26);
         tabellaPasseggeroTable.setBackground(tableRowColor);
         tabellaPasseggeroTable.setSelectionBackground(new Color(190, 215, 250));
@@ -58,7 +69,8 @@ public class TabellaPasseggeroGUI {
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
-                int w = getWidth(), h = getHeight();
+                int w = getWidth();
+                int h = getHeight();
                 GradientPaint gp = new GradientPaint(0, 0, mainGradientStart, 0, h, mainGradientEnd);
                 g2d.setPaint(gp);
                 g2d.fillRect(0, 0, w, h);
@@ -72,8 +84,8 @@ public class TabellaPasseggeroGUI {
 
     public void setRows(List<Object[]> rows) {
         model.setRowCount(0);
-        if(rows != null) {
-            for(Object[] r : rows) {
+        if (rows != null) {
+            for (Object[] r : rows) {
                 model.addRow(r);
             }
         }
@@ -85,11 +97,5 @@ public class TabellaPasseggeroGUI {
 
     public JTable getTable() {
         return tabellaPasseggeroTable;
-    }
-
-    // Designer placeholder
-    private void $$$setupUI$$$() {}
-    private void createUIComponents() {
-        tabellaPasseggeroTable = new JTable();
     }
 }

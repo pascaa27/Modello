@@ -10,6 +10,12 @@ import java.util.regex.Pattern;
 
 public class GestioneVoliGUI {
 
+    private static final String FONT_FAMILY = "Segoe UI";
+    private static final String ARRIVO = "in arrivo";
+    private static final String PARTENZA = "in partenza";
+    private static final String TIME_PATTERN = "\\d{2}:\\d{2}";
+    private static final String TITLE_CERCA_VOLO = "Cerca volo";
+
     private JPanel gestioneVoliPanel;
     private JTextField codiceUnivocoTextField;
     private JTextField compagniaTextField;
@@ -49,7 +55,8 @@ public class GestioneVoliGUI {
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
-                int w = getWidth(), h = getHeight();
+                int w = getWidth();
+                int h = getHeight();
                 GradientPaint gp = new GradientPaint(0, 0, mainGradientStart, 0, h, mainGradientEnd);
                 g2d.setPaint(gp);
                 g2d.fillRect(0, 0, w, h);
@@ -143,7 +150,7 @@ public class GestioneVoliGUI {
         bottoniPanel.setOpaque(false);
         aggiungiVoloButton = gradientButton("Aggiungi Volo");
         rimuoviVoloButton = gradientButton("Rimuovi Volo");
-        cercaCodiceButton = gradientButton("Cerca per Codice");
+        cercaCodiceButton = gradientButton(TITLE_CERCA_VOLO);
         confermaModificheButton = gradientButton("Conferma Modifiche");
         bottoniPanel.add(aggiungiVoloButton);
         bottoniPanel.add(rimuoviVoloButton);
@@ -190,9 +197,9 @@ public class GestioneVoliGUI {
         String gate = safeText(gateTextField);
 
         StatoVolo stato = (StatoVolo) statoVoloComboBox.getSelectedItem();
-        String direzione = arrivoRadioButton.isSelected() ? "in arrivo" : "in partenza";
+        String direzione = arrivoRadioButton.isSelected() ? ARRIVO : PARTENZA;
 
-        String errore = valida(codice, compagnia, data, otherAirport, orarioPrevisto, orarioStimato, gate, direzione, stato);
+        String errore = valida(codice, compagnia, data, otherAirport, orarioPrevisto, orarioStimato, gate);
         if (errore != null) {
             JOptionPane.showMessageDialog(
                     gestioneVoliPanel,
@@ -283,7 +290,7 @@ public class GestioneVoliGUI {
         if (codice.isEmpty()) {
             JOptionPane.showMessageDialog(gestioneVoliPanel,
                     "Inserisci un codice volo da cercare.",
-                    "Cerca volo", JOptionPane.WARNING_MESSAGE);
+                    TITLE_CERCA_VOLO, JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -292,7 +299,7 @@ public class GestioneVoliGUI {
             if (v == null) {
                 JOptionPane.showMessageDialog(gestioneVoliPanel,
                         "Nessun volo trovato con codice " + codice,
-                        "Cerca volo", JOptionPane.INFORMATION_MESSAGE);
+                        TITLE_CERCA_VOLO, JOptionPane.INFORMATION_MESSAGE);
                 return;
             }
 
@@ -311,7 +318,7 @@ public class GestioneVoliGUI {
             }
 
             String direzione = v.getArrivoPartenza();
-            if ("in arrivo".equalsIgnoreCase(direzione)) arrivoRadioButton.setSelected(true);
+            if (ARRIVO.equalsIgnoreCase(direzione)) arrivoRadioButton.setSelected(true);
             else partenzaRadioButton.setSelected(true);
             toggleDirezione();
 
@@ -322,7 +329,7 @@ public class GestioneVoliGUI {
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(gestioneVoliPanel,
                     "Errore durante la ricerca: " + ex.getMessage(),
-                    "Cerca volo", JOptionPane.ERROR_MESSAGE);
+                    TITLE_CERCA_VOLO, JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -341,9 +348,9 @@ public class GestioneVoliGUI {
         String aeroporto = safeText(altroAeroportoTextField).toUpperCase();
         String gate = safeText(gateTextField);
         StatoVolo stato = (StatoVolo) statoVoloComboBox.getSelectedItem();
-        String direzione = arrivoRadioButton.isSelected() ? "in arrivo" : "in partenza";
+        String direzione = arrivoRadioButton.isSelected() ? ARRIVO : PARTENZA;
 
-        String errore = valida(codiceVoloSelezionato, compagnia, data, aeroporto, orarioPrevisto, orarioStimato, gate, direzione, stato);
+        String errore = valida(codiceVoloSelezionato, compagnia, data, aeroporto, orarioPrevisto, orarioStimato, gate);
         if (errore != null) {
             JOptionPane.showMessageDialog(gestioneVoliPanel, errore, "Errore modifica volo", JOptionPane.ERROR_MESSAGE);
             return;
@@ -371,15 +378,14 @@ public class GestioneVoliGUI {
         }
     }
 
+    // Ridotta a 7 parametri ed elimina parametri inutilizzati (direzione, stato)
     private String valida(String codice,
                           String compagnia,
                           String data,
                           String otherAirport,
                           String orarioPrevisto,
                           String orarioStimato,
-                          String gate,
-                          String direzione,
-                          StatoVolo stato) {
+                          String gate) {
 
         if (codice.isEmpty()) return "Codice univoco volo obbligatorio.";
 
@@ -394,22 +400,15 @@ public class GestioneVoliGUI {
         if (otherAirport.equalsIgnoreCase(AEROPORTO_LOCALE))
             return "Altro aeroporto deve essere diverso da " + AEROPORTO_LOCALE + ".";
 
-        if (orarioPrevisto == null || !Pattern.matches("\\d{2}:\\d{2}", orarioPrevisto))
+        if (orarioPrevisto == null || !Pattern.matches(TIME_PATTERN, orarioPrevisto))
             return "Orario previsto (HH:mm) obbligatorio.";
 
-        if (orarioStimato == null || !Pattern.matches("\\d{2}:\\d{2}", orarioStimato))
+        if (orarioStimato == null || !Pattern.matches(TIME_PATTERN, orarioStimato))
             return "Orario stimato (HH:mm) obbligatorio.";
 
         if (gate == null || gate.isEmpty())
             return "Il campo Gate è obbligatorio.";
 
-        return null;
-    }
-
-    private String validaModifica(String nuovoOrarioPrevisto, StatoVolo nuovoStato) {
-        if (nuovoStato == null) return "Seleziona uno stato del volo.";
-        if (nuovoOrarioPrevisto == null || !Pattern.matches("\\d{2}:\\d{2}", nuovoOrarioPrevisto))
-            return "Orario previsto deve essere nel formato HH:mm.";
         return null;
     }
 
@@ -445,20 +444,16 @@ public class GestioneVoliGUI {
         return f == null ? "" : f.getText().trim();
     }
 
-    private String nullToEmpty(String s) {
-        return s == null ? "" : s;
-    }
-
     // --- Stile componenti ---
     private JLabel styledLabelWhite(String text) {
         JLabel l = new JLabel(text);
-        l.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        l.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
         l.setForeground(Color.WHITE);
         return l;
     }
     private JTextField styledTextFieldWhite(String text) {
         JTextField tf = new JTextField(text, 13);
-        tf.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        tf.setFont(new Font(FONT_FAMILY, Font.PLAIN, 14));
         tf.setBackground(panelBgColor);
         tf.setForeground(mainGradientStart);
         tf.setBorder(BorderFactory.createCompoundBorder(
@@ -470,7 +465,7 @@ public class GestioneVoliGUI {
     }
     private JComboBox<StatoVolo> styledComboBoxStato(StatoVolo[] items) {
         JComboBox<StatoVolo> cb = new JComboBox<>();
-        cb.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        cb.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
         cb.setBackground(Color.WHITE);
         cb.setForeground(mainGradientStart);
         cb.setBorder(BorderFactory.createCompoundBorder(
@@ -482,7 +477,7 @@ public class GestioneVoliGUI {
     }
     private JButton gradientButton(String text) {
         JButton b = new JButton(text);
-        b.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        b.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
         b.setForeground(Color.WHITE);
         b.setFocusPainted(false);
         b.setBorderPainted(false);
@@ -496,11 +491,7 @@ public class GestioneVoliGUI {
                 b.setForeground(Color.WHITE);
                 b.repaint();
             }
-            @Override
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                b.setForeground(Color.WHITE);
-                b.repaint();
-            }
+            // mouseExited rimosso: identico a mouseEntered (S4144)
         });
         b.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
             @Override

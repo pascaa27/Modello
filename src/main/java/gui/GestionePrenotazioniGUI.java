@@ -6,6 +6,9 @@ import controller.Controller;
 import model.*;
 
 public class GestionePrenotazioniGUI {
+    private static final String FONT_FAMILY = "Segoe UI";
+    private static final String MSG_ERRORE_TITLE = "Errore";
+
     private JPanel panelPrenotazione;
     private JTextField numeroPrenotazioneTextField;
     private JTextField postoTextField;
@@ -14,7 +17,6 @@ public class GestionePrenotazioniGUI {
     private JTextField numeroVoloTextField;
     private JButton rimuoviPrenotazioneButton;
     private Controller controller;
-    private Utente utente;
     private final AreaPersonaleAmmGUI areaPersonaleAmmGUI;
 
     // Palette colori
@@ -26,7 +28,6 @@ public class GestionePrenotazioniGUI {
 
     public GestionePrenotazioniGUI(Controller controller, Utente utente, AreaPersonaleAmmGUI areaPersonaleAmmGUI) {
         this.controller = controller;
-        this.utente = utente;
         this.areaPersonaleAmmGUI = areaPersonaleAmmGUI;
 
         // Gradient panel
@@ -35,7 +36,8 @@ public class GestionePrenotazioniGUI {
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
-                int w = getWidth(), h = getHeight();
+                int w = getWidth();
+                int h = getHeight();
                 GradientPaint gp = new GradientPaint(0, 0, mainGradientStart, 0, h, mainGradientEnd);
                 g2d.setPaint(gp);
                 g2d.fillRect(0, 0, w, h);
@@ -89,13 +91,7 @@ public class GestionePrenotazioniGUI {
         bottoniPanel.add(rimuoviPrenotazioneButton);
         panelPrenotazione.add(bottoniPanel, gbc);
 
-        // *** NON aggiungere gli elementi di nuovo! ***
-        // RIMUOVI QUESTO BLOCCO:
-        // for (StatoPrenotazione stato : StatoPrenotazione.values()) {
-        //     statoPrenotazioneComboBox.addItem(stato);
-        // }
-        // Gli stati sono già aggiunti nel metodo styledComboBoxStato!
-
+        // Ricava/crea l'utente generico solo localmente (nessun field 'utente')
         UtenteGenerico utenteGenerico;
         if (controller.getUtenteByEmail(utente.getNomeUtente()) == null) {
             utenteGenerico = controller.creaUtenteGenerico(utente.getNomeUtente());
@@ -111,7 +107,7 @@ public class GestionePrenotazioniGUI {
             if (numeroBiglietto.isEmpty() || posto.isEmpty() || numeroVolo.isEmpty()) {
                 JOptionPane.showMessageDialog(panelPrenotazione,
                         "Compila prima tutti i campi obbligatori.",
-                        "Errore",
+                        MSG_ERRORE_TITLE,
                         JOptionPane.ERROR_MESSAGE);
                 return;
             }
@@ -133,7 +129,7 @@ public class GestionePrenotazioniGUI {
                     nome.isEmpty() || cognome.isEmpty() || codiceFiscale.isEmpty() || email.isEmpty()) {
                 JOptionPane.showMessageDialog(panelPrenotazione,
                         "Compila correttamente tutti i dati del passeggero (inclusa l'email).",
-                        "Errore",
+                        MSG_ERRORE_TITLE,
                         JOptionPane.ERROR_MESSAGE);
                 return;
             }
@@ -144,7 +140,7 @@ public class GestionePrenotazioniGUI {
             if (volo == null) {
                 JOptionPane.showMessageDialog(panelPrenotazione,
                         "Il volo con codice " + numeroVolo + " non esiste.",
-                        "Errore",
+                        MSG_ERRORE_TITLE,
                         JOptionPane.ERROR_MESSAGE);
                 return;
             }
@@ -181,7 +177,7 @@ public class GestionePrenotazioniGUI {
         if (numeroBiglietto.isEmpty()) {
             JOptionPane.showMessageDialog(panelPrenotazione,
                     "Inserisci il numero della prenotazione da rimuovere.",
-                    "Errore",
+                    MSG_ERRORE_TITLE,
                     JOptionPane.ERROR_MESSAGE);
             return;
         }
@@ -199,7 +195,7 @@ public class GestionePrenotazioniGUI {
         } else {
             JOptionPane.showMessageDialog(panelPrenotazione,
                     "Nessuna prenotazione trovata con numero " + numeroBiglietto,
-                    "Errore",
+                    MSG_ERRORE_TITLE,
                     JOptionPane.ERROR_MESSAGE);
         }
     }
@@ -207,13 +203,13 @@ public class GestionePrenotazioniGUI {
     // --- Stile componenti ---
     private JLabel styledLabelWhite(String text) {
         JLabel l = new JLabel(text);
-        l.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        l.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
         l.setForeground(Color.WHITE);
         return l;
     }
     private JTextField styledTextFieldWhite(String text) {
         JTextField tf = new JTextField(text, 13);
-        tf.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        tf.setFont(new Font(FONT_FAMILY, Font.PLAIN, 14));
         tf.setBackground(panelBgColor);
         tf.setForeground(mainGradientStart);
         tf.setBorder(BorderFactory.createCompoundBorder(
@@ -225,7 +221,7 @@ public class GestionePrenotazioniGUI {
     }
     private JComboBox<StatoPrenotazione> styledComboBoxStato(StatoPrenotazione[] items) {
         JComboBox<StatoPrenotazione> cb = new JComboBox<>();
-        cb.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        cb.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
         cb.setBackground(Color.WHITE);
         cb.setForeground(mainGradientStart);
         cb.setBorder(BorderFactory.createCompoundBorder(
@@ -237,7 +233,7 @@ public class GestionePrenotazioniGUI {
     }
     private JButton gradientButton(String text) {
         JButton b = new JButton(text);
-        b.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        b.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
         b.setForeground(Color.WHITE);
         b.setFocusPainted(false);
         b.setBorderPainted(false);
@@ -251,11 +247,7 @@ public class GestionePrenotazioniGUI {
                 b.setForeground(Color.WHITE);
                 b.repaint();
             }
-            @Override
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                b.setForeground(Color.WHITE);
-                b.repaint();
-            }
+            // mouseExited rimosso: identico a mouseEntered (S4144)
         });
         b.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
             @Override

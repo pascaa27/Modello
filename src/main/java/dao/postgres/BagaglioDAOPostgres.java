@@ -1,6 +1,6 @@
-package implementazioneDAO.implementazionePostgresDAO;
+package dao.postgres;
 
-import implementazioneDAO.BagaglioDAO;
+import dao.BagaglioDAO;
 import model.Bagaglio;
 import model.StatoBagaglio;
 import model.Prenotazione;
@@ -10,8 +10,16 @@ import controller.Controller;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class BagaglioDAOPostgres implements BagaglioDAO {
+
+    private static final Logger LOGGER = Logger.getLogger(BagaglioDAOPostgres.class.getName());
+    private static final String SELECT_COLUMNS = "codUnivoco, pesoKg, stato, numBiglietto";
+    private static final String LOG_ROWS = " rows=";
+    private static final String SQL_SELECT = "SELECT ";
+    private static final String LOG_SQL_DETAILS = "Dettagli SQL exception";
 
     private final Connection conn;
     private Controller controller;
@@ -20,7 +28,7 @@ public class BagaglioDAOPostgres implements BagaglioDAO {
         try {
             this.conn = ConnessioneDatabase.getInstance().getConnection();
         } catch (SQLException e) {
-            throw new RuntimeException("Errore nella connessione al database", e);
+            throw new DatabaseInitializationException("Errore nella connessione al database", e);
         }
     }
 
@@ -31,23 +39,23 @@ public class BagaglioDAOPostgres implements BagaglioDAO {
     @Override
     public List<Bagaglio> findByPrenotazione(String numBiglietto) {
         List<Bagaglio> bagagli = new ArrayList<>();
-        String sql = "SELECT * FROM public.bagagli WHERE numBiglietto = ?";
+        final String sql = SQL_SELECT + SELECT_COLUMNS + " FROM public.bagagli WHERE numBiglietto = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, numBiglietto);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    Bagaglio b = mapResultSetToBagaglio(rs);
-                    if (b != null) bagagli.add(b);
+                    bagagli.add(mapResultSetToBagaglio(rs));
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.WARNING, "Errore in findByPrenotazione per numBiglietto={0}", numBiglietto);
+            LOGGER.log(Level.FINE, LOG_SQL_DETAILS, e);
         }
         return bagagli;
     }
 
     public Bagaglio findById(String codice) {
-        String sql = "SELECT codUnivoco, pesoKg, stato, numBiglietto FROM bagagli WHERE codUnivoco = ?";
+        final String sql = SQL_SELECT + SELECT_COLUMNS + " FROM public.bagagli WHERE codUnivoco = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, codice);
             try (ResultSet rs = ps.executeQuery()) {
@@ -64,31 +72,31 @@ public class BagaglioDAOPostgres implements BagaglioDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.WARNING, "Errore in findById per codUnivoco={0}", codice);
+            LOGGER.log(Level.FINE, LOG_SQL_DETAILS, e);
         }
         return null;
     }
 
-
     @Override
     public List<Bagaglio> findAll() {
         List<Bagaglio> bagagli = new ArrayList<>();
-        String sql = "SELECT * FROM public.bagagli ORDER BY codUnivoco";
+        final String sql = SQL_SELECT + SELECT_COLUMNS + " FROM public.bagagli ORDER BY codUnivoco";
         try (PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                Bagaglio b = mapResultSetToBagaglio(rs);
-                if (b != null) bagagli.add(b);
+                bagagli.add(mapResultSetToBagaglio(rs));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.WARNING, "Errore in findAll()", e);
+            LOGGER.log(Level.FINE, LOG_SQL_DETAILS, e);
         }
         return bagagli;
     }
 
     @Override
     public boolean insert(Bagaglio bagaglio) {
-        String sql = "INSERT INTO public.bagagli (codUnivoco, pesoKg, stato, numBiglietto) VALUES (?, ?, ?, ?)";
+        final String sql = "INSERT INTO public.bagagli (codUnivoco, pesoKg, stato, numBiglietto) VALUES (?, ?, ?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, bagaglio.getCodUnivoco());
             ps.setDouble(2, bagaglio.getPesoKg());
@@ -99,18 +107,18 @@ public class BagaglioDAOPostgres implements BagaglioDAO {
                 ps.setNull(4, Types.VARCHAR);
             }
             int n = ps.executeUpdate();
-            System.out.println("[BagagliDAO] insert " + bagaglio.getCodUnivoco() + " rows=" + n);
+            LOGGER.log(Level.INFO, "[BagagliDAO] insert {0}{1}{2}", new Object[]{bagaglio.getCodUnivoco(), LOG_ROWS, n});
             return n > 0;
         } catch (SQLException e) {
-            System.err.println("[BagagliDAO] insert FAILED for " + bagaglio.getCodUnivoco());
-            e.printStackTrace();
+            LOGGER.log(Level.WARNING, "[BagagliDAO] insert FAILED for {0}", bagaglio.getCodUnivoco());
+            LOGGER.log(Level.FINE, LOG_SQL_DETAILS, e);
         }
         return false;
     }
 
     @Override
     public boolean update(Bagaglio bagaglio) {
-        String sql = "UPDATE public.bagagli SET pesoKg = ?, stato = ?, numBiglietto = ? WHERE codUnivoco = ?";
+        final String sql = "UPDATE public.bagagli SET pesoKg = ?, stato = ?, numBiglietto = ? WHERE codUnivoco = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setDouble(1, bagaglio.getPesoKg());
             ps.setString(2, bagaglio.getStato().name());
@@ -121,26 +129,26 @@ public class BagaglioDAOPostgres implements BagaglioDAO {
             }
             ps.setString(4, bagaglio.getCodUnivoco());
             int n = ps.executeUpdate();
-            System.out.println("[BagagliDAO] update " + bagaglio.getCodUnivoco() + " rows=" + n);
+            LOGGER.log(Level.INFO, "[BagagliDAO] update {0}{1}{2}", new Object[]{bagaglio.getCodUnivoco(), LOG_ROWS, n});
             return n > 0;
         } catch (SQLException e) {
-            System.err.println("[BagagliDAO] update FAILED for " + bagaglio.getCodUnivoco());
-            e.printStackTrace();
+            LOGGER.log(Level.WARNING, "[BagagliDAO] update FAILED for {0}", bagaglio.getCodUnivoco());
+            LOGGER.log(Level.FINE, LOG_SQL_DETAILS, e);
         }
         return false;
     }
 
     @Override
     public boolean delete(String codUnivoco) {
-        String sql = "DELETE FROM public.bagagli WHERE codUnivoco = ?";
+        final String sql = "DELETE FROM public.bagagli WHERE codUnivoco = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, codUnivoco);
             int n = ps.executeUpdate();
-            System.out.println("[BagagliDAO] delete " + codUnivoco + " rows=" + n);
+            LOGGER.log(Level.INFO, "[BagagliDAO] delete {0}{1}{2}", new Object[]{codUnivoco, LOG_ROWS, n});
             return n > 0;
         } catch (SQLException e) {
-            System.err.println("[BagagliDAO] delete FAILED for " + codUnivoco);
-            e.printStackTrace();
+            LOGGER.log(Level.WARNING, "[BagagliDAO] delete FAILED for {0}", codUnivoco);
+            LOGGER.log(Level.FINE, LOG_SQL_DETAILS, e);
         }
         return false;
     }
@@ -158,5 +166,11 @@ public class BagaglioDAOPostgres implements BagaglioDAO {
         }
 
         return new Bagaglio(codUnivoco, pesoKg, stato, pren);
+    }
+
+    public class DatabaseInitializationException extends RuntimeException {
+        public DatabaseInitializationException(String message, Throwable cause) {
+            super(message, cause);
+        }
     }
 }

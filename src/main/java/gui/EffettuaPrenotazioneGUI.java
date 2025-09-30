@@ -14,6 +14,10 @@ import java.time.YearMonth;
 import java.util.UUID;
 
 public class EffettuaPrenotazioneGUI {
+    private static final String FONT_FAMILY = "Segoe UI";
+    private static final String MSG_ERRORE_TITLE = "Errore";
+    private static final String MSG_SUCCESSO_TITLE = "Successo";
+
     private JPanel effettuaPrenotazionePanel;
     private JTextField nomeTextField;
     private JTextField cognomeTextField;
@@ -48,7 +52,8 @@ public class EffettuaPrenotazioneGUI {
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
-                int w = getWidth(), h = getHeight();
+                int w = getWidth();
+                int h = getHeight();
                 GradientPaint gp = new GradientPaint(0, 0, mainGradientStart, 0, h, mainGradientEnd);
                 g2d.setPaint(gp);
                 g2d.fillRect(0, 0, w, h);
@@ -187,6 +192,9 @@ public class EffettuaPrenotazioneGUI {
         }
     }
 
+    // ==========================
+    // Prenotazione (refactor)
+    // ==========================
     private void effettuaPrenotazione() {
         String nome = nomeTextField.getText().trim();
         String cognome = cognomeTextField.getText().trim();
@@ -194,60 +202,23 @@ public class EffettuaPrenotazioneGUI {
         String email = emailTextField.getText().trim();
         String destinazione = aeroportoDestinazioneTextField.getText().trim().toUpperCase();
 
-        // Validazioni base
-        if (nome.isEmpty() || cognome.isEmpty() || codiceFiscale.isEmpty() || destinazione.isEmpty()) {
-            JOptionPane.showMessageDialog(effettuaPrenotazionePanel,
-                    "Tutti i campi devono essere compilati.", "Errore", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        if (!Character.isUpperCase(nome.charAt(0)) || !Character.isUpperCase(cognome.charAt(0))) {
-            JOptionPane.showMessageDialog(effettuaPrenotazionePanel,
-                    "Nome e Cognome devono iniziare con lettera maiuscola.", "Errore", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
+        String err = validateDatiBase(nome, cognome, codiceFiscale, destinazione);
+        if (err != null) { showError(err); return; }
 
-        LocalDate dataInizio = LocalDate.of(
-                (int) annoInizioComboBox.getSelectedItem(),
-                (int) meseInizioComboBox.getSelectedItem(),
-                (int) giornoInizioComboBox.getSelectedItem()
-        );
-        LocalDate dataFine = LocalDate.of(
-                (int) annoFineComboBox.getSelectedItem(),
-                (int) meseFineComboBox.getSelectedItem(),
-                (int) giornoFineComboBox.getSelectedItem()
-        );
+        LocalDate dataInizio = buildDate(annoInizioComboBox, meseInizioComboBox, giornoInizioComboBox);
+        LocalDate dataFine   = buildDate(annoFineComboBox, meseFineComboBox, giornoFineComboBox);
 
-        if (dataFine.isBefore(dataInizio)) {
-            JOptionPane.showMessageDialog(effettuaPrenotazionePanel,
-                    "La data di fine deve essere successiva o uguale alla data di inizio.", "Errore", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
+        err = validateDateRange(dataInizio, dataFine);
+        if (err != null) { showError(err); return; }
 
         try {
             Volo volo = controller.cercaVoloPerDestinazioneEData(destinazione, dataInizio.toString());
-            if (volo == null) {
-                JOptionPane.showMessageDialog(effettuaPrenotazionePanel,
-                        "Nessun volo trovato per questa destinazione e data!", "Errore", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
+            if (volo == null) { showError("Nessun volo trovato per questa destinazione e data!"); return; }
 
-            // Controllo duplicati / email registrata
-            if (utente != null && utente.isRegistrato()) {
-                if (controller.utenteHaPrenotazionePerVolo(utente.getLogin(), volo.getCodiceUnivoco())) {
-                    JOptionPane.showMessageDialog(effettuaPrenotazionePanel,
-                            "Hai già una prenotazione per questo volo!", "Errore", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-            } else {
-                // Utente anonimo: deve avere email registrata
-                if (!controller.emailRegistrata(email)) {
-                    JOptionPane.showMessageDialog(effettuaPrenotazionePanel,
-                            "Devi registrarti prima di prenotare con questa email.", "Errore", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-            }
+            err = validateUserEligibility(email, volo);
+            if (err != null) { showError(err); return; }
 
-            String numeroBiglietto = UUID.randomUUID().toString().substring(0, 8);
+            String numeroBiglietto = generateTicket();
             Prenotazione pren = controller.aggiungiPrenotazione(
                     numeroBiglietto,
                     "",
@@ -260,42 +231,83 @@ public class EffettuaPrenotazioneGUI {
                     email,
                     null
             );
+            if (pren == null) { showError("Creazione prenotazione fallita."); return; }
 
-            if (pren == null) {
-                JOptionPane.showMessageDialog(effettuaPrenotazionePanel,
-                        "Creazione prenotazione fallita.", "Errore", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            JOptionPane.showMessageDialog(effettuaPrenotazionePanel,
+            showInfo(
                     "Prenotazione effettuata con successo!\n" +
                             "Codice prenotazione: " + pren.getNumBiglietto() + "\n" +
-                            "Dal " + dataInizio + " al " + dataFine,
-                    "Successo",
-                    JOptionPane.INFORMATION_MESSAGE);
+                            "Dal " + dataInizio + " al " + dataFine
+            );
 
             if (utente != null) {
                 utente.aggiungiCodicePrenotazione(pren.getNumBiglietto());
             }
-
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(effettuaPrenotazionePanel,
-                    "Errore durante la prenotazione: " + ex.getMessage(),
-                    "Errore",
-                    JOptionPane.ERROR_MESSAGE);
+            showError("Errore durante la prenotazione: " + ex.getMessage());
             ex.printStackTrace();
         }
     }
 
+    private String validateDatiBase(String nome, String cognome, String codiceFiscale, String destinazione) {
+        if (nome.isEmpty() || cognome.isEmpty() || codiceFiscale.isEmpty() || destinazione.isEmpty()) {
+            return "Tutti i campi devono essere compilati.";
+        }
+        if (!Character.isUpperCase(nome.charAt(0)) || !Character.isUpperCase(cognome.charAt(0))) {
+            return "Nome e Cognome devono iniziare con lettera maiuscola.";
+        }
+        return null;
+    }
+
+    private LocalDate buildDate(JComboBox<Integer> anno, JComboBox<Integer> mese, JComboBox<Integer> giorno) {
+        return LocalDate.of(
+                (int) anno.getSelectedItem(),
+                (int) mese.getSelectedItem(),
+                (int) giorno.getSelectedItem()
+        );
+    }
+
+    private String validateDateRange(LocalDate inizio, LocalDate fine) {
+        if (fine.isBefore(inizio)) {
+            return "La data di fine deve essere successiva o uguale alla data di inizio.";
+        }
+        return null;
+    }
+
+    private String validateUserEligibility(String email, Volo volo) {
+        if (utente != null && utente.isRegistrato()) {
+            boolean giaPrenotato = controller.utenteHaPrenotazionePerVolo(utente.getLogin(), volo.getCodiceUnivoco());
+            if (giaPrenotato) {
+                return "Hai già una prenotazione per questo volo!";
+            }
+        } else {
+            if (!controller.emailRegistrata(email)) {
+                return "Devi registrarti prima di prenotare con questa email.";
+            }
+        }
+        return null;
+    }
+
+    private String generateTicket() {
+        return UUID.randomUUID().toString().substring(0, 8);
+    }
+
+    private void showError(String msg) {
+        JOptionPane.showMessageDialog(effettuaPrenotazionePanel, msg, MSG_ERRORE_TITLE, JOptionPane.ERROR_MESSAGE);
+    }
+
+    private void showInfo(String msg) {
+        JOptionPane.showMessageDialog(effettuaPrenotazionePanel, msg, MSG_SUCCESSO_TITLE, JOptionPane.INFORMATION_MESSAGE);
+    }
+
     private JLabel styledLabelWhite(String text) {
         JLabel l = new JLabel(text);
-        l.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        l.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
         l.setForeground(Color.WHITE);
         return l;
     }
     private JTextField styledTextFieldWhite(String text) {
         JTextField tf = new JTextField(text, 13);
-        tf.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        tf.setFont(new Font(FONT_FAMILY, Font.PLAIN, 14));
         tf.setBackground(panelBgColor);
         tf.setForeground(mainGradientStart);
         tf.setBorder(BorderFactory.createCompoundBorder(
@@ -307,7 +319,7 @@ public class EffettuaPrenotazioneGUI {
     }
     private JComboBox<Integer> styledComboBoxInt() {
         JComboBox<Integer> cb = new JComboBox<>();
-        cb.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        cb.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
         cb.setBackground(Color.WHITE);
         cb.setForeground(mainGradientStart);
         cb.setBorder(BorderFactory.createCompoundBorder(
@@ -318,7 +330,7 @@ public class EffettuaPrenotazioneGUI {
     }
     private JButton gradientButton(String text) {
         JButton b = new JButton(text);
-        b.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        b.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
         b.setForeground(Color.WHITE);
         b.setFocusPainted(false);
         b.setBorderPainted(false);
@@ -332,11 +344,7 @@ public class EffettuaPrenotazioneGUI {
                 b.setForeground(Color.WHITE);
                 b.repaint();
             }
-            @Override
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                b.setForeground(Color.WHITE);
-                b.repaint();
-            }
+            // mouseExited rimosso: altrimenti identico a mouseEntered (S4144)
         });
         b.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
             @Override

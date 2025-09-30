@@ -5,16 +5,20 @@ import controller.Controller;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class TabellaBagaglioGUI {
+    private static final Logger LOGGER = Logger.getLogger(TabellaBagaglioGUI.class.getName());
+    private static final String[] COLONNE = {"Codice bagaglio", "Stato"};
+    private static final Object[] EMPTY_ROW = new Object[0];
+
     private JPanel tabellaBagaglioPanel;
     private JTable tabellaBagaglioTable;
-
     private DefaultTableModel model;
     private Controller controller;
-
-    private static final String[] COLONNE = {"Codice bagaglio", "Stato"};
 
     // Palette colori per coerenza con l'app
     private final Color mainGradientStart = new Color(30, 87, 153);
@@ -53,7 +57,8 @@ public class TabellaBagaglioGUI {
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
-                int w = getWidth(), h = getHeight();
+                int w = getWidth();
+                int h = getHeight();
                 GradientPaint gp = new GradientPaint(0, 0, mainGradientStart, 0, h, mainGradientEnd);
                 g2d.setPaint(gp);
                 g2d.fillRect(0, 0, w, h);
@@ -78,7 +83,10 @@ public class TabellaBagaglioGUI {
         try {
             List<Object[]> rows = controller.tuttiBagagliRows();
             setRows(rows);
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            // Non interrompere l'UI: logga e mostra tabella vuota
+            LOGGER.log(Level.WARNING, "Impossibile caricare i bagagli.", e);
+            setRows(Collections.emptyList());
         }
     }
 
@@ -87,9 +95,9 @@ public class TabellaBagaglioGUI {
     }
 
     public Object[] getSelectedRow() {
-        if (tabellaBagaglioTable == null) return null;
+        if (tabellaBagaglioTable == null) return EMPTY_ROW;
         int viewRow = tabellaBagaglioTable.getSelectedRow();
-        if (viewRow < 0) return null;
+        if (viewRow < 0) return EMPTY_ROW;
         int modelRow = tabellaBagaglioTable.convertRowIndexToModel(viewRow);
         Object[] out = new Object[model.getColumnCount()];
         for (int c = 0; c < model.getColumnCount(); c++) {

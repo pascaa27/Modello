@@ -1,6 +1,6 @@
 package test;
 
-import implementazioneDAO.implementazionePostgresDAO.VoloDAOPostgres;
+import dao.postgres.VoloDAOPostgres;
 import model.StatoVolo;
 import model.Volo;
 

@@ -2,9 +2,10 @@ package gui;
 
 import javax.swing.*;
 import java.awt.*;
-import model.DatiPasseggero;
 
 public class DatiPasseggeroGUI {
+    private static final String FONT_FAMILY = "Segoe UI";
+
     private JPanel panelDatiPasseggero;
     private JTextField nomeTextField;
     private JTextField cognomeTextField;
@@ -31,7 +32,8 @@ public class DatiPasseggeroGUI {
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
-                int w = getWidth(), h = getHeight();
+                int w = getWidth();
+                int h = getHeight();
                 GradientPaint gp = new GradientPaint(0, 0, mainGradientStart, 0, h, mainGradientEnd);
                 g2d.setPaint(gp);
                 g2d.fillRect(0, 0, w, h);
@@ -96,20 +98,28 @@ public class DatiPasseggeroGUI {
             }
 
             JOptionPane.showMessageDialog(parentDialog, "Dati passeggero salvati.");
-            ((JDialog) SwingUtilities.getWindowAncestor(panelDatiPasseggero)).dispose();
+
+            if (parentDialog != null) {
+                parentDialog.dispose();
+            } else {
+                Window w = SwingUtilities.getWindowAncestor(panelDatiPasseggero);
+                if (w != null) {
+                    w.dispose();
+                }
+            }
         });
     }
 
     // Stile label e campo
     private JLabel styledLabelWhite(String text) {
         JLabel l = new JLabel(text);
-        l.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        l.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
         l.setForeground(Color.WHITE);
         return l;
     }
     private JTextField styledTextFieldWhite(String text) {
         JTextField tf = new JTextField(text, 13);
-        tf.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        tf.setFont(new Font(FONT_FAMILY, Font.PLAIN, 14));
         tf.setBackground(panelBgColor);
         tf.setForeground(mainGradientStart);
         tf.setBorder(BorderFactory.createCompoundBorder(
@@ -121,7 +131,7 @@ public class DatiPasseggeroGUI {
     }
     private JButton gradientButton(String text) {
         JButton b = new JButton(text);
-        b.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        b.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
         b.setForeground(Color.WHITE);
         b.setFocusPainted(false);
         b.setBorderPainted(false);
@@ -135,11 +145,7 @@ public class DatiPasseggeroGUI {
                 b.setForeground(Color.WHITE);
                 b.repaint();
             }
-            @Override
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                b.setForeground(Color.WHITE);
-                b.repaint();
-            }
+            // mouseExited rimosso per evitare implementazione identica a mouseEntered
         });
         b.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
             @Override

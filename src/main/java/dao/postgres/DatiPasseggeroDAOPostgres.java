@@ -1,44 +1,56 @@
-package implementazioneDAO.implementazionePostgresDAO;
+package dao.postgres;
 
-import controller.Controller;
-import implementazioneDAO.DatiPasseggeroDAO;
+import controller.Controller; // mantenuto se referenziato altrove in compilazione, ma non usato qui
+import dao.DatiPasseggeroDAO;
 import model.DatiPasseggero;
 import database.ConnessioneDatabase;
 
 import java.sql.*;
+import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class DatiPasseggeroDAOPostgres implements DatiPasseggeroDAO {
 
+    private static final Logger LOGGER = Logger.getLogger(DatiPasseggeroDAOPostgres.class.getName());
+    private static final String LOG_SQL_DETAILS = "Dettagli SQL exception";
+
     private final Connection conn;
-    private Controller controller; // opzionale
 
     public DatiPasseggeroDAOPostgres() {
         try {
             this.conn = ConnessioneDatabase.getInstance().getConnection();
             this.conn.setAutoCommit(true);
         } catch (SQLException e) {
-            throw new RuntimeException("Errore nella connessione al database", e);
+            // Eccezione dedicata invece di RuntimeException generica
+            throw new DatabaseInitializationException("Errore nella connessione al database", e);
         }
     }
 
-    public void setController(Controller controller) {
-        this.controller = controller;
+    /**
+     * Metodo legacy non più utilizzato.
+     * @deprecated usare findByEmail(String email)
+     */
+    @Deprecated(since = "1.0", forRemoval = true)
+    @Override
+    public DatiPasseggero findByCodiceFiscale(String codiceFiscale) {
+        return null;
     }
-
-    @Override @Deprecated
-    public DatiPasseggero findByCodiceFiscale(String codiceFiscale) { return null; }
 
     @Override
     public DatiPasseggero findByEmail(String email) {
-        final String sql = "SELECT nome, cognome, email, password FROM public.datipasseggeri WHERE email = LOWER(BTRIM(?))";
+        final String sql = "SELECT nome, cognome, email, password " +
+                "FROM public.datipasseggeri WHERE email = LOWER(BTRIM(?))";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, email);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return map(rs);
+                if (rs.next()) {
+                    return map(rs);
+                }
             }
         } catch (SQLException e) {
-            System.err.println("Errore findByEmail: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.log(Level.WARNING, "Errore findByEmail per email={0}", safeNormEmail(email));
+            LOGGER.log(Level.FINE, LOG_SQL_DETAILS, e);
         }
         return null;
     }
@@ -47,7 +59,7 @@ public class DatiPasseggeroDAOPostgres implements DatiPasseggeroDAO {
     @Override
     public boolean insert(DatiPasseggero p) {
         if (p == null || isBlank(p.getNome()) || isBlank(p.getCognome()) || isBlank(p.getEmail())) {
-            System.err.println("Insert datipasseggeri fallita: campi obbligatori mancanti (nome, cognome, email)");
+            LOGGER.warning("Insert datipasseggeri fallita: campi obbligatori mancanti (nome, cognome, email)");
             return false;
         }
         final String sql =
@@ -61,14 +73,13 @@ public class DatiPasseggeroDAOPostgres implements DatiPasseggeroDAO {
             ps.setString(4, p.getPassword() == null ? "" : p.getPassword());
             boolean ok = ps.executeUpdate() > 0;
 
-            // DEBUG
             logDbContext("insert");
-            System.out.printf("REG OK=%s email_norm='%s'%n", ok, p.getEmail() == null ? null : p.getEmail().trim().toLowerCase());
+            LOGGER.log(Level.INFO, "REG OK={0} email_norm=''{1}''", new Object[]{ok, safeNormEmail(p.getEmail())});
 
             return ok;
         } catch (SQLException e) {
-            System.err.println("Errore INSERT/UPSERT datipasseggeri: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.log(Level.WARNING, "Errore INSERT/UPSERT datipasseggeri per email={0}", safeNormEmail(p == null ? null : p.getEmail()));
+            LOGGER.log(Level.FINE, LOG_SQL_DETAILS, e);
             return false;
         }
     }
@@ -76,7 +87,7 @@ public class DatiPasseggeroDAOPostgres implements DatiPasseggeroDAO {
     @Override
     public boolean update(DatiPasseggero p) {
         if (p == null || isBlank(p.getEmail())) {
-            System.err.println("Update datipasseggeri fallita: oggetto nullo o email mancante");
+            LOGGER.warning("Update datipasseggeri fallita: oggetto nullo o email mancante");
             return false;
         }
 
@@ -91,11 +102,11 @@ public class DatiPasseggeroDAOPostgres implements DatiPasseggeroDAO {
             ps.setString(4, p.getEmail());
 
             int rows = ps.executeUpdate();
-            System.out.println("UPDATE datipasseggeri: " + rows + " righe aggiornate");
+            LOGGER.log(Level.INFO, "UPDATE datipasseggeri: {0} righe aggiornate", rows);
             return rows > 0;
         } catch (SQLException e) {
-            System.err.println("Errore UPDATE datipasseggeri: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.log(Level.WARNING, "Errore UPDATE datipasseggeri per email={0}", safeNormEmail(p.getEmail()));
+            LOGGER.log(Level.FINE, LOG_SQL_DETAILS, e);
             return false;
         }
     }
@@ -107,8 +118,8 @@ public class DatiPasseggeroDAOPostgres implements DatiPasseggeroDAO {
             ps.setString(1, email);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
-            System.err.println("Errore DELETE datipasseggeri: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.log(Level.WARNING, "Errore DELETE datipasseggeri per email={0}", safeNormEmail(email));
+            LOGGER.log(Level.FINE, LOG_SQL_DETAILS, e);
             return false;
         }
     }
@@ -118,37 +129,40 @@ public class DatiPasseggeroDAOPostgres implements DatiPasseggeroDAO {
         if (isBlank(email) || passwordChiara == null) return false;
 
         logDbContext("login");
-        System.out.printf("LOGIN tentativo email_norm='%s'%n", email.trim().toLowerCase());
+        LOGGER.log(Level.FINE, "LOGIN tentativo email_norm=''{0}''", safeNormEmail(email));
 
-        try (PreparedStatement ps = conn.prepareStatement(
-                "SELECT password FROM public.datipasseggeri WHERE email = LOWER(BTRIM(?)) LIMIT 1")) {
+        final String sql = "SELECT password FROM public.datipasseggeri WHERE email = LOWER(BTRIM(?)) LIMIT 1";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, email);
             try (ResultSet rs = ps.executeQuery()) {
                 if (!rs.next()) {
-                    System.out.println("LOGIN KO: email non trovata");
+                    LOGGER.fine("LOGIN KO: email non trovata");
                     return false;
                 }
                 String pwdDb = rs.getString(1);
-                boolean ok = (pwdDb != null && pwdDb.equals(passwordChiara));
-                System.out.printf("LOGIN %s: confrontate password (db='%s', in='%s')%n",
-                        ok ? "OK" : "KO", pwdDb, passwordChiara);
+                boolean ok = Objects.equals(pwdDb, passwordChiara);
+                LOGGER.log(Level.FINE, "LOGIN {0}: confrontate password (db=''{1}'', in=''{2}'')", new Object[]{ok ? "OK" : "KO", pwdDb, passwordChiara});
                 return ok;
             }
         } catch (SQLException e) {
-            System.err.println("Errore verifica credenziali (datipasseggeri): " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.log(Level.WARNING, "Errore verifica credenziali (datipasseggeri) per email={0}", safeNormEmail(email));
+            LOGGER.log(Level.FINE, LOG_SQL_DETAILS, e);
             return false;
         }
     }
 
     private void logDbContext(String where) {
+        final String sql = "SELECT current_user, current_database(), current_schema()";
         try (Statement st = conn.createStatement();
-             ResultSet rs = st.executeQuery("SELECT current_user, current_database(), current_schema()")) {
+             ResultSet rs = st.executeQuery(sql)) {
             if (rs.next()) {
-                System.out.printf("[%s] DBCTX user=%s db=%s schema=%s%n",
-                        where, rs.getString(1), rs.getString(2), rs.getString(3));
+                LOGGER.log(Level.FINER, "[{0}] DBCTX user={1} db={2} schema={3}",
+                        new Object[]{where, rs.getString(1), rs.getString(2), rs.getString(3)});
             }
-        } catch (SQLException ignored) {}
+        } catch (SQLException e) {
+            // Non critico: contesto diagnostico, loggato a livello FINER
+            LOGGER.log(Level.FINER, "DB context query failed in " + where, e);
+        }
     }
 
     private DatiPasseggero map(ResultSet rs) throws SQLException {
@@ -160,4 +174,14 @@ public class DatiPasseggeroDAOPostgres implements DatiPasseggeroDAO {
     }
 
     private static boolean isBlank(String s) { return s == null || s.trim().isEmpty(); }
+
+    private static String safeNormEmail(String email) {
+        return email == null ? null : email.trim().toLowerCase();
+    }
+
+    public class DatabaseInitializationException extends RuntimeException {
+        public DatabaseInitializationException(String message, Throwable cause) {
+            super(message, cause);
+        }
+    }
 }

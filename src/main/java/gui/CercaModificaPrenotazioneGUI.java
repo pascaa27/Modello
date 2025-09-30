@@ -7,6 +7,8 @@ import controller.Controller;
 import model.*;
 
 public class CercaModificaPrenotazioneGUI {
+    private static final String FONT_FAMILY = "Segoe UI";
+
     private JPanel panelCercaModificaPrenotazione;
     private JButton cercaButton;
     private JTextField codiceInserimentoTextField;
@@ -19,9 +21,9 @@ public class CercaModificaPrenotazioneGUI {
     private JButton annullaPrenotazioneButton;
     private JTextArea messaggioTextArea;
     private JScrollPane listaPrenotazioniScrollPane;
-    private Controller controller;
+    private final Controller controller;
     private Prenotazione prenotazioneCorrente;
-    private Utente utente;
+    private final Utente utente;
     private JList<String> listaPrenotazioni;
     private DefaultListModel<String> listaModel;
 
@@ -36,21 +38,37 @@ public class CercaModificaPrenotazioneGUI {
         this.controller = controller;
         this.utente = utente;
 
-        // Sfondo gradient
-        panelCercaModificaPrenotazione = new JPanel() {
+        panelCercaModificaPrenotazione = createGradientPanel();
+        panelCercaModificaPrenotazione.setLayout(new BorderLayout(0, 0));
+
+        JPanel cardPanel = buildCardPanel();
+        panelCercaModificaPrenotazione.add(cardPanel, BorderLayout.CENTER);
+
+        setupPrenotazioniList();
+        populateStatoCombo();
+        setCampiPrenotazioneAbilitati(false);
+        initialSearchIfPresent(codicePrenotazione);
+        attachActionListeners();
+    }
+
+    // UI builders
+
+    private JPanel createGradientPanel() {
+        return new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
-                int w = getWidth(), h = getHeight();
+                int w = getWidth();
+                int h = getHeight();
                 GradientPaint gp = new GradientPaint(0, 0, mainGradientStart, 0, h, mainGradientEnd);
                 g2d.setPaint(gp);
                 g2d.fillRect(0, 0, w, h);
             }
         };
-        panelCercaModificaPrenotazione.setLayout(new BorderLayout(0, 0));
+    }
 
-        // Card centrale con i campi
+    private JPanel buildCardPanel() {
         JPanel cardPanel = new JPanel(new GridBagLayout()) {
             @Override
             public Dimension getPreferredSize() {
@@ -126,62 +144,65 @@ public class CercaModificaPrenotazioneGUI {
         annullaPanel.add(annullaPrenotazioneButton);
         cardPanel.add(annullaPanel, gbc);
 
-        panelCercaModificaPrenotazione.add(cardPanel, BorderLayout.CENTER);
+        return cardPanel;
+    }
 
-// Lista prenotazioni a sinistra SOLO se esistono
+    private void setupPrenotazioniList() {
         List<Prenotazione> prenotazioniUtente = controller.getPrenotazioniUtente((UtenteGenerico) utente);
-        if (prenotazioniUtente != null && !prenotazioniUtente.isEmpty()) {
-
-            if (listaModel == null) {
-                listaModel = new DefaultListModel<>();
-                listaPrenotazioni = new JList<>(listaModel);
-                listaPrenotazioni.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-                listaPrenotazioni.setCellRenderer(new DefaultListCellRenderer() {
-                    @Override
-                    public java.awt.Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-                        java.awt.Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                        if (c instanceof JLabel && value != null) {
-                            ((JLabel) c).setText("Codice Prenotazione: " + value.toString());
-                        }
-                        return c;
-                    }
-                });
-
-                listaPrenotazioniScrollPane = new JScrollPane(listaPrenotazioni);
-                listaPrenotazioniScrollPane.setPreferredSize(new Dimension(220, 420));
-                panelCercaModificaPrenotazione.add(listaPrenotazioniScrollPane, BorderLayout.WEST);
-
-                listaPrenotazioni.addListSelectionListener(e -> {
-                    if (!e.getValueIsAdjusting()) {
-                        String codiceSelezionato = listaPrenotazioni.getSelectedValue();
-                        codiceInserimentoTextField.setText(codiceSelezionato);
-                        cercaPrenotazione();
-                    }
-                });
-            }
-
-            // Popola il modello senza ricreare la JList
-            listaModel.clear();
-            for (Prenotazione p : prenotazioniUtente) {
-                listaModel.addElement(p.getNumBiglietto());
-            }
+        if (prenotazioniUtente == null || prenotazioniUtente.isEmpty()) {
+            return; // lista a sinistra solo se esistono
         }
 
+        if (listaModel == null) {
+            listaModel = new DefaultListModel<>();
+            listaPrenotazioni = new JList<>(listaModel);
+            listaPrenotazioni.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
+            listaPrenotazioni.setCellRenderer(new DefaultListCellRenderer() {
+                @Override
+                public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                    Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                    if (c instanceof JLabel label && value != null) {
+                        label.setText("Codice Prenotazione: " + value);
+                    }
+                    return c;
+                }
+            });
 
-        // Popola la comboBox con tutti gli stati disponibili
+            listaPrenotazioniScrollPane = new JScrollPane(listaPrenotazioni);
+            listaPrenotazioniScrollPane.setPreferredSize(new Dimension(220, 420));
+            panelCercaModificaPrenotazione.add(listaPrenotazioniScrollPane, BorderLayout.WEST);
+
+            listaPrenotazioni.addListSelectionListener(e -> {
+                if (!e.getValueIsAdjusting()) {
+                    String codiceSelezionato = listaPrenotazioni.getSelectedValue();
+                    codiceInserimentoTextField.setText(codiceSelezionato);
+                    cercaPrenotazione();
+                }
+            });
+        }
+
+        // Popola il modello senza ricreare la JList
+        listaModel.clear();
+        for (Prenotazione p : prenotazioniUtente) {
+            listaModel.addElement(p.getNumBiglietto());
+        }
+    }
+
+    private void populateStatoCombo() {
         statoVoloComboBox.removeAllItems();
-        for(StatoPrenotazione stato : StatoPrenotazione.values()) {
+        for (StatoPrenotazione stato : StatoPrenotazione.values()) {
             statoVoloComboBox.addItem(stato.name());
         }
+    }
 
-        setCampiPrenotazioneAbilitati(false);
-
-        // Ricerca iniziale se codice presente
+    private void initialSearchIfPresent(String codicePrenotazione) {
         if (codicePrenotazione != null && !codicePrenotazione.isEmpty()) {
             codiceInserimentoTextField.setText(codicePrenotazione);
             cercaPrenotazione();
         }
+    }
 
+    private void attachActionListeners() {
         cercaButton.addActionListener(e -> cercaPrenotazione());
         salvaModificheButton.addActionListener(e -> salvaModifiche());
         annullaPrenotazioneButton.addActionListener(e -> annullaPrenotazione());
@@ -190,13 +211,14 @@ public class CercaModificaPrenotazioneGUI {
     // --- Stile componenti ---
     private JLabel styledLabelWhite(String text) {
         JLabel l = new JLabel(text);
-        l.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        l.setFont(new Font(FONT_FAMILY, Font.BOLD, 13));
         l.setForeground(Color.WHITE);
         return l;
     }
+
     private JTextField styledTextFieldWhite(String text) {
         JTextField tf = new JTextField(text, 13);
-        tf.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        tf.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
         tf.setBackground(panelBgColor);
         tf.setForeground(mainGradientStart);
         tf.setBorder(BorderFactory.createCompoundBorder(
@@ -206,9 +228,10 @@ public class CercaModificaPrenotazioneGUI {
         tf.setCaretColor(mainGradientStart);
         return tf;
     }
+
     private JComboBox<String> styledComboBoxWhite() {
         JComboBox<String> cb = new JComboBox<>();
-        cb.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        cb.setFont(new Font(FONT_FAMILY, Font.PLAIN, 12));
         cb.setBackground(Color.WHITE);
         cb.setForeground(mainGradientStart);
         cb.setBorder(BorderFactory.createCompoundBorder(
@@ -217,9 +240,10 @@ public class CercaModificaPrenotazioneGUI {
         ));
         return cb;
     }
+
     private JTextArea styledTextArea() {
         JTextArea ta = new JTextArea(3, 24);
-        ta.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        ta.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
         ta.setBackground(panelBgColor);
         ta.setForeground(mainGradientStart);
         ta.setBorder(BorderFactory.createCompoundBorder(
@@ -231,9 +255,10 @@ public class CercaModificaPrenotazioneGUI {
         ta.setEditable(false);
         return ta;
     }
+
     private JButton gradientButton(String text) {
         JButton b = new JButton(text);
-        b.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        b.setFont(new Font(FONT_FAMILY, Font.BOLD, 13));
         b.setForeground(Color.WHITE);
         b.setFocusPainted(false);
         b.setBorderPainted(false);
@@ -247,11 +272,7 @@ public class CercaModificaPrenotazioneGUI {
                 b.setForeground(Color.WHITE);
                 b.repaint();
             }
-            @Override
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                b.setForeground(Color.WHITE);
-                b.repaint();
-            }
+            // mouseExited rimosso per evitare identicità con mouseEntered (S4144)
         });
         b.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
             @Override
@@ -270,14 +291,14 @@ public class CercaModificaPrenotazioneGUI {
 
     private void cercaPrenotazione() {
         String codice = codiceInserimentoTextField.getText().trim();
-        if(codice.isEmpty()) {
+        if (codice.isEmpty()) {
             messaggioTextArea.setText("Inserisci un codice prenotazione.");
             setCampiPrenotazioneAbilitati(false);
             return;
         }
 
         prenotazioneCorrente = controller.cercaPrenotazione(codice);
-        if(prenotazioneCorrente != null) {
+        if (prenotazioneCorrente != null) {
             nomeTextField.setText(prenotazioneCorrente.getDatiPasseggero().getNome());
             cognomeTextField.setText(prenotazioneCorrente.getDatiPasseggero().getCognome());
             emailTextField.setText(prenotazioneCorrente.getDatiPasseggero().getEmail());
@@ -296,7 +317,7 @@ public class CercaModificaPrenotazioneGUI {
     }
 
     private void salvaModifiche() {
-        if(prenotazioneCorrente == null) {
+        if (prenotazioneCorrente == null) {
             messaggioTextArea.setText("Nessuna prenotazione da modificare.");
             return;
         }
@@ -313,34 +334,30 @@ public class CercaModificaPrenotazioneGUI {
             return; // l’utente ha annullato
         }
 
-        // --- qui aggiorni l’oggetto come già fai ---
         prenotazioneCorrente.getDatiPasseggero().setNome(nomeTextField.getText());
         prenotazioneCorrente.getDatiPasseggero().setCognome(cognomeTextField.getText());
         prenotazioneCorrente.getDatiPasseggero().setEmail(emailTextField.getText());
 
         String codiceVolo = voloTextField.getText().trim();
         Volo volo = controller.cercaVolo(codiceVolo);
-        if(volo == null) {
+        if (volo == null) {
             messaggioTextArea.setText("Volo non trovato.");
             return;
         }
         prenotazioneCorrente.setVolo(volo);
 
         String statoString = (String) statoVoloComboBox.getSelectedItem();
-        StatoPrenotazione stato;
         try {
-            stato = StatoPrenotazione.valueOf(statoString.toUpperCase());
-        } catch(Exception e) {
+            StatoPrenotazione stato = StatoPrenotazione.valueOf(statoString.toUpperCase());
+            prenotazioneCorrente.setStato(stato);
+        } catch (IllegalArgumentException ignored) {
             messaggioTextArea.setText("Stato non valido.");
             return;
         }
-        prenotazioneCorrente.setStato(stato);
 
-        // --- salvataggio effettivo ---
         boolean successo = controller.salvaPrenotazione(prenotazioneCorrente);
-        if(successo) {
+        if (successo) {
             messaggioTextArea.setText("Modifiche salvate con successo!");
-
             pulisciCampiPrenotazione();
             setCampiPrenotazioneAbilitati(false);
             codiceInserimentoTextField.setText("");
@@ -383,9 +400,12 @@ public class CercaModificaPrenotazioneGUI {
         aggiornaListaPrenotazioni();
     }
 
-
     private void aggiornaListaPrenotazioni() {
-        listaModel.clear();  // svuota prima
+        if (listaModel == null) {
+            // La lista non è presente (utente senza prenotazioni all’avvio): nulla da aggiornare
+            return;
+        }
+        listaModel.clear();
         List<Prenotazione> prenotazioniUtente = controller.getPrenotazioniUtente((UtenteGenerico) utente);
         if (prenotazioniUtente != null) {
             for (Prenotazione p : prenotazioniUtente) {
@@ -409,7 +429,9 @@ public class CercaModificaPrenotazioneGUI {
         cognomeTextField.setText("");
         emailTextField.setText("");
         voloTextField.setText("");
-        statoVoloComboBox.setSelectedIndex(0);
+        if (statoVoloComboBox.getItemCount() > 0) {
+            statoVoloComboBox.setSelectedIndex(0);
+        }
     }
 
     public JPanel getPanel() {

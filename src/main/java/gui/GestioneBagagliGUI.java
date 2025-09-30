@@ -8,6 +8,8 @@ import javax.swing.*;
 import java.awt.*;
 
 public class GestioneBagagliGUI {
+    private static final String FONT_FAMILY = "Segoe UI";
+
     private JPanel panelBagaglio;
     private JTextField codiceBagaglioTextField;
     private JComboBox<StatoBagaglio> statoBagaglioComboBox;
@@ -35,7 +37,8 @@ public class GestioneBagagliGUI {
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
-                int w = getWidth(), h = getHeight();
+                int w = getWidth();
+                int h = getHeight();
                 GradientPaint gp = new GradientPaint(0, 0, mainGradientStart, 0, h, mainGradientEnd);
                 g2d.setPaint(gp);
                 g2d.fillRect(0, 0, w, h);
@@ -77,8 +80,6 @@ public class GestioneBagagliGUI {
         bottoniPanel.add(rimuoviBagaglioButton);
         panelBagaglio.add(bottoniPanel, gbc);
 
-        // NON aggiungere di nuovo gli item! (RIMUOVI il ciclo for duplicato!)
-
         // Listener pulsanti
         aggiungiBagaglioButton.addActionListener(e -> aggiungiBagaglio());
         rimuoviBagaglioButton.addActionListener(e -> rimuoviBagaglio());
@@ -88,13 +89,13 @@ public class GestioneBagagliGUI {
     // --- Stile componenti ---
     private JLabel styledLabelWhite(String text) {
         JLabel l = new JLabel(text);
-        l.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        l.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
         l.setForeground(Color.WHITE);
         return l;
     }
     private JTextField styledTextFieldWhite(String text) {
         JTextField tf = new JTextField(text, 13);
-        tf.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        tf.setFont(new Font(FONT_FAMILY, Font.PLAIN, 14));
         tf.setBackground(panelBgColor);
         tf.setForeground(mainGradientStart);
         tf.setBorder(BorderFactory.createCompoundBorder(
@@ -106,7 +107,7 @@ public class GestioneBagagliGUI {
     }
     private JComboBox<StatoBagaglio> styledComboBoxStato(StatoBagaglio[] items) {
         JComboBox<StatoBagaglio> cb = new JComboBox<>();
-        cb.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        cb.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
         cb.setBackground(Color.WHITE);
         cb.setForeground(mainGradientStart);
         cb.setBorder(BorderFactory.createCompoundBorder(
@@ -118,7 +119,7 @@ public class GestioneBagagliGUI {
     }
     private JButton gradientButton(String text) {
         JButton b = new JButton(text);
-        b.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        b.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
         b.setForeground(Color.WHITE);
         b.setFocusPainted(false);
         b.setBorderPainted(false);
@@ -132,11 +133,7 @@ public class GestioneBagagliGUI {
                 b.setForeground(Color.WHITE);
                 b.repaint();
             }
-            @Override
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                b.setForeground(Color.WHITE);
-                b.repaint();
-            }
+            // mouseExited rimosso: era identico a mouseEntered (S4144)
         });
         b.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
             @Override
