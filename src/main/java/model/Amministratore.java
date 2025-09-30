@@ -14,6 +14,7 @@ public class Amministratore extends Utente {
         super(login, password, nomeUtente, cognomeUtente);
     }
 
+
     public List<Volo> getVoliGestiti() {
         return voliGestiti;
     }
@@ -22,6 +23,9 @@ public class Amministratore extends Utente {
         this.voliGestiti = voliGestiti;
     }
 
+    /**
+     * gestisce il volo
+     */
     public void gestioneVolo() {
         LOGGER.info(() -> "Volo inserito o aggiornato da: " + getNomeUtente());
     }
