@@ -334,14 +334,8 @@ public class AreaPersonaleAmmGUI {
             numeroPrenotazionePasseggeroTextField.setText("");
             postoAssegnatoTextField.setText("");
             statoPrenotazioneComboBox.setSelectedIndex(0);
-            // Svuota entrambe le viste se presenti
-            if (risultatiRicercaPasseggeroTable != null) {
-                DefaultTableModel m = (DefaultTableModel) risultatiRicercaPasseggeroTable.getModel();
-                m.setRowCount(0);
-            }
-            if (tabellaPasseggeroGUI != null) {
-                tabellaPasseggeroGUI.setRows(Collections.emptyList());
-            }
+            // Ricarica tutti i passeggeri
+            caricaTuttiPasseggeri();
         });
 
         btnPanel.add(cercaPasseggeroButton);
@@ -427,13 +421,8 @@ public class AreaPersonaleAmmGUI {
         resetBagagliBtn.addActionListener(e -> {
             codiceBagaglioTextField.setText("");
             statoBagaglioComboBox.setSelectedIndex(0);
-            if (risultatiRicercaBagaglioTable != null) {
-                DefaultTableModel m = (DefaultTableModel) risultatiRicercaBagaglioTable.getModel();
-                m.setRowCount(0);
-            } else if (risultatiRicercaTable != null) {
-                DefaultTableModel m = (DefaultTableModel) risultatiRicercaTable.getModel();
-                m.setRowCount(0);
-            }
+            // Ricarica tutti i bagagli
+            caricaTuttiBagagli();
         });
 
         panel.add(Box.createVerticalStrut(8));
