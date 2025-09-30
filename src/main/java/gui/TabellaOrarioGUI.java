@@ -112,8 +112,7 @@ public class TabellaOrarioGUI {
         }
 
         // Caso generico: copiamo i valori disponibili e riempiamo il resto con null
-        Object[] nuovo = Arrays.copyOf(r, 10);
-        return nuovo;
+        return Arrays.copyOf(r, 10);
     }
 
     private Object[] normalizeRowFrom9(Object[] r) {

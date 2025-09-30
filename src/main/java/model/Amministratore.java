@@ -1,8 +1,12 @@
 package model;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 public class Amministratore extends Utente {
+
+    private static final Logger LOGGER = Logger.getLogger(Amministratore.class.getName());
 
     private List<Volo> voliGestiti = new ArrayList<>();
 
@@ -19,11 +23,11 @@ public class Amministratore extends Utente {
     }
 
     public void gestioneVolo() {
-        System.out.println("Volo inserito o aggiornato da: " + getNomeUtente());
+        LOGGER.info(() -> "Volo inserito o aggiornato da: " + getNomeUtente());
     }
 
     public void modificaAssegnazioneGate() {
-        System.out.println("L'assegnazione dei gate è stata modificata da: " + getNomeUtente());
+        LOGGER.info(() -> "L'assegnazione dei gate è stata modificata da: " + getNomeUtente());
     }
 
     public void aggiungiVolo(Volo volo) {
