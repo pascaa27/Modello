@@ -544,6 +544,7 @@ public class Controller {
         return result;
     }
 
+
     private boolean containsPrenotazione(List<Prenotazione> list, String numBiglietto) {
         for (Prenotazione p : list) {
             if (safeEquals(p.getNumBiglietto(), numBiglietto)) return true;
