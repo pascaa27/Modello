@@ -32,6 +32,13 @@ public class Volo {
         this.arrivoPartenza = builder.arrivoPartenza;
     }
 
+    public Volo(String codiceUnivoco) {
+        this.codiceUnivoco = codiceUnivoco;
+    }
+
+    // Costruttore vuoto per DAO / binding automatico
+    public Volo() {}
+
     // Builder interno
     public static class Builder {
         private final String codiceUnivoco; // obbligatorio
@@ -64,11 +71,6 @@ public class Volo {
         public Volo build() {
             return new Volo(this);
         }
-    }
-
-    // costruttore vuoto per binding automatico (DAO/Controller)
-    public Volo() {
-        // necessario per mapping e riflessioni
     }
 
     // Getter e Setter
