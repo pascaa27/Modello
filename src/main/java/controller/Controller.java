@@ -19,6 +19,7 @@ import java.util.logging.Logger;
 public class Controller {
 
     private static final Logger LOGGER = Logger.getLogger(Controller.class.getName());
+    private static final String LOG_DETAILS = "Dettagli";
 
     // Costanti ricorrenti
     private static final String ARRIVO = "in arrivo";
@@ -73,16 +74,16 @@ public class Controller {
         }
 
         ricaricaPrenotazioniDaDB();
-        ricaricaBagagliDaDB(); // valorizza anche la cache bagagli per evitare metodo "unused"
+        ricaricaBagagliDaDB(); // valorizza anche la cache bagagli
     }
 
     private void ricaricaBagagliDaDB() {
         bagagli.clear();
         try {
-            List<Bagaglio> tutti = bagaglioDAO.findAll();
-            bagagli.addAll(tutti);
+            bagagli.addAll(bagaglioDAO.findAll());
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Impossibile ricaricare i bagagli dal DB", e);
+            LOGGER.log(Level.FINE, LOG_DETAILS, e);
         }
     }
 
@@ -95,7 +96,7 @@ public class Controller {
             voliGestiti.addAll(voloDAO.findAll());
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Impossibile ricaricare i voli dal DB", e);
-            // La UI mostrerà liste vuote se il DB non risponde
+            LOGGER.log(Level.FINE, LOG_DETAILS, e);
         }
     }
 
@@ -112,7 +113,6 @@ public class Controller {
             v.setAeroporto(r[5]);
             v.setGate(r[6]);
             v.setArrivoPartenza(r[7]);
-            // opzionale: inizializza stimato uguale al previsto
             if (v.getOrarioStimato() == null || v.getOrarioStimato().isBlank()) {
                 v.setOrarioStimato(v.getOrarioPrevisto());
             }
@@ -121,12 +121,14 @@ public class Controller {
                 voloDAO.insert(v); // ignora se già presente
             } catch (Exception e) {
                 LOGGER.log(Level.FINE, () -> "Seed volo fallito per " + v.getCodiceUnivoco());
-                LOGGER.log(Level.FINER, "Dettagli", e);
+                LOGGER.log(Level.FINER, LOG_DETAILS, e);
             }
         }
     }
 
-    // Nuovi overload a oggetto per ridurre S107
+    // ==========================
+    // DTO / Input
+    // ==========================
     public static final class VoloInput {
         public final String codice;
         public final String compagnia;
@@ -138,6 +140,18 @@ public class Controller {
         public final String aeroporto;   // IATA
         public final String gate;
 
+        /**
+         * @param codice codice volo
+         * @param compagnia compagnia aerea
+         * @param data data del volo
+         * @param orarioPrevisto orario previsto
+         * @param orarioStimato orario stimato
+         * @param stato stato del volo
+         * @param direzione "in arrivo" | "in partenza"
+         * @param aeroporto aeroporto (IATA)
+         * @param gate gate
+         */
+        @SuppressWarnings("java:S107") // DTO di input usato dalla GUI
         public VoloInput(String codice, String compagnia, String data, String orarioPrevisto, String orarioStimato,
                          StatoVolo stato, String direzione, String aeroporto, String gate) {
             this.codice = codice;
@@ -152,6 +166,57 @@ public class Controller {
         }
     }
 
+    // Filtri per ridurre S107 nei matcher
+    private static final class VoloFilter {
+        final String numeroVolo;
+        final String compagnia;
+        final String stato;
+        final String data;
+        final String orario;
+        final String aeroporto;
+        final String gate;
+        final String arrivoPartenza;
+
+        VoloFilter(String numeroVolo, String compagnia, String stato, String data,
+                   String orario, String aeroporto, String gate, String arrivoPartenza) {
+            this.numeroVolo = numeroVolo;
+            this.compagnia = compagnia;
+            this.stato = stato;
+            this.data = data;
+            this.orario = orario;
+            this.aeroporto = aeroporto;
+            this.gate = gate;
+            this.arrivoPartenza = arrivoPartenza;
+        }
+    }
+
+    private static final class PrenotazioneFilter {
+        final String nome;
+        final String cognome;
+        final String email;
+        final String codiceFiscale;
+        final String numeroVolo;
+        final String numeroPrenotazione;
+        final String postoAssegnato;
+        final String statoPrenotazione;
+
+        PrenotazioneFilter(String nome, String cognome, String email, String codiceFiscale,
+                           String numeroVolo, String numeroPrenotazione, String postoAssegnato,
+                           String statoPrenotazione) {
+            this.nome = nome;
+            this.cognome = cognome;
+            this.email = email;
+            this.codiceFiscale = codiceFiscale;
+            this.numeroVolo = numeroVolo;
+            this.numeroPrenotazione = numeroPrenotazione;
+            this.postoAssegnato = postoAssegnato;
+            this.statoPrenotazione = statoPrenotazione;
+        }
+    }
+
+    // ==========================
+    // Voli - CRUD
+    // ==========================
     public void aggiungiVolo(VoloInput in) {
         Volo v = new Volo(); // costruttore vuoto
         v.setCodiceUnivoco(in.codice);
@@ -170,8 +235,11 @@ public class Controller {
         this.voliGestiti.add(v);
     }
 
+    /**
+     * @deprecated since 1.0, forRemoval = true. Usa {@link #aggiungiVolo(VoloInput)}.
+     */
+    @Deprecated(since = "1.0", forRemoval = true)
     @SuppressWarnings("java:S107")
-    @Deprecated(since = "1.0", forRemoval = false)
     public void aggiungiVolo(String codice,
                              String compagnia,
                              String data,
@@ -210,8 +278,11 @@ public class Controller {
         throw new NoSuchElementException("Volo non trovato: " + in.codice);
     }
 
+    /**
+     * @deprecated since 1.0, forRemoval = true. Usa {@link #aggiornaVolo(VoloInput)}.
+     */
+    @Deprecated(since = "1.0", forRemoval = true)
     @SuppressWarnings("java:S107")
-    @Deprecated(since = "1.0", forRemoval = false)
     public void aggiornaVolo(String codiceUnivoco,
                              String compagnia,
                              String dataVolo,
@@ -271,28 +342,40 @@ public class Controller {
             prenotazioni.addAll(prenotazioneDAO.findAll());
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Impossibile ricaricare le prenotazioni dal DB", e);
+            LOGGER.log(Level.FINE, LOG_DETAILS, e);
         }
     }
 
-    public static final class PrenotazioneInput {
+    // DTO granulari per evitare S107 (e migliorare leggibilità)
+    public static final class PrenotazioneBase {
         public final String numeroBiglietto;
         public final String posto;
         public final StatoPrenotazione stato;
+
+        public PrenotazioneBase(String numeroBiglietto, String posto, StatoPrenotazione stato) {
+            this.numeroBiglietto = numeroBiglietto;
+            this.posto = posto;
+            this.stato = stato;
+        }
+    }
+
+    public static final class VoloRef {
         public final String numeroVolo;
         public final UtenteGenerico utenteGenerico;
+
+        public VoloRef(String numeroVolo, UtenteGenerico utenteGenerico) {
+            this.numeroVolo = numeroVolo;
+            this.utenteGenerico = utenteGenerico;
+        }
+    }
+
+    public static final class PasseggeroInfo {
         public final String nome;
         public final String cognome;
         public final String codiceFiscale;
         public final String email;
 
-        public PrenotazioneInput(String numeroBiglietto, String posto, StatoPrenotazione stato, String numeroVolo,
-                                 UtenteGenerico utenteGenerico, String nome, String cognome,
-                                 String codiceFiscale, String email) {
-            this.numeroBiglietto = numeroBiglietto;
-            this.posto = posto;
-            this.stato = stato;
-            this.numeroVolo = numeroVolo;
-            this.utenteGenerico = utenteGenerico;
+        public PasseggeroInfo(String nome, String cognome, String codiceFiscale, String email) {
             this.nome = nome;
             this.cognome = cognome;
             this.codiceFiscale = codiceFiscale;
@@ -300,38 +383,63 @@ public class Controller {
         }
     }
 
+    // PrenotazioneInput composto (3 parametri)
+    public static final class PrenotazioneInput {
+        public final PrenotazioneBase base;
+        public final VoloRef volo;
+        public final PasseggeroInfo passeggero;
+
+        public PrenotazioneInput(PrenotazioneBase base, VoloRef volo, PasseggeroInfo passeggero) {
+            this.base = base;
+            this.volo = volo;
+            this.passeggero = passeggero;
+        }
+
+        // Factory "pulita" a 3 parametri (no S107)
+        public static PrenotazioneInput of(PrenotazioneBase base, VoloRef volo, PasseggeroInfo passeggero) {
+            return new PrenotazioneInput(base, volo, passeggero);
+        }
+    }
+
     public Prenotazione aggiungiPrenotazione(PrenotazioneInput in) {
         // Validazioni
-        if (in.numeroBiglietto == null || in.numeroBiglietto.isBlank())
+        if (in.base.numeroBiglietto == null || in.base.numeroBiglietto.isBlank())
             throw new IllegalArgumentException("Numero biglietto mancante");
-        if (in.stato == null)
+        if (in.base.stato == null)
             throw new IllegalArgumentException("Stato prenotazione mancante");
-        if (in.numeroVolo == null || in.numeroVolo.isBlank())
+        if (in.volo.numeroVolo == null || in.volo.numeroVolo.isBlank())
             throw new IllegalArgumentException("Numero volo mancante");
-        if (in.codiceFiscale == null || in.codiceFiscale.isBlank())
+        if (in.passeggero.codiceFiscale == null || in.passeggero.codiceFiscale.isBlank())
             throw new IllegalArgumentException("Codice fiscale mancante");
-        if (in.email == null || in.email.isBlank())
+        if (in.passeggero.email == null || in.passeggero.email.isBlank())
             throw new IllegalArgumentException("Email mancante");
 
         // Recupera il volo
-        Volo v = getVoloByCodice(in.numeroVolo);
-        if (v == null) throw new IllegalArgumentException("Volo inesistente: " + in.numeroVolo);
+        Volo v = getVoloByCodice(in.volo.numeroVolo);
+        if (v == null) throw new IllegalArgumentException("Volo inesistente: " + in.volo.numeroVolo);
 
-        // Verifica passeggero via email
-        DatiPasseggero dp = datiPasseggeroDAO.findByEmail(in.email);
+        // Verifica/crea passeggero via email
+        DatiPasseggero dp = datiPasseggeroDAO.findByEmail(in.passeggero.email);
         if (dp == null) {
-            dp = new DatiPasseggero(in.nome, in.cognome, in.codiceFiscale, in.email);
-        } else if (dp.getCodiceFiscale() == null || !dp.getCodiceFiscale().equalsIgnoreCase(in.codiceFiscale)) {
-            dp.setCodiceFiscale(in.codiceFiscale);
+            dp = new DatiPasseggero(in.passeggero.nome, in.passeggero.cognome, in.passeggero.codiceFiscale, in.passeggero.email);
+        } else if (dp.getCodiceFiscale() == null || !dp.getCodiceFiscale().equalsIgnoreCase(in.passeggero.codiceFiscale)) {
+            dp.setCodiceFiscale(in.passeggero.codiceFiscale);
         }
 
-        String postoNormalizzato = normalizeSeatOrNull(in.posto);
+        String postoNormalizzato = normalizeSeatOrNull(in.base.posto);
 
-        Prenotazione pren = new Prenotazione(in.numeroBiglietto, postoNormalizzato, in.stato, in.utenteGenerico, dp, v);
+        Prenotazione pren = new Prenotazione(
+                in.base.numeroBiglietto,
+                postoNormalizzato,
+                in.base.stato,
+                in.volo.utenteGenerico,
+                dp,
+                v
+        );
 
-        boolean inserito = prenotazioneDAO.insert(pren, in.utenteGenerico);
+        boolean inserito = prenotazioneDAO.insert(pren, in.volo.utenteGenerico);
         if (!inserito) {
-            LOGGER.log(Level.WARNING, () -> "Impossibile inserire prenotazione " + in.numeroBiglietto + " per volo " + in.numeroVolo);
+            LOGGER.log(Level.WARNING, () -> "Impossibile inserire prenotazione " + in.base.numeroBiglietto + " per volo " + in.volo.numeroVolo);
             return null;
         }
 
@@ -343,16 +451,21 @@ public class Controller {
         return pren;
     }
 
+    /**
+     * @deprecated since 1.0, forRemoval = true. Usa {@link #aggiungiPrenotazione(PrenotazioneInput)}.
+     */
+    @Deprecated(since = "1.0", forRemoval = true)
     @SuppressWarnings("java:S107")
-    @Deprecated(since = "1.0", forRemoval = false)
     public Prenotazione aggiungiPrenotazione(String numeroBiglietto, String posto, StatoPrenotazione stato,
                                              String numeroVolo, UtenteGenerico utenteGenerico, String nome, String cognome,
                                              String codiceFiscale, String email, Volo voloNonUsato) {
         if (voloNonUsato != null) {
             LOGGER.log(Level.FINER, "Parametro voloNonUsato ignorato: {0}", voloNonUsato.getCodiceUnivoco());
         }
-        return aggiungiPrenotazione(new PrenotazioneInput(
-                numeroBiglietto, posto, stato, numeroVolo, utenteGenerico, nome, cognome, codiceFiscale, email
+        return aggiungiPrenotazione(PrenotazioneInput.of(
+                new PrenotazioneBase(numeroBiglietto, posto, stato),
+                new VoloRef(numeroVolo, utenteGenerico),
+                new PasseggeroInfo(nome, cognome, codiceFiscale, email)
         ));
     }
 
@@ -377,7 +490,7 @@ public class Controller {
             }
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Errore nel caricamento prenotazioni utente={0}", utente.getLogin());
-            LOGGER.log(Level.FINE, "Dettagli", e);
+            LOGGER.log(Level.FINE, LOG_DETAILS, e);
         }
 
         return result;
@@ -401,7 +514,7 @@ public class Controller {
         try {
             int n = Integer.parseInt(t.substring(1));
             return (n >= 1 && n <= 30) ? (letter + String.valueOf(n)) : null;
-        } catch (NumberFormatException _) {
+        } catch (NumberFormatException _) { // Java 21 unnamed pattern
             return null;
         }
     }
@@ -435,12 +548,10 @@ public class Controller {
         if (dp != null) {
             try {
                 // aggiorna SOLO se il passeggero è registrato
-                if (datiPasseggeroDAO.findByEmail(dp.getEmail()) != null) {
-                    if (!datiPasseggeroDAO.update(dp)) return false;
-                }
+                if (datiPasseggeroDAO.findByEmail(dp.getEmail()) != null && !datiPasseggeroDAO.update(dp)) return false;
             } catch (Exception e) {
                 LOGGER.log(Level.WARNING, "Errore aggiornando DatiPasseggero per email={0}", dp.getEmail());
-                LOGGER.log(Level.FINE, "Dettagli", e);
+                LOGGER.log(Level.FINE, LOG_DETAILS, e);
                 return false;
             }
         }
@@ -506,7 +617,7 @@ public class Controller {
         s = s.trim().toUpperCase();
         try {
             return StatoVolo.valueOf(s);
-        } catch (IllegalArgumentException _) {
+        } catch (IllegalArgumentException _) { // Java 21 unnamed pattern
             LOGGER.log(Level.FINEST, "Stato volo sconosciuto: {0}", s);
             return null;
         }
@@ -520,44 +631,56 @@ public class Controller {
         return ap;
     }
 
-
     public List<Object[]> tuttiVoli() {
         List<Object[]> rows = new ArrayList<>();
         for (Volo v : voliGestiti) {
             rows.add(new Object[]{
-                    v.getCodiceUnivoco(),
-                    v.getCompagniaAerea(),
-                    v.getStato() != null ? v.getStato().name() : "",
-                    v.getDataVolo(),
-                    v.getOrarioPrevisto(),
-                    v.getOrarioStimato(),
-                    v.getAeroporto(),
-                    v.getGate(),
-                    v.getArrivoPartenza()
+                    v.getCodiceUnivoco(),                      // 0 Numero Volo
+                    v.getCompagniaAerea(),                     // 1 Compagnia
+                    v.getStato() != null ? v.getStato().name() : "", // 2 Stato
+                    v.getDataVolo(),                           // 3 Data
+                    v.getOrarioPrevisto(),                     // 4 Orario previsto
+                    v.getOrarioStimato(),                      // 5 Orario stimato
+                    v.getAeroporto(),                          // 6 Aeroporto Destinazione
+                    v.getGate(),                               // 7 GATE
+                    v.getArrivoPartenza()                      // 8 ARRIVO/PARTENZA
             });
         }
         return rows;
     }
 
-    private boolean matchVolo(Volo v,
-                              String numeroVolo,
-                              String compagnia,
-                              String stato,
-                              String data,
-                              String orario,
-                              String aeroporto,
-                              String gate,
-                              String arrivoPartenza) {
-        return (numeroVolo == null || equalsIgnoreCase(v.getCodiceUnivoco(), numeroVolo))
-                && (compagnia == null || containsIgnoreCase(v.getCompagniaAerea(), compagnia))
-                && (stato == null || (v.getStato() != null && v.getStato().name().equalsIgnoreCase(stato)))
-                && (data == null || safeEquals(v.getDataVolo(), data))
-                && (orario == null || safeEquals(v.getOrarioPrevisto(), orario))
-                && (aeroporto == null || equalsIgnoreCase(v.getAeroporto(), aeroporto))
-                && (gate == null || equalsIgnoreCase(v.getGate(), gate))
-                && (arrivoPartenza == null || equalsIgnoreCase(v.getArrivoPartenza(), arrivoPartenza));
+    // Matcher voli con filtro (evita S107)
+    private boolean matchVolo(Volo v, VoloFilter f) {
+        return (f.numeroVolo == null || equalsIgnoreCase(v.getCodiceUnivoco(), f.numeroVolo))
+                && (f.compagnia == null || containsIgnoreCase(v.getCompagniaAerea(), f.compagnia))
+                && (f.stato == null || (v.getStato() != null && v.getStato().name().equalsIgnoreCase(f.stato)))
+                && (f.data == null || safeEquals(v.getDataVolo(), f.data))
+                && (f.orario == null || safeEquals(v.getOrarioPrevisto(), f.orario))
+                && (f.aeroporto == null || equalsIgnoreCase(v.getAeroporto(), f.aeroporto))
+                && (f.gate == null || equalsIgnoreCase(v.getGate(), f.gate))
+                && (f.arrivoPartenza == null || equalsIgnoreCase(v.getArrivoPartenza(), f.arrivoPartenza));
     }
 
+    // Overload "pulito" a oggetto
+    public List<Volo> ricercaVoliRaw(VoloFilter filter) {
+        String ap = canonicalAP(filter != null ? filter.arrivoPartenza : null);
+        VoloFilter f = filter == null ? null :
+                new VoloFilter(filter.numeroVolo, filter.compagnia, filter.stato, filter.data,
+                        filter.orario, filter.aeroporto, filter.gate, ap);
+        List<Volo> result = new ArrayList<>();
+        for (Volo v : voliGestiti) {
+            if (f == null || matchVolo(v, f)) {
+                result.add(v);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * @deprecated since 1.0, forRemoval = false. Usa {@link #ricercaVoliRaw(VoloFilter)}.
+     */
+    @Deprecated(since = "1.0", forRemoval = false)
+    @SuppressWarnings("java:S107") // legacy GUI
     public List<Volo> ricercaVoliRaw(String numeroVolo,
                                      String compagnia,
                                      String stato,
@@ -566,25 +689,26 @@ public class Controller {
                                      String aeroporto,
                                      String gate,
                                      String arrivoPartenza) {
-        List<Volo> result = new ArrayList<>();
-        String ap = canonicalAP(arrivoPartenza);
-        for (Volo v : voliGestiti) {
-            if (matchVolo(v, numeroVolo, compagnia, stato, data, orario, aeroporto, gate, ap)) {
-                result.add(v);
-            }
-        }
-        return result;
+        return ricercaVoliRaw(new VoloFilter(numeroVolo, compagnia, stato, data, orario, aeroporto, gate, arrivoPartenza));
     }
 
-    public List<Object[]> ricercaVoli(String numeroVolo, String compagnia, String stato, String data,
-                                      String orario, String aeroporto, String gate, String arrivoPartenza) {
-        String ap = canonicalAP(arrivoPartenza);
-        List<Volo> trovati = ricercaVoliRaw(numeroVolo, compagnia, stato, data, orario, aeroporto, gate, ap);
+    // Overload "pulito" a oggetto
+    public List<Object[]> ricercaVoli(VoloFilter filter) {
         List<Object[]> righe = new ArrayList<>();
-        for (Volo v : trovati) {
+        for (Volo v : ricercaVoliRaw(filter)) {
             righe.add(voloToRow(v));
         }
         return righe;
+    }
+
+    /**
+     * @deprecated since 1.0, forRemoval = false. Usa {@link #ricercaVoli(VoloFilter)}.
+     */
+    @Deprecated(since = "1.0", forRemoval = false)
+    @SuppressWarnings("java:S107") // legacy GUI
+    public List<Object[]> ricercaVoli(String numeroVolo, String compagnia, String stato, String data,
+                                      String orario, String aeroporto, String gate, String arrivoPartenza) {
+        return ricercaVoli(new VoloFilter(numeroVolo, compagnia, stato, data, orario, aeroporto, gate, arrivoPartenza));
     }
 
     private Object[] voloToRow(Volo v) {
@@ -604,6 +728,22 @@ public class Controller {
     // ==========================
     // Passeggeri (su cache, alimentata quando inserisci/aggiorni/ricarichi)
     // ==========================
+    // Overload "pulito" a oggetto
+    public List<Object[]> ricercaPasseggeri(PrenotazioneFilter f) {
+        List<Object[]> risultati = new ArrayList<>();
+        for (Prenotazione p : prenotazioni) {
+            if (matchPrenotazione(p, f)) {
+                risultati.add(prenotazioneToRow(p));
+            }
+        }
+        return risultati;
+    }
+
+    /**
+     * @deprecated since 1.0, forRemoval = false. Usa {@link #ricercaPasseggeri(PrenotazioneFilter)}.
+     */
+    @Deprecated(since = "1.0", forRemoval = false)
+    @SuppressWarnings("java:S107") // legacy GUI
     public List<Object[]> ricercaPasseggeri(String nome,
                                             String cognome,
                                             String email,
@@ -612,38 +752,54 @@ public class Controller {
                                             String numeroPrenotazione,
                                             String postoAssegnato,
                                             String statoPrenotazione) {
-        List<Object[]> risultati = new ArrayList<>();
-
-        String n  = norm(nome);
-        String c  = norm(cognome);
-        String em = norm(email);
-        String cf = norm(codiceFiscale);
-        String nv = norm(numeroVolo);
-        String np = norm(numeroPrenotazione);
-        String pa = norm(postoAssegnato);
-
-        for (Prenotazione p : prenotazioni) {
-            if (matchPrenotazione(p, n, c, em, cf, nv, np, pa, statoPrenotazione)) {
-                risultati.add(prenotazioneToRow(p));
-            }
-        }
-        return risultati;
+        PrenotazioneFilter f = new PrenotazioneFilter(
+                norm(nome), norm(cognome), norm(email), norm(codiceFiscale),
+                norm(numeroVolo), norm(numeroPrenotazione), norm(postoAssegnato), statoPrenotazione
+        );
+        return ricercaPasseggeri(f);
     }
 
-    private boolean matchPrenotazione(Prenotazione p,
-                                      String n, String c, String em, String cf,
-                                      String nv, String np, String pa,
-                                      String statoPrenotazione) {
+    // FIX NPE: gestisci filtro null (nessun filtro => match sempre vero)
+    private boolean matchPrenotazione(Prenotazione p, PrenotazioneFilter f) {
+        if (f == null) return true;
+
         DatiPasseggero dp = p.getDatiPasseggero();
 
-        return (n == null || containsIgnoreCase(dp != null ? dp.getNome() : null, n))
-                && (c == null || containsIgnoreCase(dp != null ? dp.getCognome() : null, c))
-                && (em == null || containsIgnoreCase(dp != null ? dp.getEmail() : null, em))
-                && (cf == null || containsIgnoreCase(dp != null ? dp.getCodiceFiscale() : null, cf))
-                && (nv == null || containsIgnoreCase(p.getVolo() != null ? p.getVolo().getCodiceUnivoco() : null, nv))
-                && (np == null || containsIgnoreCase(p.getNumBiglietto(), np))
-                && (pa == null || containsIgnoreCase(p.getPostoAssegnato(), pa))
-                && (statoPrenotazione == null || (p.getStato() != null && p.getStato().name().equalsIgnoreCase(statoPrenotazione)));
+        // Estrai valori una sola volta (null-safe)
+        String nome           = dp != null ? dp.getNome()          : null;
+        String cognome        = dp != null ? dp.getCognome()       : null;
+        String email          = dp != null ? dp.getEmail()         : null;
+        String codiceFiscale  = dp != null ? dp.getCodiceFiscale() : null;
+        String codiceVolo     = p.getVolo() != null ? p.getVolo().getCodiceUnivoco() : null;
+        String numBiglietto   = p.getNumBiglietto();
+        String postoAssegnato = p.getPostoAssegnato();
+
+        return allTrue(
+                matchesCI(nome,           f.nome),
+                matchesCI(cognome,        f.cognome),
+                matchesCI(email,          f.email),
+                matchesCI(codiceFiscale,  f.codiceFiscale),
+                matchesCI(codiceVolo,     f.numeroVolo),
+                matchesCI(numBiglietto,   f.numeroPrenotazione),
+                matchesCI(postoAssegnato, f.postoAssegnato),
+                matchStato(p.getStato(),  f.statoPrenotazione)
+        );
+    }
+
+    // Helper per matchPrenotazione
+    private boolean matchesCI(String value, String filter) {
+        return filter == null || containsIgnoreCase(value, filter);
+    }
+
+    private boolean matchStato(StatoPrenotazione stato, String filter) {
+        return filter == null || (stato != null && stato.name().equalsIgnoreCase(filter));
+    }
+
+    private static boolean allTrue(boolean... checks) {
+        for (boolean ok : checks) {
+            if (!ok) return false;
+        }
+        return true;
     }
 
     private Object[] prenotazioneToRow(Prenotazione p) {
@@ -661,23 +817,19 @@ public class Controller {
     }
 
     public List<Object[]> tuttiPasseggeri() {
-        return ricercaPasseggeri(null, null, null, null, null, null, null, null);
+        return ricercaPasseggeri((PrenotazioneFilter) null);
     }
 
     // ==========================
     // Bagagli (opzionale: persistenza)
     // ==========================
     public boolean aggiungiBagaglio(Bagaglio bagaglio) {
-        // controlla duplicati direttamente nel DB
-        if (bagaglioDAO.findById(bagaglio.getCodUnivoco()) != null) {
-            return false;
-        }
-        return bagaglioDAO.insert(bagaglio);
+        return bagaglioDAO.findById(bagaglio.getCodUnivoco()) == null
+                && bagaglioDAO.insert(bagaglio);
     }
 
     public boolean aggiungiBagaglio(String codice, StatoBagaglio stato) {
-        Bagaglio nuovo = new Bagaglio(codice, 0.0, stato, null);
-        return aggiungiBagaglio(nuovo);
+        return aggiungiBagaglio(new Bagaglio(codice, 0.0, stato, null));
     }
 
     public List<Bagaglio> getBagagli() {
@@ -693,11 +845,13 @@ public class Controller {
         for (Bagaglio b : bagaglioDAO.findAll()) {
             boolean match = true;
             if (codiceBagaglio != null && !codiceBagaglio.isEmpty() &&
-                    (b.getCodUnivoco() == null || !b.getCodUnivoco().contains(codiceBagaglio)))
+                    (b.getCodUnivoco() == null || !b.getCodUnivoco().contains(codiceBagaglio))) {
                 match = false;
-            if (stato != null && !stato.isEmpty() &&
-                    (b.getStato() == null || !b.getStato().toString().equalsIgnoreCase(stato)))
+            }
+            if (match && stato != null && !stato.isEmpty() &&
+                    (b.getStato() == null || !b.getStato().toString().equalsIgnoreCase(stato))) {
                 match = false;
+            }
 
             if (match) {
                 risultati.add(new Object[]{
@@ -725,10 +879,8 @@ public class Controller {
     // Gate (solo in memoria – se vuoi, aggiungi tabella e DAO)
     // ==========================
     public boolean aggiungiGate(int numero) {
-        for (Gate g : gates) {
-            if (g.getNumero() == numero) {
-                return false;
-            }
+        if (gates.stream().anyMatch(g -> g.getNumero() == numero)) {
+            return false;
         }
         gates.add(new Gate(numero));
         return true;
