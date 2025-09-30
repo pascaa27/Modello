@@ -151,10 +151,11 @@ public class CercaModificaPrenotazioneGUI {
             return; // lista a sinistra solo se esistono
         }
 
-        DefaultListModel<String> listaModelLocale = new DefaultListModel<>();
-        JList<String> listaPrenotazioniLocale = new JList<>(listaModelLocale);
-        listaPrenotazioniLocale.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
-        listaPrenotazioniLocale.setCellRenderer(new DefaultListCellRenderer() {
+        // Usa la variabile di istanza
+        listaModel = new DefaultListModel<>();
+        JList<String> listaPrenotazioni = new JList<>(listaModel);
+        listaPrenotazioni.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
+        listaPrenotazioni.setCellRenderer(new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                 Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
@@ -165,21 +166,21 @@ public class CercaModificaPrenotazioneGUI {
             }
         });
 
-        JScrollPane listaPrenotazioniScrollPaneLocale = new JScrollPane(listaPrenotazioniLocale);
-        listaPrenotazioniScrollPaneLocale.setPreferredSize(new Dimension(220, 420));
-        panelCercaModificaPrenotazione.add(listaPrenotazioniScrollPaneLocale, BorderLayout.WEST);
+        JScrollPane listaPrenotazioniScrollPane = new JScrollPane(listaPrenotazioni);
+        listaPrenotazioniScrollPane.setPreferredSize(new Dimension(220, 420));
+        panelCercaModificaPrenotazione.add(listaPrenotazioniScrollPane, BorderLayout.WEST);
 
-        listaPrenotazioniLocale.addListSelectionListener(e -> {
+        listaPrenotazioni.addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
-                String codiceSelezionato = listaPrenotazioniLocale.getSelectedValue();
+                String codiceSelezionato = listaPrenotazioni.getSelectedValue();
                 codiceInserimentoTextField.setText(codiceSelezionato);
                 cercaPrenotazione();
             }
         });
 
-        // Popola il modello senza ricreare la JList
+        // Popola il modello
         for (Prenotazione p : prenotazioniUtente) {
-            listaModelLocale.addElement(p.getNumBiglietto());
+            listaModel.addElement(p.getNumBiglietto());
         }
     }
 
@@ -384,6 +385,10 @@ public class CercaModificaPrenotazioneGUI {
 
         if (successo) {
             messaggioTextArea.setText("Prenotazione eliminata dal database!");
+            // Rimuovi dal modello subito
+            if (listaModel != null) {
+                listaModel.removeElement(prenotazioneCorrente.getNumBiglietto());
+            }
             pulisciCampiPrenotazione();
             setCampiPrenotazioneAbilitati(false);
             codiceInserimentoTextField.setEditable(true);
