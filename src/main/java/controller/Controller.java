@@ -401,6 +401,36 @@ public class Controller {
         }
     }
 
+    // Assicura che l'email sia registrata come UtenteGenerico su DB:
+    // - se esiste, restituisce un UtenteGenerico coerente (usa quello fornito se presente)
+    // - se non esiste, crea un record minimo sul DB e lo restituisce
+    private UtenteGenerico ensureUserRegistered(String email, UtenteGenerico providedOrNull) {
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("Email mancante");
+        }
+        if (utentiDAO.emailEsiste(email)) {
+            // Già registrato: se il chiamante non ha un oggetto, costruiscine uno basic coerente
+            return providedOrNull != null
+                    ? providedOrNull
+                    : new UtenteGenerico(email, "", "", "", new ArrayList<>(), new AreaPersonale());
+        }
+        // Non registrato: crea utente minimale su DB
+        UtenteGenerico nuovo = providedOrNull != null
+                ? providedOrNull
+                : new UtenteGenerico(email, "", "", "", new ArrayList<>(), new AreaPersonale());
+        try {
+            // Presuppone che UtenteGenericoDAOPostgres esponga insert(UtenteGenerico).
+            // Se non esistesse, bisogna usare il flusso di registrazione utenti dell'app.
+            boolean ok = utentiDAO.insert(nuovo);
+            if (!ok) {
+                throw new IllegalStateException("Creazione utente fallita per email=" + email);
+            }
+        } catch (Exception e) {
+            throw new IllegalStateException("Impossibile registrare automaticamente l'utente con email " + email + ". Registralo prima di prenotare.", e);
+        }
+        return nuovo;
+    }
+
     public Prenotazione aggiungiPrenotazione(PrenotazioneInput in) {
         // Validazioni
         if (in.base.numeroBiglietto == null || in.base.numeroBiglietto.isBlank())
@@ -426,18 +456,34 @@ public class Controller {
             dp.setCodiceFiscale(in.passeggero.codiceFiscale);
         }
 
+        // Assicura che l'utente (per quell'email) esista su DB – utile quando l'admin crea prenotazioni per utenti non registrati
+        UtenteGenerico utenteEffettivo = ensureUserRegistered(in.passeggero.email, in.volo.utenteGenerico);
+
         String postoNormalizzato = normalizeSeatOrNull(in.base.posto);
 
         Prenotazione pren = new Prenotazione(
                 in.base.numeroBiglietto,
                 postoNormalizzato,
                 in.base.stato,
-                in.volo.utenteGenerico,
+                utenteEffettivo,
                 dp,
                 v
         );
 
-        boolean inserito = prenotazioneDAO.insert(pren, in.volo.utenteGenerico);
+        boolean inserito;
+        try {
+            inserito = prenotazioneDAO.insert(pren, utenteEffettivo);
+        } catch (IllegalArgumentException ie) {
+            // Evita che l'EDT venga abbattuto: logga e torna null (la GUI può mostrare un messaggio)
+            LOGGER.log(Level.WARNING, "Inserimento prenotazione rifiutato: {0}", ie.getMessage());
+            LOGGER.log(Level.FINE, LOG_DETAILS, ie);
+            return null;
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Errore imprevisto in inserimento prenotazione per email={0}", in.passeggero.email);
+            LOGGER.log(Level.FINE, LOG_DETAILS, e);
+            return null;
+        }
+
         if (!inserito) {
             LOGGER.log(Level.WARNING, () -> "Impossibile inserire prenotazione " + in.base.numeroBiglietto + " per volo " + in.volo.numeroVolo);
             return null;
@@ -476,7 +522,8 @@ public class Controller {
         for (Prenotazione p : prenotazioni) {
             if (p.getUtenteGenerico() != null &&
                     utente.getNomeUtente() != null &&
-                    equalsIgnoreCase(utente.getNomeUtente(), p.getUtenteGenerico().getNomeUtente())) {
+                    equalsIgnoreCase(utente.getNomeUtente(), p.getUtenteGenerico().getNomeUtente()) &&
+                    p.getStato() != StatoPrenotazione.CANCELLATA) {  // <-- filtro aggiunto
                 result.add(p);
             }
         }
@@ -486,7 +533,8 @@ public class Controller {
             List<Prenotazione> dalDB = prenotazioneDAO.findByEmailUtente(utente.getLogin());
             for (Prenotazione p : dalDB) {
                 if (!containsPrenotazione(prenotazioni, p.getNumBiglietto())) prenotazioni.add(p);
-                if (!containsPrenotazione(result, p.getNumBiglietto())) result.add(p);
+                if (!containsPrenotazione(result, p.getNumBiglietto()) && p.getStato() != StatoPrenotazione.CANCELLATA)
+                    result.add(p);
             }
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Errore nel caricamento prenotazioni utente={0}", utente.getLogin());
