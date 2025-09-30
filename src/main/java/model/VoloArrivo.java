@@ -2,18 +2,24 @@ package model;
 
 public class VoloArrivo extends Volo {
 
-    private String aeroportoOrigine;
-
-    public VoloArrivo(String codiceUnivoco, String compagniaAerea, String dataVolo, String orarioPrevisto, StatoVolo stato, Amministratore amministratore, TabellaOrario tabellaOrario, String aeroportoOrigine) {
-        super(codiceUnivoco, compagniaAerea, dataVolo, orarioPrevisto, stato, amministratore, tabellaOrario);
-        this.aeroportoOrigine = aeroportoOrigine;
+    private VoloArrivo(Builder builder) {
+        super(builder);
     }
 
-    public String getAeroportoOrigine() {
+    @Override
+    public String getAeroporto() {
+        // Arrivi → destinazione sempre Napoli
         return "Napoli";
     }
 
-    public void setAeroportoOrigine(String aeroportoOrigine) {
-        this.aeroportoOrigine = aeroportoOrigine;
+    public static class Builder extends Volo.Builder {
+        public Builder(String codiceUnivoco) {
+            super(codiceUnivoco);
+        }
+
+        @Override
+        public VoloArrivo build() {
+            return new VoloArrivo(this);
+        }
     }
 }

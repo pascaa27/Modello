@@ -1,6 +1,10 @@
 package model;
 
+import java.util.logging.Logger;
+
 public class Utente {
+
+    private static final Logger LOGGER = Logger.getLogger(Utente.class.getName());
 
     protected String login;
     private String password;
@@ -51,11 +55,11 @@ public class Utente {
         this.cognomeUtente = cognomeUtente;
     }
 
-    public void modificaPrenotazione(){
-        System.out.println("Modifica prenotazione");
+    public void modificaPrenotazione() {
+        LOGGER.info("Modifica prenotazione");
     }
 
-    public void visualizzaAggiornamentoVolo(){
-        System.out.println("Visualizza aggiornamenti volo");
+    public void visualizzaAggiornamentoVolo() {
+        LOGGER.info("Visualizza aggiornamenti volo");
     }
 }

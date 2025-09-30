@@ -1,21 +1,25 @@
 package model;
 
 import java.util.List;
-import java.util.ArrayList;     //ho bisogno di entrambe perchè dichiaro la lista come List<> e creo l'oggetto come ArrayList<>()
+import java.util.ArrayList;
+import java.util.logging.Logger;
 
 public class UtenteGenerico extends Utente {
 
+    private static final Logger LOGGER = Logger.getLogger(UtenteGenerico.class.getName());
+
     private String nomeUtente;
-    private List<Prenotazione> prenotazioni= new ArrayList<>();     //attributo che rappresenta tutte le prenotazioni fatte da questo utente
+    private List<Prenotazione> prenotazioni = new ArrayList<>();     // tutte le prenotazioni fatte da questo utente
     private AreaPersonale areaPersonale;
     private String ultimoCodicePrenotazione;
     private List<String> codiciPrenotazioni = new ArrayList<>();
 
     public void aggiungiPrenotazione(Prenotazione p) {
-        prenotazioni.add(p);        //aggiunge alla lista le prenotazioni p
+        prenotazioni.add(p);
     }
 
-    public UtenteGenerico(String login, String password, String nomeUtente, String cognomeUtente, List<Prenotazione> prenotazioni, AreaPersonale areaPersonale) {
+    public UtenteGenerico(String login, String password, String nomeUtente, String cognomeUtente,
+                          List<Prenotazione> prenotazioni, AreaPersonale areaPersonale) {
         super(login, password, nomeUtente, cognomeUtente);
         this.nomeUtente = nomeUtente;
         this.prenotazioni = prenotazioni;
@@ -27,10 +31,12 @@ public class UtenteGenerico extends Utente {
         // vuoto, necessario per il framework nel controller
     }
 
+    @Override
     public String getNomeUtente() {
         return nomeUtente;
     }
 
+    @Override
     public void setNomeUtente(String nomeUtente) {
         this.nomeUtente = nomeUtente;
     }
@@ -43,8 +49,8 @@ public class UtenteGenerico extends Utente {
         this.prenotazioni = prenotazioni;
     }
 
-    public void prenotaVolo(){
-        System.out.println("Prenotazione effettuata da " + login);
+    public void prenotaVolo() {
+        LOGGER.info(() -> "Prenotazione effettuata da " + login);
     }
 
     public AreaPersonale getAreaPersonale() {

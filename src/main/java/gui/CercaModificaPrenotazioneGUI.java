@@ -20,11 +20,9 @@ public class CercaModificaPrenotazioneGUI {
     private JButton salvaModificheButton;
     private JButton annullaPrenotazioneButton;
     private JTextArea messaggioTextArea;
-    private JScrollPane listaPrenotazioniScrollPane;
     private final Controller controller;
     private Prenotazione prenotazioneCorrente;
     private final Utente utente;
-    private JList<String> listaPrenotazioni;
     private DefaultListModel<String> listaModel;
 
     // Palette colori
@@ -153,38 +151,35 @@ public class CercaModificaPrenotazioneGUI {
             return; // lista a sinistra solo se esistono
         }
 
-        if (listaModel == null) {
-            listaModel = new DefaultListModel<>();
-            listaPrenotazioni = new JList<>(listaModel);
-            listaPrenotazioni.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
-            listaPrenotazioni.setCellRenderer(new DefaultListCellRenderer() {
-                @Override
-                public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-                    Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                    if (c instanceof JLabel label && value != null) {
-                        label.setText("Codice Prenotazione: " + value);
-                    }
-                    return c;
+        DefaultListModel<String> listaModelLocale = new DefaultListModel<>();
+        JList<String> listaPrenotazioniLocale = new JList<>(listaModelLocale);
+        listaPrenotazioniLocale.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
+        listaPrenotazioniLocale.setCellRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (c instanceof JLabel label && value != null) {
+                    label.setText("Codice Prenotazione: " + value);
                 }
-            });
+                return c;
+            }
+        });
 
-            listaPrenotazioniScrollPane = new JScrollPane(listaPrenotazioni);
-            listaPrenotazioniScrollPane.setPreferredSize(new Dimension(220, 420));
-            panelCercaModificaPrenotazione.add(listaPrenotazioniScrollPane, BorderLayout.WEST);
+        JScrollPane listaPrenotazioniScrollPaneLocale = new JScrollPane(listaPrenotazioniLocale);
+        listaPrenotazioniScrollPaneLocale.setPreferredSize(new Dimension(220, 420));
+        panelCercaModificaPrenotazione.add(listaPrenotazioniScrollPaneLocale, BorderLayout.WEST);
 
-            listaPrenotazioni.addListSelectionListener(e -> {
-                if (!e.getValueIsAdjusting()) {
-                    String codiceSelezionato = listaPrenotazioni.getSelectedValue();
-                    codiceInserimentoTextField.setText(codiceSelezionato);
-                    cercaPrenotazione();
-                }
-            });
-        }
+        listaPrenotazioniLocale.addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                String codiceSelezionato = listaPrenotazioniLocale.getSelectedValue();
+                codiceInserimentoTextField.setText(codiceSelezionato);
+                cercaPrenotazione();
+            }
+        });
 
         // Popola il modello senza ricreare la JList
-        listaModel.clear();
         for (Prenotazione p : prenotazioniUtente) {
-            listaModel.addElement(p.getNumBiglietto());
+            listaModelLocale.addElement(p.getNumBiglietto());
         }
     }
 
@@ -350,7 +345,7 @@ public class CercaModificaPrenotazioneGUI {
         try {
             StatoPrenotazione stato = StatoPrenotazione.valueOf(statoString.toUpperCase());
             prenotazioneCorrente.setStato(stato);
-        } catch (IllegalArgumentException ignored) {
+        } catch (IllegalArgumentException _) {
             messaggioTextArea.setText("Stato non valido.");
             return;
         }

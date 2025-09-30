@@ -18,149 +18,93 @@ public class Volo {
     private String gate;
     private String arrivoPartenza;
 
-    public Volo(String codiceUnivoco, String compagniaAerea, String dataVolo, String orarioPrevisto, String orarioStimato, StatoVolo stato, Amministratore amministratore, TabellaOrario tabellaOrario,
-                String aeroporto, String gate, String arrivoPartenza) {
-        this.codiceUnivoco = codiceUnivoco;
-        this.compagniaAerea = compagniaAerea;
-        this.dataVolo = dataVolo;
-        this.orarioPrevisto = orarioPrevisto;
-        this.orarioStimato = orarioStimato;
-        this.stato = stato;
-        this.amministratore = amministratore;
-        this.tabellaOrario = tabellaOrario;
-        this.aeroporto = aeroporto;
-        this.gate = gate;
-        this.arrivoPartenza = arrivoPartenza;
+    protected Volo(Builder builder) {
+        this.codiceUnivoco = builder.codiceUnivoco;
+        this.compagniaAerea = builder.compagniaAerea;
+        this.dataVolo = builder.dataVolo;
+        this.orarioPrevisto = builder.orarioPrevisto;
+        this.orarioStimato = builder.orarioStimato;
+        this.stato = builder.stato;
+        this.amministratore = builder.amministratore;
+        this.tabellaOrario = builder.tabellaOrario;
+        this.aeroporto = builder.aeroporto;
+        this.gate = builder.gate;
+        this.arrivoPartenza = builder.arrivoPartenza;
     }
 
-    public Volo(String codiceUnivoco, String compagniaAerea, String dataVolo, String orarioPrevisto, String orarioStimato, StatoVolo stato, Amministratore amministratore, TabellaOrario tabellaOrario) {
-        this(codiceUnivoco, compagniaAerea, dataVolo, orarioPrevisto, orarioStimato, stato, amministratore, tabellaOrario, null, null, null);
+    // Builder interno
+    public static class Builder {
+        private final String codiceUnivoco; // obbligatorio
+        private String compagniaAerea;
+        private String dataVolo;
+        private String orarioPrevisto;
+        private String orarioStimato;
+        private StatoVolo stato;
+        private Amministratore amministratore;
+        private TabellaOrario tabellaOrario;
+        private String aeroporto;
+        private String gate;
+        private String arrivoPartenza;
+
+        public Builder(String codiceUnivoco) {
+            this.codiceUnivoco = codiceUnivoco;
+        }
+
+        public Builder compagniaAerea(String compagniaAerea) { this.compagniaAerea = compagniaAerea; return this; }
+        public Builder dataVolo(String dataVolo) { this.dataVolo = dataVolo; return this; }
+        public Builder orarioPrevisto(String orarioPrevisto) { this.orarioPrevisto = orarioPrevisto; return this; }
+        public Builder orarioStimato(String orarioStimato) { this.orarioStimato = orarioStimato; return this; }
+        public Builder stato(StatoVolo stato) { this.stato = stato; return this; }
+        public Builder amministratore(Amministratore amministratore) { this.amministratore = amministratore; return this; }
+        public Builder tabellaOrario(TabellaOrario tabellaOrario) { this.tabellaOrario = tabellaOrario; return this; }
+        public Builder aeroporto(String aeroporto) { this.aeroporto = aeroporto; return this; }
+        public Builder gate(String gate) { this.gate = gate; return this; }
+        public Builder arrivoPartenza(String arrivoPartenza) { this.arrivoPartenza = arrivoPartenza; return this; }
+
+        public Volo build() {
+            return new Volo(this);
+        }
     }
 
-    // NUOVO: overload storico “breve” (5 argomenti)
-    public Volo(String codiceUnivoco,
-                String compagniaAerea,
-                String dataVolo,
-                String orarioPrevisto,
-                StatoVolo stato) {
-        this(codiceUnivoco, compagniaAerea, dataVolo, orarioPrevisto, orarioPrevisto, stato, null, null, null, null, null);
-    }
-
-    // NUOVO: overload storico usato in alcuni DAO (7 argomenti, senza orarioStimato)
-    public Volo(String codiceUnivoco,
-                String compagniaAerea,
-                String dataVolo,
-                String orarioPrevisto,
-                StatoVolo stato,
-                Amministratore amministratore,
-                TabellaOrario tabellaOrario) {
-        this(codiceUnivoco, compagniaAerea, dataVolo, orarioPrevisto, orarioPrevisto, stato, amministratore, tabellaOrario, null, null, null);
-    }
-
-    // costruttore vuoto per il binding automatico in DAO/Controller
+    // costruttore vuoto per binding automatico (DAO/Controller)
     public Volo() {
-        // vuoto, necessario per mapping e riflessioni
+        // necessario per mapping e riflessioni
     }
 
-    // Costruttore “solo codice univoco” per DAO e mapping rapido
-    public Volo(String codiceUnivoco) {
-        this.codiceUnivoco = codiceUnivoco;
-    }
+    // Getter e Setter
+    public List<Prenotazione> getPrenotazioni() { return prenotazioni; }
+    public void setPrenotazioni(List<Prenotazione> prenotazioni) { this.prenotazioni = prenotazioni; }
 
+    public TabellaOrario getTabellaOrario() { return tabellaOrario; }
+    public void setTabellaOrario(TabellaOrario tabellaOrario) { this.tabellaOrario = tabellaOrario; }
 
-    public List<Prenotazione> getPrenotazioni() {
-        return prenotazioni;
-    }
+    public Amministratore getAmministratore() { return amministratore; }
+    public void setAmministratore(Amministratore amministratore) { this.amministratore = amministratore; }
 
-    public TabellaOrario getTabellaOrario() {
-        return tabellaOrario;
-    }
+    public String getCodiceUnivoco() { return codiceUnivoco; }
+    public void setCodiceUnivoco(String codiceUnivoco) { this.codiceUnivoco = codiceUnivoco; }
 
-    public Amministratore getAmministratore() {
-        return amministratore;
-    }
+    public String getCompagniaAerea() { return compagniaAerea; }
+    public void setCompagniaAerea(String compagniaAerea) { this.compagniaAerea = compagniaAerea; }
 
-    public String getCodiceUnivoco() {
-        return codiceUnivoco;
-    }
+    public String getDataVolo() { return dataVolo; }
+    public void setDataVolo(String dataVolo) { this.dataVolo = dataVolo; }
 
-    public String getCompagniaAerea() {
-        return compagniaAerea;
-    }
+    public String getOrarioPrevisto() { return orarioPrevisto; }
+    public void setOrarioPrevisto(String orarioPrevisto) { this.orarioPrevisto = orarioPrevisto; }
 
-    public String getDataVolo() {
-        return dataVolo;
-    }
+    public String getOrarioStimato() { return orarioStimato; }
+    public void setOrarioStimato(String orarioStimato) { this.orarioStimato = orarioStimato; }
 
-    public String getOrarioPrevisto() {
-        return orarioPrevisto;
-    }
+    public StatoVolo getStato() { return stato; }
+    public void setStato(StatoVolo stato) { this.stato = stato; }
 
-    public String getOrarioStimato() {
-        return orarioStimato;
-    }
+    public String getAeroporto() { return aeroporto; }
+    public void setAeroporto(String aeroporto) { this.aeroporto = aeroporto; }
 
-    public StatoVolo getStato() {
-        return stato;
-    }
+    public String getGate() { return gate; }
+    public void setGate(String gate) { this.gate = gate; }
 
-    public String getAeroporto() {
-        return aeroporto;
-    }
-
-    public String getGate() {
-        return gate;
-    }
-
-    public String getArrivoPartenza() {
-        return arrivoPartenza;
-    }
-
-    public void setPrenotazioni(List<Prenotazione> prenotazioni) {
-        this.prenotazioni = prenotazioni;
-    }
-
-    public void setTabellaOrario(TabellaOrario tabellaOrario) {
-        this.tabellaOrario = tabellaOrario;
-    }
-
-    public void setAmministratore(Amministratore amministratore) {
-        this.amministratore = amministratore;
-    }
-
-    public void setCodiceUnivoco(String codiceUnivoco) {
-        this.codiceUnivoco = codiceUnivoco;
-    }
-
-    public void setCompagniaAerea(String compagniaAerea) {
-        this.compagniaAerea = compagniaAerea;
-    }
-
-    public void setDataVolo(String dataVolo) {
-        this.dataVolo = dataVolo;
-    }
-
-    public void setOrarioPrevisto(String orarioPrevisto) {
-        this.orarioPrevisto = orarioPrevisto;
-    }
-
-    public void setOrarioStimato(String orarioStimato) {
-        this.orarioStimato = orarioStimato;
-    }
-
-    public void setStato(StatoVolo stato) {
-        this.stato = stato;
-    }
-
-    public void setAeroporto(String aeroporto) {
-        this.aeroporto = aeroporto;
-    }
-
-    public void setGate(String gate) {
-        this.gate = gate;
-    }
-
-    public void setArrivoPartenza(String arrivoPartenza) {
-        this.arrivoPartenza = arrivoPartenza;
-    }
+    public String getArrivoPartenza() { return arrivoPartenza; }
+    public void setArrivoPartenza(String arrivoPartenza) { this.arrivoPartenza = arrivoPartenza; }
 }
