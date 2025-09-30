@@ -476,7 +476,8 @@ public class Controller {
         for (Prenotazione p : prenotazioni) {
             if (p.getUtenteGenerico() != null &&
                     utente.getNomeUtente() != null &&
-                    equalsIgnoreCase(utente.getNomeUtente(), p.getUtenteGenerico().getNomeUtente())) {
+                    equalsIgnoreCase(utente.getNomeUtente(), p.getUtenteGenerico().getNomeUtente()) &&
+                    p.getStato() != StatoPrenotazione.CANCELLATA) {  // <-- filtro aggiunto
                 result.add(p);
             }
         }
@@ -486,7 +487,8 @@ public class Controller {
             List<Prenotazione> dalDB = prenotazioneDAO.findByEmailUtente(utente.getLogin());
             for (Prenotazione p : dalDB) {
                 if (!containsPrenotazione(prenotazioni, p.getNumBiglietto())) prenotazioni.add(p);
-                if (!containsPrenotazione(result, p.getNumBiglietto())) result.add(p);
+                if (!containsPrenotazione(result, p.getNumBiglietto()) && p.getStato() != StatoPrenotazione.CANCELLATA)
+                    result.add(p);
             }
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Errore nel caricamento prenotazioni utente={0}", utente.getLogin());
@@ -495,6 +497,7 @@ public class Controller {
 
         return result;
     }
+
 
     private boolean containsPrenotazione(List<Prenotazione> list, String numBiglietto) {
         for (Prenotazione p : list) {
