@@ -427,22 +427,16 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
 
     // Verifica duplicati lato Java (utente registrato vs anonimo)
     private boolean existsPrenotazionePerVoloEUtente(DatiPasseggero dp, String idVolo, UtenteGenerico utente) throws SQLException {
-        if (utente != null && utente.isRegistrato()) {
-            final String sql = "SELECT 1 FROM prenotazioni WHERE idvolo = ? AND emailutente = ? LIMIT 1";
-            try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.setString(1, idVolo);
-                ps.setString(2, normalizeEmail(dp.getEmail()));
-                try (ResultSet rs = ps.executeQuery()) { return rs.next(); }
+        final String sql = "SELECT 1 FROM prenotazioni WHERE idvolo = ? AND emailutente = ? LIMIT 1";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, idVolo);
+            ps.setString(2, normalizeEmail(dp.getEmail()));
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next(); // true = esiste già
             }
-        } else {
-            // utente anonimo: controlla se l'email esiste nel DB degli utenti
-            if (!utenteDao.emailEsiste(dp.getEmail())) {
-                throw new IllegalArgumentException("Email non registrata. Devi registrarti prima di prenotare.");
-            }
-            // se l’email esiste, blocca comunque la prenotazione per sicurezza
-            return true;
         }
     }
+
     public class DatabaseInitializationException extends RuntimeException {
         public DatabaseInitializationException(String message, Throwable cause) {
             super(message, cause);
