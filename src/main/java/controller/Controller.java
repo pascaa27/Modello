@@ -494,7 +494,13 @@ public class Controller {
 
         // 2) Recupero entità necessarie
         Volo v = getAndValidateVolo(in.volo.numeroVolo);
+
+        if(v.getStato() == StatoVolo.CANCELLATO) {
+            throw new IllegalStateException("Questo volo è stato cancellato. Impossibile effettuare la prenotazione.");
+        }
+
         DatiPasseggero dp = resolvePasseggero(in);
+
 
         // 3) Utente effettivo: se c'è un utente loggato NON imporre registrazione dell'email del passeggero
         UtenteGenerico utenteEffettivo;

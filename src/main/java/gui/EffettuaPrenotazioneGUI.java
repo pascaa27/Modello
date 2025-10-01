@@ -5,6 +5,7 @@ import model.Prenotazione;
 import model.StatoPrenotazione;
 import model.UtenteGenerico;
 import model.Volo;
+import model.StatoVolo;
 
 import javax.swing.*;
 import java.awt.*;
@@ -247,6 +248,10 @@ public class EffettuaPrenotazioneGUI {
             err = validateUserEligibility(email, volo);
             if(err != null) {
                 showError(err);
+                return;
+            }
+            if(volo.getStato() == StatoVolo.CANCELLATO) {
+                showError("Questo volo è stato cancellato. Impossibile effettuare la prenotazione.");
                 return;
             }
 

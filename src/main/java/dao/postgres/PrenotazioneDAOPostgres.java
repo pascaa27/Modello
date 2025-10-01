@@ -26,6 +26,9 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
     private static final String COL_NUMBIGLIETTO = "numbiglietto";
     private static final String COL_POSTO_ASSEGNATO = "postoassegnato";
     private static final String COL_STATO = "stato";
+    private static final String COL_DP_NOME = "dp_nome";
+    private static final String COL_DP_COGNOME = "dp_cognome";
+    private static final String COL_DP_CODICEFISCALE = "dp_codicefiscale";
 
     private static final String LOG_SQL_DETAILS = "Dettagli SQL exception";
 
@@ -190,9 +193,9 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
             try(ResultSet rs = ps.executeQuery()) {
                 while(rs.next()) {
                     DatiPasseggero dp = new DatiPasseggero(
-                            rs.getString("dp_nome"),
-                            rs.getString("dp_cognome"),
-                            rs.getString("dp_codicefiscale"),
+                            rs.getString(COL_DP_NOME),
+                            rs.getString(COL_DP_COGNOME),
+                            rs.getString(COL_DP_CODICEFISCALE),
                             rs.getString(COL_EMAILUTENTE)
                     );
                     Volo volo = new Volo(rs.getString(COL_IDVOLO));
@@ -228,9 +231,9 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     DatiPasseggero dp = new DatiPasseggero(
-                            rs.getString("dp_nome"),
-                            rs.getString("dp_cognome"),
-                            rs.getString("dp_codicefiscale"),
+                            rs.getString(COL_DP_NOME),
+                            rs.getString(COL_DP_COGNOME),
+                            rs.getString(COL_DP_CODICEFISCALE),
                             rs.getString(COL_EMAILUTENTE)
                     );
                     Prenotazione p = new Prenotazione(
@@ -267,13 +270,13 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
 
             while (rs.next()) {
                 DatiPasseggero dp = new DatiPasseggero(
-                        rs.getString("dp_nome"),
-                        rs.getString("dp_cognome"),
-                        null, // telefono opzionale
+                        rs.getString(COL_DP_NOME),
+                        rs.getString(COL_DP_COGNOME),
+                        null,
                         rs.getString(COL_EMAILUTENTE),
                         null  // password non necessaria qui
                 );
-                dp.setCodiceFiscale(rs.getString("dp_codicefiscale"));
+                dp.setCodiceFiscale(rs.getString(COL_DP_CODICEFISCALE));
 
                 Prenotazione p = new Prenotazione(
                         rs.getString(COL_NUMBIGLIETTO),
@@ -305,9 +308,9 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     DatiPasseggero dp = new DatiPasseggero(
-                            rs.getString("dp_nome"),
-                            rs.getString("dp_cognome"),
-                            rs.getString("dp_codicefiscale"),
+                            rs.getString(COL_DP_NOME),
+                            rs.getString(COL_DP_COGNOME),
+                            rs.getString(COL_DP_CODICEFISCALE),
                             rs.getString(COL_EMAILUTENTE)
                     );
                     Volo volo = new Volo(rs.getString(COL_IDVOLO));
