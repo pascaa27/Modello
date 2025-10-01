@@ -1,12 +1,20 @@
 package gui;
 
 import controller.Controller;
-
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
 
+/**
+ * Classe per la gestione dell'interfaccia grafica della tabella dei passeggeri.
+ * <p>
+ * Questa classe costruisce un pannello contenente una JTable con informazioni sui passeggeri
+ * come nome, cognome, email, codice fiscale, numero volo, numero prenotazione, posto assegnato
+ * e stato della prenotazione. La tabella supporta l'ordinamento automatico delle righe e
+ * utilizza colori e gradienti coerenti con l'interfaccia dell'applicazione.
+ * </p>
+ */
 public class TabellaPasseggeroGUI {
     private static final String FONT_FAMILY = "Segoe UI";
 
@@ -33,17 +41,29 @@ public class TabellaPasseggeroGUI {
     private final Color tableHeaderColor  = new Color(60, 130, 200);
     private final Color tableRowColor     = new Color(245, 249, 255);
 
+    /**
+     * Costruttore che inizializza la tabella dei passeggeri con un controller.
+     *
+     * @param controller il controller dell'applicazione per la gestione dei dati
+     */
     public TabellaPasseggeroGUI(Controller controller) {
         this.controller = controller;
         inizializzaPanel();
         inizializzaModel();
     }
 
+    /**
+     * Costruttore di default che inizializza la tabella senza un controller.
+     */
     public TabellaPasseggeroGUI() {
         inizializzaPanel();
         inizializzaModel();
     }
 
+    /**
+     * Inizializza il modello della JTable, impostando le colonne e lo stile.
+     * La tabella non permette la modifica diretta delle celle.
+     */
     private void inizializzaModel() {
         model = new DefaultTableModel(COLONNE, 0) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
@@ -62,6 +82,9 @@ public class TabellaPasseggeroGUI {
         tabellaPasseggeroTable.setSelectionForeground(mainGradientStart);
     }
 
+    /**
+     * Inizializza il pannello contenente la JTable, impostando il layout e un gradient di sfondo.
+     */
     private void inizializzaPanel() {
         tabellaPasseggeroTable = new JTable();
         tabellaPasseggeroPanel = new JPanel() {
@@ -82,19 +105,34 @@ public class TabellaPasseggeroGUI {
         tabellaPasseggeroPanel.add(scrollPane, BorderLayout.CENTER);
     }
 
+    /**
+     * Popola la tabella con le righe fornite.
+     *
+     * @param rows lista di array di oggetti, ciascuno rappresentante una riga della tabella
+     */
     public void setRows(List<Object[]> rows) {
         model.setRowCount(0);
-        if (rows != null) {
-            for (Object[] r : rows) {
+        if(rows != null) {
+            for(Object[] r : rows) {
                 model.addRow(r);
             }
         }
     }
 
+    /**
+     * Restituisce il pannello principale contenente la JTable.
+     *
+     * @return pannello principale della tabella passeggeri
+     */
     public JPanel getPanel() {
         return tabellaPasseggeroPanel;
     }
 
+    /**
+     * Restituisce la JTable contenente i dati dei passeggeri.
+     *
+     * @return JTable della tabella passeggeri
+     */
     public JTable getTable() {
         return tabellaPasseggeroTable;
     }

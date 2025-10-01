@@ -8,6 +8,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.regex.Pattern;
 
+/**
+ * Classe responsabile della gestione della GUI per l'inserimento,
+ * modifica, ricerca e cancellazione dei voli da parte di un amministratore.
+ */
 public class GestioneVoliGUI {
 
     private static final String FONT_FAMILY = "Segoe UI";
@@ -45,6 +49,12 @@ public class GestioneVoliGUI {
     private final Color buttonColor       = new Color(60, 130, 200);
     private final Color buttonHoverColor  = new Color(30, 87, 153);
 
+    /**
+     * Costruttore: crea la GUI per la gestione dei voli.
+     *
+     * @param controller   controller applicativo che gestisce la logica dei voli
+     * @param areaAmmGUI   riferimento all'area amministratore per l'aggiornamento delle tabelle
+     */
     public GestioneVoliGUI(Controller controller, AreaPersonaleAmmGUI areaAmmGUI) {
         this.controller = controller;
         this.areaAmmGUI = areaAmmGUI;
@@ -160,7 +170,7 @@ public class GestioneVoliGUI {
 
         // Combo stato
         statoVoloComboBox.removeAllItems();
-        for (StatoVolo sv : StatoVolo.values()) {
+        for(StatoVolo sv : StatoVolo.values()) {
             statoVoloComboBox.addItem(sv);
         }
 
@@ -175,18 +185,28 @@ public class GestioneVoliGUI {
         confermaModificheButton.setEnabled(false);
     }
 
+    /**
+     * Imposta il valore di default per la direzione del volo (Partenza).
+     */
     private void setDirezioneDefault() {
-        if (partenzaRadioButton != null) {
+        if(partenzaRadioButton != null) {
             partenzaRadioButton.setSelected(true);
         }
     }
 
+    /**
+     * Abilita/disabilita campi in base alla selezione di arrivo/partenza.
+     */
     private void toggleDirezione() {
-        if (gateTextField != null) {
+        if(gateTextField != null) {
             gateTextField.setEnabled(true);
         }
     }
 
+    /**
+     * Aggiunge un nuovo volo sulla base dei dati inseriti nei campi della GUI.
+     * Esegue validazioni e mostra eventuali messaggi di errore.
+     */
     private void aggiungiVolo() {
         String codice = safeText(codiceUnivocoTextField);
         String compagnia = safeText(compagniaTextField);
@@ -200,7 +220,7 @@ public class GestioneVoliGUI {
         String direzione = arrivoRadioButton.isSelected() ? ARRIVO : PARTENZA;
 
         String errore = valida(codice, compagnia, data, otherAirport, orarioPrevisto, orarioStimato, gate);
-        if (errore != null) {
+        if(errore != null) {
             JOptionPane.showMessageDialog(
                     gestioneVoliPanel,
                     errore,
@@ -210,7 +230,7 @@ public class GestioneVoliGUI {
             return;
         }
 
-        if (gateTextField == null) {
+        if(gateTextField == null) {
             JOptionPane.showMessageDialog(gestioneVoliPanel,
                     "Errore: il campo GATE non è collegato nel form.",
                     "Configurazione form", JOptionPane.ERROR_MESSAGE);
@@ -233,7 +253,7 @@ public class GestioneVoliGUI {
             JOptionPane.showMessageDialog(gestioneVoliPanel, "Volo aggiunto con successo!");
             pulisci();
             areaAmmGUI.aggiornaTabellaOrario();
-        } catch (Exception ex) {
+        } catch(Exception ex) {
             JOptionPane.showMessageDialog(
                     gestioneVoliPanel,
                     "Errore: esiste già un volo con questo codice univoco!\nDettaglio: " + ex.getMessage(),
@@ -243,10 +263,14 @@ public class GestioneVoliGUI {
         }
     }
 
+    /**
+     * Rimuove un volo identificato dal codice univoco inserito.
+     * Richiede conferma all'utente prima di procedere.
+     */
     private void rimuoviVolo() {
         String codice = safeText(codiceUnivocoTextField);
 
-        if (codice.isEmpty()) {
+        if(codice.isEmpty()) {
             JOptionPane.showMessageDialog(
                     gestioneVoliPanel,
                     "Inserisci il codice univoco del volo da rimuovere.",
@@ -263,10 +287,10 @@ public class GestioneVoliGUI {
                 JOptionPane.YES_NO_OPTION
         );
 
-        if (conferma == JOptionPane.YES_OPTION) {
+        if(conferma == JOptionPane.YES_OPTION) {
             boolean successo = controller.rimuoviVolo(codice);
 
-            if (successo) {
+            if(successo) {
                 JOptionPane.showMessageDialog(
                         gestioneVoliPanel,
                         "Volo rimosso con successo!",
@@ -286,9 +310,13 @@ public class GestioneVoliGUI {
         }
     }
 
+    /**
+     * Cerca un volo tramite codice univoco e ne popola i campi
+     * nel form della GUI.
+     */
     private void cercaVoloPerCodice() {
         String codice = safeText(codiceUnivocoTextField);
-        if (codice.isEmpty()) {
+        if(codice.isEmpty()) {
             JOptionPane.showMessageDialog(gestioneVoliPanel,
                     "Inserisci un codice volo da cercare.",
                     TITLE_CERCA_VOLO, JOptionPane.WARNING_MESSAGE);
@@ -297,7 +325,7 @@ public class GestioneVoliGUI {
 
         try {
             Volo v = controller.cercaVolo(codice);
-            if (v == null) {
+            if(v == null) {
                 JOptionPane.showMessageDialog(gestioneVoliPanel,
                         "Nessun volo trovato con codice " + codice,
                         TITLE_CERCA_VOLO, JOptionPane.INFORMATION_MESSAGE);
@@ -312,14 +340,14 @@ public class GestioneVoliGUI {
             altroAeroportoTextField.setText(v.getAeroporto());
             gateTextField.setText(v.getGate());
 
-            if (statoVoloComboBox != null) {
+            if(statoVoloComboBox != null) {
                 StatoVolo st = v.getStato();
-                if (st != null) statoVoloComboBox.setSelectedItem(st);
-                else if (statoVoloComboBox.getItemCount() > 0) statoVoloComboBox.setSelectedIndex(0);
+                if(st != null) statoVoloComboBox.setSelectedItem(st);
+                else if(statoVoloComboBox.getItemCount() > 0) statoVoloComboBox.setSelectedIndex(0);
             }
 
             String direzione = v.getArrivoPartenza();
-            if (ARRIVO.equalsIgnoreCase(direzione)) arrivoRadioButton.setSelected(true);
+            if(ARRIVO.equalsIgnoreCase(direzione)) arrivoRadioButton.setSelected(true);
             else partenzaRadioButton.setSelected(true);
             toggleDirezione();
 
@@ -327,15 +355,19 @@ public class GestioneVoliGUI {
             codiceVoloSelezionato = v.getCodiceUnivoco();
             confermaModificheButton.setEnabled(true);
 
-        } catch (Exception ex) {
+        } catch(Exception ex) {
             JOptionPane.showMessageDialog(gestioneVoliPanel,
                     "Errore durante la ricerca: " + ex.getMessage(),
                     TITLE_CERCA_VOLO, JOptionPane.ERROR_MESSAGE);
         }
     }
 
+    /**
+     * Conferma le modifiche apportate a un volo precedentemente selezionato
+     * e lo aggiorna tramite il {@link Controller}.
+     */
     private void confermaModifiche() {
-        if (codiceVoloSelezionato == null || codiceVoloSelezionato.isEmpty()) {
+        if(codiceVoloSelezionato == null || codiceVoloSelezionato.isEmpty()) {
             JOptionPane.showMessageDialog(gestioneVoliPanel,
                     "Prima cerca e carica un volo da modificare.",
                     "Modifica volo", JOptionPane.WARNING_MESSAGE);
@@ -352,7 +384,7 @@ public class GestioneVoliGUI {
         String direzione = arrivoRadioButton.isSelected() ? ARRIVO : PARTENZA;
 
         String errore = valida(codiceVoloSelezionato, compagnia, data, aeroporto, orarioPrevisto, orarioStimato, gate);
-        if (errore != null) {
+        if(errore != null) {
             JOptionPane.showMessageDialog(gestioneVoliPanel, errore, "Errore modifica volo", JOptionPane.ERROR_MESSAGE);
             return;
         }
@@ -374,14 +406,25 @@ public class GestioneVoliGUI {
             JOptionPane.showMessageDialog(gestioneVoliPanel, "Volo aggiornato con successo!");
             areaAmmGUI.aggiornaTabellaOrario();
             pulisci();
-        } catch (Exception ex) {
+        } catch(Exception ex) {
             JOptionPane.showMessageDialog(gestioneVoliPanel,
                     "Aggiornamento non riuscito: " + ex.getMessage(),
                     "Modifica volo", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    // Ridotta a 7 parametri ed elimina parametri inutilizzati (direzione, stato)
+    /**
+     * Valida i campi obbligatori di un volo.
+     *
+     * @param codice        codice univoco del volo
+     * @param compagnia     compagnia aerea
+     * @param data          data del volo (yyyy-MM-dd)
+     * @param otherAirport  aeroporto di arrivo o partenza
+     * @param orarioPrevisto orario previsto (HH:mm)
+     * @param orarioStimato  orario stimato (HH:mm)
+     * @param gate          gate di imbarco
+     * @return stringa di errore, oppure {@code null} se la validazione è superata
+     */
     private String valida(String codice,
                           String compagnia,
                           String data,
@@ -390,40 +433,43 @@ public class GestioneVoliGUI {
                           String orarioStimato,
                           String gate) {
 
-        if (codice.isEmpty()) return "Codice univoco volo obbligatorio.";
+        if(codice.isEmpty()) return "Codice univoco volo obbligatorio.";
 
-        if (compagnia.isEmpty()) return "Compagnia obbligatoria.";
+        if(compagnia.isEmpty()) return "Compagnia obbligatoria.";
 
-        if (!Pattern.matches("\\d{4}-\\d{2}-\\d{2}", data))
+        if(!Pattern.matches("\\d{4}-\\d{2}-\\d{2}", data))
             return "Data deve essere nel formato yyyy-MM-dd.";
 
-        if (!Pattern.matches("[A-Za-z]{3}", otherAirport))
+        if(!Pattern.matches("[A-Za-z]{3}", otherAirport))
             return "Altro aeroporto deve essere un codice IATA (3 lettere).";
 
-        if (otherAirport.equalsIgnoreCase(AEROPORTO_LOCALE))
+        if(otherAirport.equalsIgnoreCase(AEROPORTO_LOCALE))
             return "Altro aeroporto deve essere diverso da " + AEROPORTO_LOCALE + ".";
 
-        if (orarioPrevisto == null || !Pattern.matches(TIME_PATTERN, orarioPrevisto))
+        if(orarioPrevisto == null || !Pattern.matches(TIME_PATTERN, orarioPrevisto))
             return "Orario previsto (HH:mm) obbligatorio.";
 
-        if (orarioStimato == null || !Pattern.matches(TIME_PATTERN, orarioStimato))
+        if(orarioStimato == null || !Pattern.matches(TIME_PATTERN, orarioStimato))
             return "Orario stimato (HH:mm) obbligatorio.";
 
-        if (gate == null || gate.isEmpty())
+        if(gate == null || gate.isEmpty())
             return "Il campo Gate è obbligatorio.";
 
         return null;
     }
 
+    /**
+     * Pulisce tutti i campi della GUI e ripristina lo stato iniziale.
+     */
     private void pulisci() {
         codiceUnivocoTextField.setText("");
         compagniaTextField.setText("");
         dataTextField.setText("");
         altroAeroportoTextField.setText("");
-        if (orarioPrevistoTextField != null) orarioPrevistoTextField.setText("");
-        if (orarioStimatoTextField != null) orarioStimatoTextField.setText("");
-        if (gateTextField != null) gateTextField.setText("");
-        if (statoVoloComboBox != null && statoVoloComboBox.getItemCount() > 0) statoVoloComboBox.setSelectedIndex(0);
+        if(orarioPrevistoTextField != null) orarioPrevistoTextField.setText("");
+        if(orarioStimatoTextField != null) orarioStimatoTextField.setText("");
+        if(gateTextField != null) gateTextField.setText("");
+        if(statoVoloComboBox != null && statoVoloComboBox.getItemCount() > 0) statoVoloComboBox.setSelectedIndex(0);
 
         partenzaRadioButton.setSelected(true);
         toggleDirezione();
@@ -434,26 +480,50 @@ public class GestioneVoliGUI {
         confermaModificheButton.setEnabled(false);
     }
 
+    /**
+     * Blocca/sblocca l'editing del codice univoco del volo.
+     *
+     * @param lock true per bloccare il campo codice, false per sbloccarlo
+     */
     private void setLockCodice(boolean lock) {
-        if (codiceUnivocoTextField != null) {
+        if(codiceUnivocoTextField != null) {
             codiceUnivocoTextField.setEditable(!lock);
         }
-        if (cercaCodiceButton != null) {
+        if(cercaCodiceButton != null) {
             cercaCodiceButton.setEnabled(!lock);
         }
     }
 
+    /**
+     * Ritorna il testo contenuto in un {@link JTextField}, oppure stringa vuota se nullo.
+     *
+     * @param f text field da cui leggere il contenuto
+     * @return testo pulito senza spazi o stringa vuota
+     */
     private String safeText(JTextField f) {
         return f == null ? "" : f.getText().trim();
     }
 
     // --- Stile componenti ---
+    /**
+     * Crea un {@link JLabel} bianco con font predefinito.
+     *
+     * @param text testo della label
+     * @return label stilizzata
+     */
     private JLabel styledLabelWhite(String text) {
         JLabel l = new JLabel(text);
         l.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
         l.setForeground(Color.WHITE);
         return l;
     }
+
+    /**
+     * Crea un {@link JTextField} con sfondo chiaro e bordi arrotondati.
+     *
+     * @param text valore iniziale del campo
+     * @return text field stilizzato
+     */
     private JTextField styledTextFieldWhite(String text) {
         JTextField tf = new JTextField(text, 13);
         tf.setFont(new Font(FONT_FAMILY, Font.PLAIN, 14));
@@ -466,6 +536,13 @@ public class GestioneVoliGUI {
         tf.setCaretColor(mainGradientStart);
         return tf;
     }
+
+    /**
+     * Crea una combo box per la selezione dello stato volo.
+     *
+     * @param items array di stati disponibili
+     * @return combo box stilizzata
+     */
     private JComboBox<StatoVolo> styledComboBoxStato(StatoVolo[] items) {
         JComboBox<StatoVolo> cb = new JComboBox<>();
         cb.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
@@ -475,9 +552,16 @@ public class GestioneVoliGUI {
                 BorderFactory.createLineBorder(mainGradientStart, 1, true),
                 BorderFactory.createEmptyBorder(2, 8, 2, 8)
         ));
-        for (StatoVolo s : items) cb.addItem(s);
+        for(StatoVolo s : items) cb.addItem(s);
         return cb;
     }
+
+    /**
+     * Crea un pulsante con stile gradiente e arrotondato.
+     *
+     * @param text testo del pulsante
+     * @return pulsante stilizzato
+     */
     private JButton gradientButton(String text) {
         JButton b = new JButton(text);
         b.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
@@ -509,6 +593,12 @@ public class GestioneVoliGUI {
         return b;
     }
 
+    /**
+     * Restituisce il pannello Swing principale contenente
+     * tutti i campi e i pulsanti della gestione voli.
+     *
+     * @return pannello dati volo
+     */
     public JPanel getPanelDatiVolo() {
         return gestioneVoliPanel;
     }

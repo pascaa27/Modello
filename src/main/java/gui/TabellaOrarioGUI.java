@@ -8,6 +8,14 @@ import java.util.Arrays;
 import java.util.List;
 import controller.Controller;
 
+/**
+ * GUI per la visualizzazione della tabella orario voli.
+ * <p>
+ * La tabella contiene informazioni sui voli in partenza e in arrivo,
+ * evidenziando gli stati particolari come "In Ritardo" o "Cancellato"
+ * con colori specifici.
+ * </p>
+ */
 public class TabellaOrarioGUI {
     private static final int COL_STATO = 2; // indice colonna "Stato"
 
@@ -41,6 +49,12 @@ public class TabellaOrarioGUI {
     private final Color cancelBg = new Color(255, 205, 210); // rosso tenue
     private final Color cancelFg = new Color(60, 0, 0);
 
+    /**
+     * Costruttore: crea la GUI della tabella orario e la popola inizialmente
+     * con tutti i voli ottenuti dal controller.
+     *
+     * @param controller controller usato per recuperare i dati dei voli
+     */
     public TabellaOrarioGUI(Controller controller) {
         this.controller = controller;
         inizializzaModello();
@@ -48,8 +62,15 @@ public class TabellaOrarioGUI {
         aggiornaVoli(controller.tuttiVoli());
     }
 
+    /**
+     * Inizializza il modello dati della tabella e configura lo stile della JTable.
+     * <p>
+     * Le celle non sono modificabili e viene applicato un renderer personalizzato
+     * per evidenziare gli stati dei voli ("In Ritardo", "Cancellato").
+     * </p>
+     */
     private void inizializzaModello() {
-        if (tabellaOrarioTable == null) {
+        if(tabellaOrarioTable == null) {
             tabellaOrarioTable = new JTable();
         }
         DefaultTableModel model = new DefaultTableModel(COLONNE, 0) {
@@ -73,6 +94,13 @@ public class TabellaOrarioGUI {
         tabellaOrarioTable.setDefaultRenderer(Object.class, new StatoRowRenderer());
     }
 
+    /**
+     * Inizializza il pannello contenente la tabella.
+     * <p>
+     * Il pannello ha uno sfondo a gradiente verticale e contiene
+     * la JTable racchiusa in uno JScrollPane.
+     * </p>
+     */
     private void inizializzaPanel() {
         tabellaOrarioPanel = new JPanel() {
             @Override
@@ -92,34 +120,50 @@ public class TabellaOrarioGUI {
         tabellaOrarioPanel.add(scrollPane, BorderLayout.CENTER);
     }
 
+    /**
+     * Restituisce il pannello principale della GUI.
+     *
+     * @return il {@link JPanel} contenente la tabella orario
+     */
     public JPanel getPanel() {
         return tabellaOrarioPanel;
     }
 
+    /**
+     * Aggiorna il contenuto della tabella con una lista di righe.
+     *
+     * @param righe lista di righe da inserire nella tabella, ogni riga come array di {@link Object}
+     */
     public void aggiornaVoli(List<Object[]> righe) {
         DefaultTableModel model = (DefaultTableModel) tabellaOrarioTable.getModel();
         model.setRowCount(0);
-        if (righe == null) return;
+        if(righe == null) return;
 
-        for (Object[] r : righe) {
+        for(Object[] r : righe) {
             Object[] normalized = normalizeRow(r);
             model.addRow(normalized);
         }
     }
 
-    // Normalizza una riga alla struttura da 10 colonne richiesta dalla tabella
+    /**
+     * Normalizza una riga al formato richiesto dalla tabella (10 colonne),
+     * gestendo eventuali righe incomplete.
+     *
+     * @param r la riga da normalizzare
+     * @return array di 10 elementi
+     */
     private Object[] normalizeRow(Object[] r) {
-        if (r == null) {
+        if(r == null) {
             return new Object[10];
         }
 
         // Caso già completo
-        if (r.length >= 10) {
+        if(r.length >= 10) {
             return Arrays.copyOf(r, 10);
         }
 
         // Caso con 9 colonne (senza "Aeroporto di origine"): deriviamo origine/destinazione da direzione
-        if (r.length >= 9) {
+        if(r.length >= 9) {
             return normalizeRowFrom9(r);
         }
 
@@ -127,6 +171,10 @@ public class TabellaOrarioGUI {
         return Arrays.copyOf(r, 10);
     }
 
+    /**
+     * Normalizza righe con 9 colonne aggiungendo l'aeroporto di origine
+     * e gestendo arrivo/partenza.
+     */
     private Object[] normalizeRowFrom9(Object[] r) {
         String numeroVolo = safeStr(r[0]);
         String compagnia = safeStr(r[1]);
@@ -154,14 +202,29 @@ public class TabellaOrarioGUI {
         };
     }
 
+    /**
+     * Calcola l'aeroporto di origine e destinazione di un volo
+     * in base alla direzione ("in arrivo" o "in partenza").
+     * <p>
+     * Se la direzione è "in partenza", l'origine è fissata a "NAP"
+     * e la destinazione è l'aeroporto fornito. Se la direzione è
+     * "in arrivo", l'origine è l'aeroporto fornito e la destinazione
+     * è "NAP". In caso di valore non riconosciuto, origine e destinazione
+     * coincidono con l'aeroporto fornito.
+     * </p>
+     *
+     * @param aeroportoAltroEstremo il codice dell'altro aeroporto
+     * @param direzione la direzione del volo ("in arrivo" o "in partenza")
+     * @return array di due elementi: {origine, destinazione}
+     */
     private String[] computeOriginDest(String aeroportoAltroEstremo, String direzione) {
         String origine;
         String destinazione;
 
-        if (equalsIgnoreCaseTrim(direzione, "in partenza")) {
+        if(equalsIgnoreCaseTrim(direzione, "in partenza")) {
             origine = "NAP";
             destinazione = aeroportoAltroEstremo;
-        } else if (equalsIgnoreCaseTrim(direzione, "in arrivo")) {
+        } else if(equalsIgnoreCaseTrim(direzione, "in arrivo")) {
             origine = aeroportoAltroEstremo;
             destinazione = "NAP";
         } else {
@@ -171,16 +234,36 @@ public class TabellaOrarioGUI {
         return new String[] { origine, destinazione };
     }
 
+    /**
+     * Restituisce una rappresentazione a stringa sicura di un oggetto.
+     * <p>
+     * Se l'oggetto è null, restituisce una stringa vuota.
+     * Altrimenti, restituisce il valore ottenuto tramite {@link Object#toString()}.
+     * </p>
+     *
+     * @param o l'oggetto da convertire
+     * @return stringa non null rappresentante l'oggetto
+     */
     private static String safeStr(Object o) {
         return o == null ? "" : String.valueOf(o);
     }
 
+    /**
+     * Confronta due stringhe ignorando maiuscole/minuscole e spazi iniziali/finali.
+     *
+     * @param a prima stringa
+     * @param b seconda stringa
+     * @return true se le due stringhe sono equivalenti ignorando case e spazi
+     */
     private static boolean equalsIgnoreCaseTrim(String a, String b) {
-        if (a == null) return b == null;
+        if(a == null) return b == null;
         return a.trim().equalsIgnoreCase(b);
     }
 
     // -------- Renderer stato --------
+    /**
+     * Renderer interno per evidenziare lo stato dei voli nella tabella.
+     */
     private final class StatoRowRenderer extends DefaultTableCellRenderer {
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value,
@@ -192,16 +275,16 @@ public class TabellaOrarioGUI {
             Color bg = tableRowColor;
             Color fg = table.getForeground();
 
-            if (!isSelected && row >= 0) {
+            if(!isSelected && row >= 0) {
                 // Leggi lo "stato" dal model (non dalla view, in caso di sort)
                 int modelRow = table.convertRowIndexToModel(row);
                 Object statoObj = table.getModel().getValueAt(modelRow, COL_STATO);
                 String stato = statoObj == null ? "" : statoObj.toString();
 
-                if (isCancellato(stato)) {
+                if(isCancellato(stato)) {
                     bg = cancelBg;
                     fg = cancelFg;
-                } else if (isInRitardo(stato)) {
+                } else if(isInRitardo(stato)) {
                     bg = lateBg;
                     fg = lateFg;
                 }
@@ -212,15 +295,30 @@ public class TabellaOrarioGUI {
             return c;
         }
 
+        /**
+         * Determina se uno stato di volo rappresenta un volo in ritardo.
+         * <p>
+         * Supporta varie formattazioni, ad esempio "IN RITARDO" o "inritardo".
+         * </p>
+         *
+         * @param s lo stato del volo
+         * @return true se il volo è in ritardo, false altrimenti
+         */
         private boolean isInRitardo(String s) {
-            if (s == null) return false;
+            if(s == null) return false;
             String norm = s.trim().toLowerCase().replaceAll("[\\s_]+", "");
             // Supporta sia "INRITARDO" (enum) che "IN RITARDO"
             return "inritardo".equals(norm) || "ritardo".equals(norm);
         }
 
+        /**
+         * Determina se uno stato di volo rappresenta un volo cancellato.
+         *
+         * @param s lo stato del volo
+         * @return true se lo stato è "cancellato", false altrimenti
+         */
         private boolean isCancellato(String s) {
-            if (s == null) return false;
+            if(s == null) return false;
             String norm = s.trim().toLowerCase();
             return "cancellato".equals(norm);
         }

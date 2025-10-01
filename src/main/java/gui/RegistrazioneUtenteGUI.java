@@ -1,9 +1,12 @@
 package gui;
 
 import controller.Controller;
-
 import javax.swing.*;
 
+/**
+ * Classe che gestisce l'interfaccia grafica per la registrazione
+ * di un nuovo utente nell'applicazione.
+ */
 public class RegistrazioneUtenteGUI {
     private JTextField nomeTextField;
     private JTextField cognomeTextField;
@@ -17,7 +20,12 @@ public class RegistrazioneUtenteGUI {
     private String emailinserita;
     private String passwordinserita;
 
-
+    /**
+     * Costruttore che inizializza l'interfaccia grafica per la registrazione.
+     *
+     * @param controller il controller dell'applicazione, usato per gestire
+     *                   la logica lato business durante la registrazione.
+     */
     public RegistrazioneUtenteGUI(Controller controller) {
         this.controller = controller;
         nomeinserito= nomeTextField.getText().trim();
@@ -35,6 +43,11 @@ public class RegistrazioneUtenteGUI {
         });
     }
 
+    /**
+     * Restituisce il pannello principale della schermata di registrazione.
+     *
+     * @return il pannello Swing che rappresenta il form di registrazione
+     */
     public JPanel getRegistrazionePanel() {
         return registrazionePanel;
     }

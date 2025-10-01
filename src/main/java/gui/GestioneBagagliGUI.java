@@ -7,6 +7,9 @@ import model.StatoBagaglio;
 import javax.swing.*;
 import java.awt.*;
 
+/**
+ * Classe che gestisce l'interfaccia grafica per la gestione dei bagagli.
+ */
 public class GestioneBagagliGUI {
     private static final String FONT_FAMILY = "Segoe UI";
 
@@ -27,6 +30,14 @@ public class GestioneBagagliGUI {
     private final Color buttonColor       = new Color(60, 130, 200);
     private final Color buttonHoverColor  = new Color(30, 87, 153);
 
+    /**
+     * Costruttore: crea l'interfaccia per gestire i bagagli.
+     * Inizializza i campi di testo, la ComboBox degli stati e i bottoni.
+     * Collega i bottoni ai rispettivi listener per aggiungere, modificare e rimuovere bagagli.
+     *
+     * @param controller Controller per gestire la logica dei bagagli
+     * @param areaAmmGUI Riferimento alla GUI dell'area personale amministratore
+     */
     public GestioneBagagliGUI(Controller controller, AreaPersonaleAmmGUI areaAmmGUI) {
         this.controller = controller;
         this.areaAmmGUI = areaAmmGUI;
@@ -87,12 +98,25 @@ public class GestioneBagagliGUI {
     }
 
     // --- Stile componenti ---
+    /**
+     * Crea un'etichetta con testo bianco e font personalizzato.
+     *
+     * @param text Testo dell'etichetta
+     * @return JLabel stilizzata
+     */
     private JLabel styledLabelWhite(String text) {
         JLabel l = new JLabel(text);
         l.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
         l.setForeground(Color.WHITE);
         return l;
     }
+
+    /**
+     * Crea un campo di testo stilizzato per l'inserimento di dati.
+     *
+     * @param text Testo iniziale
+     * @return JTextField stilizzato
+     */
     private JTextField styledTextFieldWhite(String text) {
         JTextField tf = new JTextField(text, 13);
         tf.setFont(new Font(FONT_FAMILY, Font.PLAIN, 14));
@@ -105,6 +129,13 @@ public class GestioneBagagliGUI {
         tf.setCaretColor(mainGradientStart);
         return tf;
     }
+
+    /**
+     * Crea una ComboBox per selezionare lo stato del bagaglio con stile personalizzato.
+     *
+     * @param items Array di valori {@link StatoBagaglio} da inserire nella ComboBox
+     * @return JComboBox stilizzata contenente gli stati del bagaglio
+     */
     private JComboBox<StatoBagaglio> styledComboBoxStato(StatoBagaglio[] items) {
         JComboBox<StatoBagaglio> cb = new JComboBox<>();
         cb.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
@@ -114,9 +145,16 @@ public class GestioneBagagliGUI {
                 BorderFactory.createLineBorder(mainGradientStart, 1, true),
                 BorderFactory.createEmptyBorder(2, 8, 2, 8)
         ));
-        for (StatoBagaglio s : items) cb.addItem(s);
+        for(StatoBagaglio s : items) cb.addItem(s);
         return cb;
     }
+
+    /**
+     * Crea un JButton con effetto gradiente e stile personalizzato.
+     *
+     * @param text Testo del pulsante
+     * @return JButton stilizzato
+     */
     private JButton gradientButton(String text) {
         JButton b = new JButton(text);
         b.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
@@ -149,18 +187,21 @@ public class GestioneBagagliGUI {
     }
 
     // --- Logica funzionale ---
-
+    /**
+     * Aggiunge un nuovo bagaglio tramite il controller.
+     * Valida i campi e mostra messaggi di errore o conferma tramite JOptionPane.
+     */
     private void aggiungiBagaglio() {
         String codice = codiceBagaglioTextField.getText().trim();
         StatoBagaglio stato = (StatoBagaglio) statoBagaglioComboBox.getSelectedItem();
 
-        if (codice.isEmpty() || stato == null) {
+        if(codice.isEmpty() || stato == null) {
             JOptionPane.showMessageDialog(panelBagaglio, "Compila tutti i campi!");
             return;
         }
 
         boolean added = controller.aggiungiBagaglio(codice, stato);
-        if (added) {
+        if(added) {
             JOptionPane.showMessageDialog(panelBagaglio, "Bagaglio aggiunto con successo!");
             codiceBagaglioTextField.setText("");
             areaAmmGUI.caricaTuttiBagagli();
@@ -169,11 +210,16 @@ public class GestioneBagagliGUI {
         }
     }
 
+    /**
+     * Modifica lo stato di un bagaglio esistente.
+     * Verifica l'esistenza del bagaglio e aggiorna il controller.
+     * Mostra messaggi di conferma o errore.
+     */
     private void modificaBagaglio() {
         String codice = codiceBagaglioTextField.getText().trim();
         StatoBagaglio nuovoStato = (StatoBagaglio) statoBagaglioComboBox.getSelectedItem();
 
-        if (codice.isEmpty() || nuovoStato == null) {
+        if(codice.isEmpty() || nuovoStato == null) {
             JOptionPane.showMessageDialog(panelBagaglio, "Inserisci codice e stato!");
             return;
         }
@@ -182,7 +228,7 @@ public class GestioneBagagliGUI {
                 .filter(b -> b.getCodUnivoco().equalsIgnoreCase(codice))
                 .findFirst().orElse(null);
 
-        if (daAggiornare == null) {
+        if(daAggiornare == null) {
             JOptionPane.showMessageDialog(panelBagaglio, "Bagaglio non trovato.");
             return;
         }
@@ -190,7 +236,7 @@ public class GestioneBagagliGUI {
         daAggiornare.setStato(nuovoStato);
 
         boolean ok = controller.aggiornaBagaglio(daAggiornare);
-        if (ok) {
+        if(ok) {
             JOptionPane.showMessageDialog(panelBagaglio, "Bagaglio aggiornato!");
             codiceBagaglioTextField.setText("");
             areaAmmGUI.caricaTuttiBagagli();
@@ -199,10 +245,15 @@ public class GestioneBagagliGUI {
         }
     }
 
+    /**
+     * Rimuove un bagaglio esistente dal sistema.
+     * Chiede conferma all'utente prima di eliminare e aggiorna il controller.
+     * Mostra messaggi di conferma o errore.
+     */
     private void rimuoviBagaglio() {
         String codice = codiceBagaglioTextField.getText().trim();
 
-        if (codice.isEmpty()) {
+        if(codice.isEmpty()) {
             JOptionPane.showMessageDialog(panelBagaglio, "Inserisci il codice del bagaglio.");
             return;
         }
@@ -212,10 +263,10 @@ public class GestioneBagagliGUI {
                 "Conferma eliminazione",
                 JOptionPane.YES_NO_OPTION);
 
-        if (conferma != JOptionPane.YES_OPTION) return;
+        if(conferma != JOptionPane.YES_OPTION) return;
 
         boolean removed = controller.rimuoviBagaglio(codice);
-        if (removed) {
+        if(removed) {
             JOptionPane.showMessageDialog(panelBagaglio, "Bagaglio rimosso con successo!");
             codiceBagaglioTextField.setText("");
             areaAmmGUI.caricaTuttiBagagli();
@@ -224,6 +275,11 @@ public class GestioneBagagliGUI {
         }
     }
 
+    /**
+     * Restituisce il pannello principale della GUI dei bagagli.
+     *
+     * @return JPanel contenente tutti i componenti dell'interfaccia
+     */
     public JPanel getPanelBagaglio() {
         return panelBagaglio;
     }

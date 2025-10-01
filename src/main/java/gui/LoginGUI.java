@@ -12,6 +12,10 @@ import model.DatiPasseggero;
 import dao.DatiPasseggeroDAO;
 import dao.postgres.DatiPasseggeroDAOPostgres;
 
+/**
+ * Gestisce l'interfaccia grafica per l'autenticazione (login e registrazione)
+ * degli utenti dell'applicazione Aeroporto.
+ */
 public class LoginGUI {
     private static final String FONT_FAMILY = "Segoe UI";
     private static final String BTN_SHOW = "Show";
@@ -41,12 +45,24 @@ public class LoginGUI {
 
     private boolean passwordVisible = false;
 
+    /**
+     * Costruisce la finestra di login e inizializza i componenti grafici.
+     *
+     * @param controller      controller principale che gestisce la logica dell'applicazione
+     * @param amministratore  oggetto amministratore da usare per l'area riservata admin
+     */
     public LoginGUI(Controller controller, Amministratore amministratore) {
         this.controller = controller;
         this.datiPasseggeroDAO = new DatiPasseggeroDAOPostgres();
         initUI(amministratore);
     }
 
+    /**
+     * Inizializza i componenti grafici della schermata di login,
+     * includendo campi di input, password, pulsanti e listener.
+     *
+     * @param amministratore istanza di amministratore per l'accesso admin
+     */
     private void initUI(Amministratore amministratore) {
         loginPanel = createGradientPanel();
         loginPanel.setLayout(new GridBagLayout());
@@ -60,6 +76,11 @@ public class LoginGUI {
         attachListeners(amministratore);
     }
 
+    /**
+     * Crea un pannello con sfondo a gradiente blu.
+     *
+     * @return pannello con gradiente
+     */
     private JPanel createGradientPanel() {
         return new JPanel() {
             @Override
@@ -75,6 +96,11 @@ public class LoginGUI {
         };
     }
 
+    /**
+     * Imposta i vincoli di base del {@link GridBagLayout}.
+     *
+     * @return oggetto {@link GridBagConstraints} preconfigurato
+     */
     private GridBagConstraints baseGbc() {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(14, 18, 8, 18);
@@ -86,6 +112,11 @@ public class LoginGUI {
         return gbc;
     }
 
+    /**
+     * Aggiunge i campi di input Nome, Cognome ed Email al form di login.
+     *
+     * @param gbc vincoli di posizionamento GridBag
+     */
     private void addFormFields(GridBagConstraints gbc) {
         // Nome
         loginPanel.add(styledLabelWhite("Nome:"), gbc);
@@ -108,6 +139,12 @@ public class LoginGUI {
         loginPanel.add(emailTextField, gbc);
     }
 
+    /**
+     * Aggiunge la riga per l'inserimento della password,
+     * con campo {@link JPasswordField} e bottone show/hide.
+     *
+     * @param gbc vincoli di posizionamento GridBag
+     */
     private void addPasswordRow(GridBagConstraints gbc) {
         gbc.gridx = 0; gbc.gridy++;
         loginPanel.add(styledLabelWhite("Password:"), gbc);
@@ -139,6 +176,11 @@ public class LoginGUI {
         loginPanel.add(passwordPanel, gbc);
     }
 
+    /**
+     * Aggiunge i pulsanti "Accedi" e "Registrati" alla GUI.
+     *
+     * @param gbc vincoli di posizionamento GridBag
+     */
     private void addButtonsRow(GridBagConstraints gbc) {
         gbc.gridx = 0; gbc.gridy++;
         gbc.gridwidth = 2;
@@ -156,11 +198,21 @@ public class LoginGUI {
         loginPanel.add(bottoniPanel, gbc);
     }
 
+    /**
+     * Collega i listener ai pulsanti di login e registrazione.
+     *
+     * @param amministratore istanza amministratore per l'accesso admin
+     */
     private void attachListeners(Amministratore amministratore) {
         accediButton.addActionListener(e -> doLogin(amministratore));
         registratiButton.addActionListener(e -> doRegister());
     }
 
+    /**
+     * Esegue il login con i dati inseriti dall'utente.
+     *
+     * @param amministratore istanza amministratore per accesso privilegiato
+     */
     private void doLogin(Amministratore amministratore) {
         String nome = nomeTextField.getText().trim();
         String cognome = cognomeTextField1.getText().trim();
@@ -168,23 +220,23 @@ public class LoginGUI {
         String password = new String(passwordField.getPassword()).trim();
 
         // Controlli base
-        if (nome.isEmpty() || cognome.isEmpty() || email.isEmpty() || password.isEmpty()) {
+        if(nome.isEmpty() || cognome.isEmpty() || email.isEmpty() || password.isEmpty()) {
             JOptionPane.showMessageDialog(null, "Compila tutti i campi per l'accesso!");
             return;
         }
-        if (!Character.isUpperCase(nome.charAt(0)) || !Character.isUpperCase(cognome.charAt(0))) {
+        if(!Character.isUpperCase(nome.charAt(0)) || !Character.isUpperCase(cognome.charAt(0))) {
             JOptionPane.showMessageDialog(null, "Nome e Cognome devono iniziare con lettera maiuscola.");
             return;
         }
-        if (!email.equals(email.toLowerCase())) {
+        if(!email.equals(email.toLowerCase())) {
             JOptionPane.showMessageDialog(null, "L'email deve essere tutta minuscola.");
             return;
         }
 
         // Admin hardcoded
-        if (email.equals(ADMIN_EMAIL) && password.equals(ADMIN_PASS)) {
+        if(email.equals(ADMIN_EMAIL) && password.equals(ADMIN_PASS)) {
             JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(loginPanel);
-            if (frame != null) frame.dispose();
+            if(frame != null) frame.dispose();
 
             JFrame nuovoFrame = new JFrame("Area Personale Amministratore");
             nuovoFrame.setContentPane(new AreaPersonaleAmmGUI(controller, amministratore).getAreaPersonaleAmmPanel());
@@ -197,7 +249,7 @@ public class LoginGUI {
 
         // Login persistente su DB
         DatiPasseggero p = datiPasseggeroDAO.findByEmail(email);
-        if (p != null && Objects.equals(p.getPassword(), password)) {
+        if(p != null && Objects.equals(p.getPassword(), password)) {
             UtenteGenerico utente = new UtenteGenerico(
                     p.getEmail(),
                     p.getPassword(),
@@ -208,7 +260,7 @@ public class LoginGUI {
             );
 
             JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(loginPanel);
-            if (frame != null) frame.dispose();
+            if(frame != null) frame.dispose();
 
             JFrame nuovoFrame = new JFrame("Area Personale Utente");
             nuovoFrame.setContentPane(new AreaPersonaleUtenteGUI(controller, utente).getPanel());
@@ -221,36 +273,39 @@ public class LoginGUI {
         }
     }
 
+    /**
+     * Esegue la registrazione di un nuovo utente.
+     */
     private void doRegister() {
         String nome = nomeTextField.getText().trim();
         String cognome = cognomeTextField1.getText().trim();
         String email = emailTextField.getText().trim();
         String password = new String(passwordField.getPassword()).trim();
 
-        if (nome.isEmpty() || cognome.isEmpty() || email.isEmpty() || password.isEmpty()) {
+        if(nome.isEmpty() || cognome.isEmpty() || email.isEmpty() || password.isEmpty()) {
             JOptionPane.showMessageDialog(null, "Compila tutti i campi per la registrazione!");
             return;
         }
-        if (!Character.isUpperCase(nome.charAt(0)) || !Character.isUpperCase(cognome.charAt(0))) {
+        if(!Character.isUpperCase(nome.charAt(0)) || !Character.isUpperCase(cognome.charAt(0))) {
             JOptionPane.showMessageDialog(null, "Nome e Cognome devono iniziare con lettera MAIUSCOLA.");
             return;
         }
-        if (!email.equals(email.toLowerCase())) {
+        if(!email.equals(email.toLowerCase())) {
             JOptionPane.showMessageDialog(null, "L'email deve essere tutta minuscola.");
             return;
         }
-        if (email.equals(ADMIN_EMAIL)) {
+        if(email.equals(ADMIN_EMAIL)) {
             JOptionPane.showMessageDialog(null, "Email già registrata!");
             return;
         }
-        if (datiPasseggeroDAO.findByEmail(email) != null) {
+        if(datiPasseggeroDAO.findByEmail(email) != null) {
             JOptionPane.showMessageDialog(null, "Email già registrata nel database!");
             return;
         }
 
         DatiPasseggero nuovoPasseggero = new DatiPasseggero(nome, cognome, null, email, password);
         boolean inserito = datiPasseggeroDAO.insert(nuovoPasseggero);
-        if (!inserito) {
+        if(!inserito) {
             JOptionPane.showMessageDialog(null, "Errore durante la registrazione nel database. Riprova.");
             return;
         }
@@ -258,8 +313,12 @@ public class LoginGUI {
         JOptionPane.showMessageDialog(null, "Registrazione avvenuta con successo! Ora puoi accedere.");
     }
 
+    /**
+     * Alterna la visibilità del campo password tra nascosto e visibile.
+     * Aggiorna anche il testo del bottone show/hide.
+     */
     private void togglePasswordVisibility() {
-        if (passwordVisible) {
+        if(passwordVisible) {
             passwordField.setEchoChar('•');
             showHideButton.setText(BTN_SHOW);
         } else {
@@ -269,6 +328,12 @@ public class LoginGUI {
         passwordVisible = !passwordVisible;
     }
 
+    /**
+     * Crea una label bianca con font bold.
+     *
+     * @param text testo della label
+     * @return label stilizzata
+     */
     private JLabel styledLabelWhite(String text) {
         JLabel l = new JLabel(text);
         l.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
@@ -276,6 +341,12 @@ public class LoginGUI {
         return l;
     }
 
+    /**
+     * Crea un campo di testo con stile personalizzato (sfondo chiaro, bordo arrotondato).
+     *
+     * @param text testo iniziale
+     * @return campo di testo stilizzato
+     */
     private JTextField styledTextFieldWhite(String text) {
         JTextField tf = new JTextField(text, 13);
         tf.setFont(new Font(FONT_FAMILY, Font.PLAIN, 14));
@@ -289,6 +360,11 @@ public class LoginGUI {
         return tf;
     }
 
+    /**
+     * Crea un campo password con stile personalizzato.
+     *
+     * @return password field stilizzato
+     */
     private JPasswordField styledPasswordField() {
         JPasswordField pf = new JPasswordField(13);
         pf.setFont(new Font(FONT_FAMILY, Font.PLAIN, 14));
@@ -303,7 +379,12 @@ public class LoginGUI {
         return pf;
     }
 
-    // gradientButton per Accedi/Registrati
+    /**
+     * Crea un pulsante con sfondo gradiente e bordi arrotondati.
+     *
+     * @param text testo del pulsante
+     * @return pulsante stilizzato
+     */
     private JButton gradientButton(String text) {
         JButton b = new JButton(text);
         b.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
@@ -336,10 +417,20 @@ public class LoginGUI {
         return b;
     }
 
+    /**
+     * Restituisce il pannello principale della schermata di login.
+     *
+     * @return pannello login
+     */
     public JPanel getLoginPanel() {
         return loginPanel;
     }
 
+    /**
+     * Metodo main di test per lanciare la schermata di login in autonomia.
+     *
+     * @param args argomenti da linea di comando (non utilizzati)
+     */
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             Controller controller = new Controller();

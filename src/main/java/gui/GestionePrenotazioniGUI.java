@@ -5,6 +5,9 @@ import java.awt.*;
 import controller.Controller;
 import model.*;
 
+/**
+ * Classe che gestisce l'interfaccia grafica per la gestione delle prenotazioni.
+ */
 public class GestionePrenotazioniGUI {
     private static final String FONT_FAMILY = "Segoe UI";
     private static final String MSG_ERRORE_TITLE = "Errore";
@@ -26,6 +29,14 @@ public class GestionePrenotazioniGUI {
     private final Color buttonColor       = new Color(60, 130, 200);
     private final Color buttonHoverColor  = new Color(30, 87, 153);
 
+    /**
+     * Costruttore: crea l'interfaccia per la gestione delle prenotazioni.
+     * Inizializza i campi e imposta i listener per aggiungere o rimuovere prenotazioni.
+     *
+     * @param controller Controller per la gestione logica
+     * @param utente Utente corrente (utilizzato per creare o recuperare un utente generico)
+     * @param areaPersonaleAmmGUI Riferimento all'interfaccia amministratore
+     */
     public GestionePrenotazioniGUI(Controller controller, Utente utente, AreaPersonaleAmmGUI areaPersonaleAmmGUI) {
         this.controller = controller;
         this.areaPersonaleAmmGUI = areaPersonaleAmmGUI;
@@ -93,7 +104,7 @@ public class GestionePrenotazioniGUI {
 
         // Ricava/crea l'utente generico solo localmente (nessun field 'utente')
         UtenteGenerico utenteGenerico;
-        if (controller.getUtenteByEmail(utente.getNomeUtente()) == null) {
+        if(controller.getUtenteByEmail(utente.getNomeUtente()) == null) {
             utenteGenerico = controller.creaUtenteGenerico(utente.getNomeUtente());
         } else {
             utenteGenerico = controller.getUtenteByEmail(utente.getNomeUtente());
@@ -104,7 +115,7 @@ public class GestionePrenotazioniGUI {
             String posto = postoTextField.getText().trim();
             String numeroVolo = numeroVoloTextField.getText().trim();
 
-            if (numeroBiglietto.isEmpty() || posto.isEmpty() || numeroVolo.isEmpty()) {
+            if(numeroBiglietto.isEmpty() || posto.isEmpty() || numeroVolo.isEmpty()) {
                 JOptionPane.showMessageDialog(panelPrenotazione,
                         "Compila prima tutti i campi obbligatori.",
                         MSG_ERRORE_TITLE,
@@ -125,7 +136,7 @@ public class GestionePrenotazioniGUI {
             String codiceFiscale = datiGUI.getCodiceFiscaleInserito();
             String email = datiGUI.getEmailInserita();
 
-            if (nome == null || cognome == null || codiceFiscale == null || email == null ||
+            if(nome == null || cognome == null || codiceFiscale == null || email == null ||
                     nome.isEmpty() || cognome.isEmpty() || codiceFiscale.isEmpty() || email.isEmpty()) {
                 JOptionPane.showMessageDialog(panelPrenotazione,
                         "Compila correttamente tutti i dati del passeggero (inclusa l'email).",
@@ -137,7 +148,7 @@ public class GestionePrenotazioniGUI {
             StatoPrenotazione stato = (StatoPrenotazione) statoPrenotazioneComboBox.getSelectedItem();
             Volo volo = controller.getVoloByCodice(numeroVolo);
 
-            if (volo == null) {
+            if(volo == null) {
                 JOptionPane.showMessageDialog(panelPrenotazione,
                         "Il volo con codice " + numeroVolo + " non esiste.",
                         MSG_ERRORE_TITLE,
@@ -145,18 +156,14 @@ public class GestionePrenotazioniGUI {
                 return;
             }
 
-            controller.aggiungiPrenotazione(
-                    numeroBiglietto,
-                    null,
-                    stato,
-                    numeroVolo,
-                    utenteGenerico,
-                    nome,
-                    cognome,
-                    codiceFiscale,
-                    email,
-                    null
+            Controller.PrenotazioneInput input = Controller.PrenotazioneInput.of(
+                    new Controller.PrenotazioneBase(numeroBiglietto, posto, stato),
+                    new Controller.VoloRef(numeroVolo, utenteGenerico),
+                    new Controller.PasseggeroInfo(nome, cognome, codiceFiscale, email)
             );
+
+            Prenotazione pren = controller.aggiungiPrenotazione(input);
+
 
             areaPersonaleAmmGUI.aggiornaTabellaPasseggeri();
 
@@ -171,10 +178,15 @@ public class GestionePrenotazioniGUI {
         rimuoviPrenotazioneButton.addActionListener(e -> rimuoviPrenotazione());
     }
 
+    /**
+     * Rimuove una prenotazione in base al numero inserito.
+     * Mostra finestre di conferma o errore tramite {@link JOptionPane}.
+     * Aggiorna la tabella passeggeri in {@link AreaPersonaleAmmGUI}.
+     */
     private void rimuoviPrenotazione() {
         String numeroBiglietto = numeroPrenotazioneTextField.getText().trim();
 
-        if (numeroBiglietto.isEmpty()) {
+        if(numeroBiglietto.isEmpty()) {
             JOptionPane.showMessageDialog(panelPrenotazione,
                     "Inserisci il numero della prenotazione da rimuovere.",
                     MSG_ERRORE_TITLE,
@@ -184,7 +196,7 @@ public class GestionePrenotazioniGUI {
 
         boolean rimosso = controller.rimuoviPrenotazione(numeroBiglietto);
 
-        if (rimosso) {
+        if(rimosso) {
             JOptionPane.showMessageDialog(panelPrenotazione,
                     "Prenotazione rimossa con successo!");
             areaPersonaleAmmGUI.aggiornaTabellaPasseggeri();
@@ -201,12 +213,25 @@ public class GestionePrenotazioniGUI {
     }
 
     // --- Stile componenti ---
+    /**
+     * Crea un'etichetta stilizzata con testo bianco e font in grassetto.
+     *
+     * @param text Testo dell'etichetta
+     * @return JLabel stilizzata
+     */
     private JLabel styledLabelWhite(String text) {
         JLabel l = new JLabel(text);
         l.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
         l.setForeground(Color.WHITE);
         return l;
     }
+
+    /**
+     * Crea un campo di testo con sfondo chiaro e bordi personalizzati.
+     *
+     * @param text Testo iniziale del campo
+     * @return JTextField stilizzato
+     */
     private JTextField styledTextFieldWhite(String text) {
         JTextField tf = new JTextField(text, 13);
         tf.setFont(new Font(FONT_FAMILY, Font.PLAIN, 14));
@@ -219,6 +244,13 @@ public class GestionePrenotazioniGUI {
         tf.setCaretColor(mainGradientStart);
         return tf;
     }
+
+    /**
+     * Crea una {@link JComboBox} stilizzata contenente gli stati di prenotazione.
+     *
+     * @param items Array di stati {@link StatoPrenotazione} da inserire
+     * @return JComboBox personalizzata
+     */
     private JComboBox<StatoPrenotazione> styledComboBoxStato(StatoPrenotazione[] items) {
         JComboBox<StatoPrenotazione> cb = new JComboBox<>();
         cb.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
@@ -228,9 +260,16 @@ public class GestionePrenotazioniGUI {
                 BorderFactory.createLineBorder(mainGradientStart, 1, true),
                 BorderFactory.createEmptyBorder(2, 8, 2, 8)
         ));
-        for (StatoPrenotazione s : items) cb.addItem(s);
+        for(StatoPrenotazione s : items) cb.addItem(s);
         return cb;
     }
+
+    /**
+     * Crea un pulsante con stile gradiente personalizzato.
+     *
+     * @param text Testo del pulsante
+     * @return JButton stilizzato
+     */
     private JButton gradientButton(String text) {
         JButton b = new JButton(text);
         b.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
@@ -262,6 +301,11 @@ public class GestionePrenotazioniGUI {
         return b;
     }
 
+    /**
+     * Restituisce il pannello principale della GUI.
+     *
+     * @return JPanel con l'interfaccia di gestione prenotazioni
+     */
     public JPanel getPanelPrenotazione() {
         return panelPrenotazione;
     }

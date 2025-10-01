@@ -411,7 +411,7 @@ public class CercaModificaPrenotazioneGUI {
         try {
             StatoPrenotazione stato = StatoPrenotazione.valueOf(statoString.toUpperCase());
             prenotazioneCorrente.setStato(stato);
-        } catch (IllegalArgumentException _) {
+        } catch(IllegalArgumentException _) {
             messaggioTextArea.setText("Stato non valido.");
             return;
         }

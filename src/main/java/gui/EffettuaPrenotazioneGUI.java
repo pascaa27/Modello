@@ -223,35 +223,47 @@ public class EffettuaPrenotazioneGUI {
         String destinazione = aeroportoDestinazioneTextField.getText().trim().toUpperCase();
 
         String err = validateDatiBase(nome, cognome, codiceFiscale, destinazione);
-        if(err != null) { showError(err); return; }
+        if(err != null) {
+            showError(err);
+            return;
+        }
 
         LocalDate dataInizio = buildDate(annoInizioComboBox, meseInizioComboBox, giornoInizioComboBox);
         LocalDate dataFine   = buildDate(annoFineComboBox, meseFineComboBox, giornoFineComboBox);
 
         err = validateDateRange(dataInizio, dataFine);
-        if(err != null) { showError(err); return; }
+        if(err != null) {
+            showError(err);
+            return;
+        }
 
         try {
             Volo volo = controller.cercaVoloPerDestinazioneEData(destinazione, dataInizio.toString());
-            if(volo == null) { showError("Nessun volo trovato per questa destinazione e data!"); return; }
+            if(volo == null) {
+                showError("Nessun volo trovato per questa destinazione e data!");
+                return;
+            }
 
             err = validateUserEligibility(email, volo);
-            if(err != null) { showError(err); return; }
+            if(err != null) {
+                showError(err);
+                return;
+            }
 
             String numeroBiglietto = generateTicket();
-            Prenotazione pren = controller.aggiungiPrenotazione(
-                    numeroBiglietto,
-                    "",
-                    StatoPrenotazione.CONFERMATA,
-                    volo.getCodiceUnivoco(),
-                    utente,
-                    nome,
-                    cognome,
-                    codiceFiscale,
-                    email,
-                    null
+
+            Controller.PrenotazioneInput input = Controller.PrenotazioneInput.of(
+                    new Controller.PrenotazioneBase(numeroBiglietto, "", StatoPrenotazione.CONFERMATA),
+                    new Controller.VoloRef(volo.getCodiceUnivoco(), utente),
+                    new Controller.PasseggeroInfo(nome, cognome, codiceFiscale, email)
             );
-            if(pren == null) { showError("Creazione prenotazione fallita."); return; }
+
+            Prenotazione pren = controller.aggiungiPrenotazione(input);
+
+            if(pren == null) {
+                showError("Creazione prenotazione fallita.");
+                return;
+            }
 
             showInfo(
                     "Prenotazione effettuata con successo!\n" +
@@ -262,6 +274,7 @@ public class EffettuaPrenotazioneGUI {
             if(utente != null) {
                 utente.aggiungiCodicePrenotazione(pren.getNumBiglietto());
             }
+
         } catch(Exception ex) {
             showError("Errore durante la prenotazione: " + ex.getMessage());
             ex.printStackTrace();
