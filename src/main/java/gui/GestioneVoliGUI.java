@@ -218,7 +218,7 @@ public class GestioneVoliGUI {
         }
 
         try {
-            controller.aggiungiVolo(
+            Controller.VoloInput input = new Controller.VoloInput(
                     codice,
                     compagnia,
                     data,
@@ -229,6 +229,7 @@ public class GestioneVoliGUI {
                     otherAirport,
                     gate
             );
+            controller.aggiungiVolo(input);
             JOptionPane.showMessageDialog(gestioneVoliPanel, "Volo aggiunto con successo!");
             pulisci();
             areaAmmGUI.aggiornaTabellaOrario();
@@ -357,7 +358,7 @@ public class GestioneVoliGUI {
         }
 
         try {
-            controller.aggiornaVolo(
+            Controller.VoloInput input = new Controller.VoloInput(
                     codiceVoloSelezionato,
                     compagnia,
                     data,
@@ -368,6 +369,8 @@ public class GestioneVoliGUI {
                     aeroporto,
                     gate
             );
+            controller.aggiornaVolo(input);
+
             JOptionPane.showMessageDialog(gestioneVoliPanel, "Volo aggiornato con successo!");
             areaAmmGUI.aggiornaTabellaOrario();
             pulisci();
