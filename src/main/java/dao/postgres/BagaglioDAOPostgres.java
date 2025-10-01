@@ -13,6 +13,11 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Implementazione Postgres del DAO per i Bagagli.
+ * - Esegue le operazioni CRUD sulla tabella public.bagagli.
+ * - Può collegarsi al Controller per risolvere la prenotazione associata (se presente).
+ */
 public class BagaglioDAOPostgres implements BagaglioDAO {
 
     private static final Logger LOGGER = Logger.getLogger(BagaglioDAOPostgres.class.getName());
@@ -24,6 +29,10 @@ public class BagaglioDAOPostgres implements BagaglioDAO {
     private final Connection conn;
     private Controller controller;
 
+    /**
+     * Costruttore: apre la connessione al database.
+     * @throws DatabaseInitializationException se la connessione non può essere aperta
+     */
     public BagaglioDAOPostgres() {
         try {
             this.conn = ConnessioneDatabase.getInstance().getConnection();
@@ -32,10 +41,19 @@ public class BagaglioDAOPostgres implements BagaglioDAO {
         }
     }
 
+    /**
+     * Inietta il Controller per consentire la risoluzione della Prenotazione associata ai bagagli.
+     * @param controller istanza di Controller dell'applicazione
+     */
     public void setController(Controller controller) {
         this.controller = controller;
     }
 
+    /**
+     * Trova tutti i bagagli associati a una prenotazione (per numero biglietto).
+     * @param numBiglietto
+     * @return lista di bagagli collegati (vuota se nessuno)
+     */
     @Override
     public List<Bagaglio> findByPrenotazione(String numBiglietto) {
         List<Bagaglio> bagagli = new ArrayList<>();
@@ -54,6 +72,11 @@ public class BagaglioDAOPostgres implements BagaglioDAO {
         return bagagli;
     }
 
+    /**
+     * Trova un bagaglio per codice univoco.
+     * @param codice
+     * @return bagaglio trovato oppure null se assente
+     */
     public Bagaglio findById(String codice) {
         final String sql = SQL_SELECT + SELECT_COLUMNS + " FROM public.bagagli WHERE codUnivoco = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -78,6 +101,10 @@ public class BagaglioDAOPostgres implements BagaglioDAO {
         return null;
     }
 
+    /**
+     * Restituisce l'elenco completo dei bagagli.
+     * @return lista di tutti i bagagli (può essere vuota)
+     */
     @Override
     public List<Bagaglio> findAll() {
         List<Bagaglio> bagagli = new ArrayList<>();
@@ -94,6 +121,11 @@ public class BagaglioDAOPostgres implements BagaglioDAO {
         return bagagli;
     }
 
+    /**
+     * Inserisce un nuovo bagaglio.
+     * @param bagaglio
+     * @return true se l'inserimento ha avuto successo
+     */
     @Override
     public boolean insert(Bagaglio bagaglio) {
         final String sql = "INSERT INTO public.bagagli (codUnivoco, pesoKg, stato, numBiglietto) VALUES (?, ?, ?, ?)";
@@ -116,6 +148,11 @@ public class BagaglioDAOPostgres implements BagaglioDAO {
         return false;
     }
 
+    /**
+     * Aggiorna un bagaglio esistente.
+     * @param bagaglio
+     * @return true se l'aggiornamento ha avuto successo
+     */
     @Override
     public boolean update(Bagaglio bagaglio) {
         final String sql = "UPDATE public.bagagli SET pesoKg = ?, stato = ?, numBiglietto = ? WHERE codUnivoco = ?";
@@ -138,6 +175,11 @@ public class BagaglioDAOPostgres implements BagaglioDAO {
         return false;
     }
 
+    /**
+     * Elimina un bagaglio dal database.
+     * @param codUnivoco
+     * @return true se l'eliminazione ha avuto successo
+     */
     @Override
     public boolean delete(String codUnivoco) {
         final String sql = "DELETE FROM public.bagagli WHERE codUnivoco = ?";
@@ -153,6 +195,13 @@ public class BagaglioDAOPostgres implements BagaglioDAO {
         return false;
     }
 
+    /**
+     * Mappa una riga del ResultSet in un oggetto Bagaglio.
+     * Se disponibile, risolve anche la prenotazione associata tramite Controller.
+     * @param rs ResultSet posizionato sulla riga corrente
+     * @return istanza di Bagaglio costruita dai dati del ResultSet
+     * @throws SQLException in caso di errori di lettura dal ResultSet
+     */
     // Mapping senza effetti collaterali: restituisce SEMPRE un Bagaglio, anche con prenotazione nulla
     private Bagaglio mapResultSetToBagaglio(ResultSet rs) throws SQLException {
         String codUnivoco = rs.getString("codUnivoco");
@@ -168,7 +217,15 @@ public class BagaglioDAOPostgres implements BagaglioDAO {
         return new Bagaglio(codUnivoco, pesoKg, stato, pren);
     }
 
+    /**
+     * Eccezione di runtime dedicata ai problemi di inizializzazione della connessione al database.
+     */
     public class DatabaseInitializationException extends RuntimeException {
+        /**
+         * Crea una nuova DatabaseInitializationException.
+         * @param message
+         * @param cause causa originale dell'errore
+         */
         public DatabaseInitializationException(String message, Throwable cause) {
             super(message, cause);
         }
