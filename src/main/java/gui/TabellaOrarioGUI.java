@@ -1,6 +1,7 @@
 package gui;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.Arrays;
@@ -8,6 +9,8 @@ import java.util.List;
 import controller.Controller;
 
 public class TabellaOrarioGUI {
+    private static final int COL_STATO = 2; // indice colonna "Stato"
+
     private JPanel tabellaOrarioPanel;   // generato dal .form
     private JTable tabellaOrarioTable;   // generato dal .form
     private final Controller controller;
@@ -31,6 +34,12 @@ public class TabellaOrarioGUI {
     private final Color mainGradientEnd   = new Color(125, 185, 232);
     private final Color tableHeaderColor  = new Color(60, 130, 200);
     private final Color tableRowColor     = new Color(245, 249, 255);
+
+    // Evidenziazione stato
+    private final Color lateBg   = new Color(255, 249, 196); // giallo tenue
+    private final Color lateFg   = new Color(60, 60, 60);
+    private final Color cancelBg = new Color(255, 205, 210); // rosso tenue
+    private final Color cancelFg = new Color(60, 0, 0);
 
     public TabellaOrarioGUI(Controller controller) {
         this.controller = controller;
@@ -59,6 +68,9 @@ public class TabellaOrarioGUI {
         tabellaOrarioTable.setBackground(tableRowColor);
         tabellaOrarioTable.setSelectionBackground(new Color(190, 215, 250));
         tabellaOrarioTable.setSelectionForeground(mainGradientStart);
+
+        // Renderer che evidenzia le righe in base allo stato
+        tabellaOrarioTable.setDefaultRenderer(Object.class, new StatoRowRenderer());
     }
 
     private void inizializzaPanel() {
@@ -166,5 +178,51 @@ public class TabellaOrarioGUI {
     private static boolean equalsIgnoreCaseTrim(String a, String b) {
         if (a == null) return b == null;
         return a.trim().equalsIgnoreCase(b);
+    }
+
+    // -------- Renderer stato --------
+    private final class StatoRowRenderer extends DefaultTableCellRenderer {
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                                                       boolean isSelected, boolean hasFocus,
+                                                       int row, int column) {
+            Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+
+            // Colore predefinito
+            Color bg = tableRowColor;
+            Color fg = table.getForeground();
+
+            if (!isSelected && row >= 0) {
+                // Leggi lo "stato" dal model (non dalla view, in caso di sort)
+                int modelRow = table.convertRowIndexToModel(row);
+                Object statoObj = table.getModel().getValueAt(modelRow, COL_STATO);
+                String stato = statoObj == null ? "" : statoObj.toString();
+
+                if (isCancellato(stato)) {
+                    bg = cancelBg;
+                    fg = cancelFg;
+                } else if (isInRitardo(stato)) {
+                    bg = lateBg;
+                    fg = lateFg;
+                }
+            }
+
+            c.setBackground(bg);
+            c.setForeground(fg);
+            return c;
+        }
+
+        private boolean isInRitardo(String s) {
+            if (s == null) return false;
+            String norm = s.trim().toLowerCase().replaceAll("[\\s_]+", "");
+            // Supporta sia "INRITARDO" (enum) che "IN RITARDO"
+            return "inritardo".equals(norm) || "ritardo".equals(norm);
+        }
+
+        private boolean isCancellato(String s) {
+            if (s == null) return false;
+            String norm = s.trim().toLowerCase();
+            return "cancellato".equals(norm);
+        }
     }
 }
