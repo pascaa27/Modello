@@ -6,6 +6,10 @@ import java.util.List;
 import controller.Controller;
 import model.*;
 
+/**
+ * Classe che gestisce l'interfaccia grafica per la ricerca, modifica e annullamento
+ * delle prenotazioni di un utente.
+ */
 public class CercaModificaPrenotazioneGUI {
     private static final String FONT_FAMILY = "Segoe UI";
 
@@ -32,6 +36,13 @@ public class CercaModificaPrenotazioneGUI {
     private final Color buttonColor       = new Color(60, 130, 200);
     private final Color buttonHoverColor  = new Color(30, 87, 153);
 
+    /**
+     * Costruisce l'interfaccia per cercare e modificare una prenotazione esistente.
+     *
+     * @param controller Controller per gestire la logica applicativa
+     * @param utente Utente corrente che utilizza la GUI
+     * @param codicePrenotazione Codice prenotazione da cercare inizialmente (opzionale)
+     */
     public CercaModificaPrenotazioneGUI(Controller controller, Utente utente, String codicePrenotazione) {
         this.controller = controller;
         this.utente = utente;
@@ -50,7 +61,11 @@ public class CercaModificaPrenotazioneGUI {
     }
 
     // UI builders
-
+    /**
+     * Crea un pannello con sfondo a gradiente.
+     *
+     * @return JPanel con sfondo sfumato
+     */
     private JPanel createGradientPanel() {
         return new JPanel() {
             @Override
@@ -66,6 +81,11 @@ public class CercaModificaPrenotazioneGUI {
         };
     }
 
+    /**
+     * Costruisce il pannello centrale con campi, etichette e bottoni.
+     *
+     * @return JPanel contenente tutti i componenti della GUI
+     */
     private JPanel buildCardPanel() {
         JPanel cardPanel = new JPanel(new GridBagLayout()) {
             @Override
@@ -132,7 +152,7 @@ public class CercaModificaPrenotazioneGUI {
         rowBottoniPanel.add(salvaModificheButton);
         cardPanel.add(rowBottoniPanel, gbc);
 
-        // Bottone annulla prenotazione sotto, centrale
+        // Bottone annulla prenotazione sotto
         gbc.gridx = 0; gbc.gridy++;
         gbc.gridwidth = 2;
         JPanel annullaPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
@@ -145,9 +165,12 @@ public class CercaModificaPrenotazioneGUI {
         return cardPanel;
     }
 
+    /**
+     * Imposta la lista delle prenotazioni dell'utente nella GUI.
+     */
     private void setupPrenotazioniList() {
         List<Prenotazione> prenotazioniUtente = controller.getPrenotazioniUtente((UtenteGenerico) utente);
-        if (prenotazioniUtente == null || prenotazioniUtente.isEmpty()) {
+        if(prenotazioniUtente == null || prenotazioniUtente.isEmpty()) {
             return; // lista a sinistra solo se esistono
         }
 
@@ -159,7 +182,7 @@ public class CercaModificaPrenotazioneGUI {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                 Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                if (c instanceof JLabel label && value != null) {
+                if(c instanceof JLabel label && value != null) {
                     label.setText("Codice Prenotazione: " + value);
                 }
                 return c;
@@ -171,7 +194,7 @@ public class CercaModificaPrenotazioneGUI {
         panelCercaModificaPrenotazione.add(listaPrenotazioniScrollPane, BorderLayout.WEST);
 
         listaPrenotazioni.addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting()) {
+            if(!e.getValueIsAdjusting()) {
                 String codiceSelezionato = listaPrenotazioni.getSelectedValue();
                 codiceInserimentoTextField.setText(codiceSelezionato);
                 cercaPrenotazione();
@@ -179,25 +202,34 @@ public class CercaModificaPrenotazioneGUI {
         });
 
         // Popola il modello
-        for (Prenotazione p : prenotazioniUtente) {
+        for(Prenotazione p : prenotazioniUtente) {
             listaModel.addElement(p.getNumBiglietto());
         }
     }
 
+    /**
+     * Popola il combo box con i possibili stati di prenotazione.
+     */
     private void populateStatoCombo() {
         statoVoloComboBox.removeAllItems();
-        for (StatoPrenotazione stato : StatoPrenotazione.values()) {
+        for(StatoPrenotazione stato : StatoPrenotazione.values()) {
             statoVoloComboBox.addItem(stato.name());
         }
     }
 
+    /**
+     * Esegue una ricerca iniziale se è stato fornito un codice prenotazione.
+     */
     private void initialSearchIfPresent(String codicePrenotazione) {
-        if (codicePrenotazione != null && !codicePrenotazione.isEmpty()) {
+        if(codicePrenotazione != null && !codicePrenotazione.isEmpty()) {
             codiceInserimentoTextField.setText(codicePrenotazione);
             cercaPrenotazione();
         }
     }
 
+    /**
+     * Collega i listener agli eventi dei bottoni.
+     */
     private void attachActionListeners() {
         cercaButton.addActionListener(e -> cercaPrenotazione());
         salvaModificheButton.addActionListener(e -> salvaModifiche());
@@ -205,6 +237,12 @@ public class CercaModificaPrenotazioneGUI {
     }
 
     // --- Stile componenti ---
+    /**
+     * Crea un'etichetta stilizzata con testo bianco.
+     *
+     * @param text Testo da visualizzare nell'etichetta
+     * @return JLabel formattata
+     */
     private JLabel styledLabelWhite(String text) {
         JLabel l = new JLabel(text);
         l.setFont(new Font(FONT_FAMILY, Font.BOLD, 13));
@@ -212,6 +250,12 @@ public class CercaModificaPrenotazioneGUI {
         return l;
     }
 
+    /**
+     * Crea un campo di testo stilizzato.
+     *
+     * @param text Testo iniziale del campo
+     * @return JTextField formattato
+     */
     private JTextField styledTextFieldWhite(String text) {
         JTextField tf = new JTextField(text, 13);
         tf.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
@@ -225,6 +269,11 @@ public class CercaModificaPrenotazioneGUI {
         return tf;
     }
 
+    /**
+     * Crea un combo box stilizzato.
+     *
+     * @return JComboBox formattato
+     */
     private JComboBox<String> styledComboBoxWhite() {
         JComboBox<String> cb = new JComboBox<>();
         cb.setFont(new Font(FONT_FAMILY, Font.PLAIN, 12));
@@ -237,6 +286,11 @@ public class CercaModificaPrenotazioneGUI {
         return cb;
     }
 
+    /**
+     * Crea un'area di testo stilizzata per i messaggi.
+     *
+     * @return JTextArea formattata e non modificabile
+     */
     private JTextArea styledTextArea() {
         JTextArea ta = new JTextArea(3, 24);
         ta.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
@@ -252,6 +306,12 @@ public class CercaModificaPrenotazioneGUI {
         return ta;
     }
 
+    /**
+     * Crea un pulsante con effetto gradiente.
+     *
+     * @param text Testo da visualizzare sul pulsante
+     * @return JButton con gradiente e stile personalizzato
+     */
     private JButton gradientButton(String text) {
         JButton b = new JButton(text);
         b.setFont(new Font(FONT_FAMILY, Font.BOLD, 13));
@@ -284,17 +344,19 @@ public class CercaModificaPrenotazioneGUI {
     }
 
     // --- Logica funzionale ---
-
+    /**
+     * Cerca una prenotazione in base al codice inserito e aggiorna la GUI.
+     */
     private void cercaPrenotazione() {
         String codice = codiceInserimentoTextField.getText().trim();
-        if (codice.isEmpty()) {
+        if(codice.isEmpty()) {
             messaggioTextArea.setText("Inserisci un codice prenotazione.");
             setCampiPrenotazioneAbilitati(false);
             return;
         }
 
         prenotazioneCorrente = controller.cercaPrenotazione(codice);
-        if (prenotazioneCorrente != null) {
+        if(prenotazioneCorrente != null) {
             nomeTextField.setText(prenotazioneCorrente.getDatiPasseggero().getNome());
             cognomeTextField.setText(prenotazioneCorrente.getDatiPasseggero().getCognome());
             emailTextField.setText(prenotazioneCorrente.getDatiPasseggero().getEmail());
@@ -312,8 +374,11 @@ public class CercaModificaPrenotazioneGUI {
         }
     }
 
+    /**
+     * Salva le modifiche apportate alla prenotazione corrente.
+     */
     private void salvaModifiche() {
-        if (prenotazioneCorrente == null) {
+        if(prenotazioneCorrente == null) {
             messaggioTextArea.setText("Nessuna prenotazione da modificare.");
             return;
         }
@@ -326,7 +391,7 @@ public class CercaModificaPrenotazioneGUI {
                 JOptionPane.QUESTION_MESSAGE
         );
 
-        if (scelta != JOptionPane.YES_OPTION) {
+        if(scelta != JOptionPane.YES_OPTION) {
             return; // l’utente ha annullato
         }
 
@@ -336,7 +401,7 @@ public class CercaModificaPrenotazioneGUI {
 
         String codiceVolo = voloTextField.getText().trim();
         Volo volo = controller.cercaVolo(codiceVolo);
-        if (volo == null) {
+        if(volo == null) {
             messaggioTextArea.setText("Volo non trovato.");
             return;
         }
@@ -352,7 +417,7 @@ public class CercaModificaPrenotazioneGUI {
         }
 
         boolean successo = controller.salvaPrenotazione(prenotazioneCorrente);
-        if (successo) {
+        if(successo) {
             messaggioTextArea.setText("Modifiche salvate con successo!");
             pulisciCampiPrenotazione();
             setCampiPrenotazioneAbilitati(false);
@@ -365,8 +430,11 @@ public class CercaModificaPrenotazioneGUI {
         aggiornaListaPrenotazioni();
     }
 
+    /**
+     * Annulla la prenotazione corrente dopo conferma dell'utente.
+     */
     private void annullaPrenotazione() {
-        if (prenotazioneCorrente == null) {
+        if(prenotazioneCorrente == null) {
             messaggioTextArea.setText("Nessuna prenotazione da annullare.");
             return;
         }
@@ -379,14 +447,14 @@ public class CercaModificaPrenotazioneGUI {
                 JOptionPane.WARNING_MESSAGE
         );
 
-        if (scelta != JOptionPane.YES_OPTION) return;
+        if(scelta != JOptionPane.YES_OPTION) return;
 
         boolean successo = controller.annullaPrenotazione(prenotazioneCorrente);
 
-        if (successo) {
+        if(successo) {
             messaggioTextArea.setText("Prenotazione eliminata dal database!");
             // Rimuovi dal modello subito
-            if (listaModel != null) {
+            if(listaModel != null) {
                 listaModel.removeElement(prenotazioneCorrente.getNumBiglietto());
             }
             pulisciCampiPrenotazione();
@@ -400,20 +468,28 @@ public class CercaModificaPrenotazioneGUI {
         aggiornaListaPrenotazioni();
     }
 
+    /**
+     * Aggiorna la lista delle prenotazioni visibile nella GUI.
+     */
     private void aggiornaListaPrenotazioni() {
-        if (listaModel == null) {
+        if(listaModel == null) {
             // La lista non è presente (utente senza prenotazioni all’avvio): nulla da aggiornare
             return;
         }
         listaModel.clear();
         List<Prenotazione> prenotazioniUtente = controller.getPrenotazioniUtente((UtenteGenerico) utente);
-        if (prenotazioniUtente != null) {
-            for (Prenotazione p : prenotazioniUtente) {
+        if(prenotazioniUtente != null) {
+            for(Prenotazione p : prenotazioniUtente) {
                 listaModel.addElement(p.getNumBiglietto());
             }
         }
     }
 
+    /**
+     * Abilita o disabilita i campi della prenotazione nella GUI.
+     *
+     * @param abilitati true per abilitare, false per disabilitare
+     */
     private void setCampiPrenotazioneAbilitati(boolean abilitati) {
         nomeTextField.setEnabled(abilitati);
         cognomeTextField.setEnabled(abilitati);
@@ -424,16 +500,24 @@ public class CercaModificaPrenotazioneGUI {
         annullaPrenotazioneButton.setEnabled(abilitati);
     }
 
+    /**
+     * Pulisce i campi relativi alla prenotazione nella GUI.
+     */
     private void pulisciCampiPrenotazione() {
         nomeTextField.setText("");
         cognomeTextField.setText("");
         emailTextField.setText("");
         voloTextField.setText("");
-        if (statoVoloComboBox.getItemCount() > 0) {
+        if(statoVoloComboBox.getItemCount() > 0) {
             statoVoloComboBox.setSelectedIndex(0);
         }
     }
 
+    /**
+     * Restituisce il pannello principale dell'interfaccia.
+     *
+     * @return JPanel principale della GUI
+     */
     public JPanel getPanel() {
         return panelCercaModificaPrenotazione;
     }

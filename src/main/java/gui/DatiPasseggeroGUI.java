@@ -3,6 +3,9 @@ package gui;
 import javax.swing.*;
 import java.awt.*;
 
+/**
+ * Classe che gestisce l'interfaccia grafica per l'inserimento dei dati di un passeggero.
+ */
 public class DatiPasseggeroGUI {
     private static final String FONT_FAMILY = "Segoe UI";
 
@@ -25,6 +28,12 @@ public class DatiPasseggeroGUI {
     private final Color buttonColor       = new Color(60, 130, 200);
     private final Color buttonHoverColor  = new Color(30, 87, 153);
 
+    /**
+     * Costruttore: crea l'interfaccia grafica dei dati del passeggero.
+     *
+     * @param parentDialog Dialog genitore da chiudere dopo il salvataggio dei dati;
+     *                     se nullo, chiude la finestra contenente il pannello.
+     */
     public DatiPasseggeroGUI(JDialog parentDialog) {
         // Gradient panel
         panelDatiPasseggero = new JPanel() {
@@ -87,7 +96,7 @@ public class DatiPasseggeroGUI {
             codiceFiscaleInserito = codiceFiscaleTextField.getText().trim();
             emailInserita = emailTextField.getText().trim();
 
-            if (nomeInserito.isEmpty() ||
+            if(nomeInserito.isEmpty() ||
                     cognomeInserito.isEmpty() ||
                     codiceFiscaleInserito.isEmpty()) {
                 JOptionPane.showMessageDialog(parentDialog,
@@ -99,11 +108,11 @@ public class DatiPasseggeroGUI {
 
             JOptionPane.showMessageDialog(parentDialog, "Dati passeggero salvati.");
 
-            if (parentDialog != null) {
+            if(parentDialog != null) {
                 parentDialog.dispose();
             } else {
                 Window w = SwingUtilities.getWindowAncestor(panelDatiPasseggero);
-                if (w != null) {
+                if(w != null) {
                     w.dispose();
                 }
             }
@@ -111,12 +120,25 @@ public class DatiPasseggeroGUI {
     }
 
     // Stile label e campo
+    /**
+     * Crea un'etichetta con testo bianco e font personalizzato.
+     *
+     * @param text Testo da visualizzare
+     * @return JLabel formattata
+     */
     private JLabel styledLabelWhite(String text) {
         JLabel l = new JLabel(text);
         l.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
         l.setForeground(Color.WHITE);
         return l;
     }
+
+    /**
+     * Crea un campo di testo stilizzato con sfondo chiaro e bordo personalizzato.
+     *
+     * @param text Testo iniziale del campo
+     * @return JTextField formattato
+     */
     private JTextField styledTextFieldWhite(String text) {
         JTextField tf = new JTextField(text, 13);
         tf.setFont(new Font(FONT_FAMILY, Font.PLAIN, 14));
@@ -129,6 +151,13 @@ public class DatiPasseggeroGUI {
         tf.setCaretColor(mainGradientStart);
         return tf;
     }
+
+    /**
+     * Crea un pulsante con effetto gradiente e stile personalizzato.
+     *
+     * @param text Testo da visualizzare sul pulsante
+     * @return JButton con gradiente e bordo arrotondato
+     */
     private JButton gradientButton(String text) {
         JButton b = new JButton(text);
         b.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
@@ -160,9 +189,38 @@ public class DatiPasseggeroGUI {
         return b;
     }
 
+    /**
+     * Restituisce il pannello principale contenente l'interfaccia.
+     *
+     * @return JPanel principale della GUI
+     */
     public JPanel getPanel() { return panelDatiPasseggero; }
+
+    /**
+     * Restituisce il nome inserito dall'utente.
+     *
+     * @return String contenente il nome
+     */
     public String getNomeInserito() { return nomeInserito; }
+
+    /**
+     * Restituisce il cognome inserito dall'utente.
+     *
+     * @return String contenente il cognome
+     */
     public String getCognomeInserito() { return cognomeInserito; }
+
+    /**
+     * Restituisce il codice fiscale inserito dall'utente.
+     *
+     * @return String contenente il codice fiscale
+     */
     public String getCodiceFiscaleInserito() { return codiceFiscaleInserito; }
-    public String getEmailInserita() { return emailInserita; } // può essere vuota/null
+
+    /**
+     * Restituisce l'email inserita dall'utente.
+     *
+     * @return String contenente l'email
+     */
+    public String getEmailInserita() { return emailInserita; }
 }

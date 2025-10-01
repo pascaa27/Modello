@@ -6,6 +6,9 @@ import controller.Controller;
 import model.UtenteGenerico;
 import java.awt.*;
 
+/**
+ * Classe che gestisce l'interfaccia grafica dell'area personale di un utente generico.
+ */
 public class AreaPersonaleUtenteGUI {
     private static final String FONT_FAMILY = "Segoe UI";
 
@@ -27,6 +30,13 @@ public class AreaPersonaleUtenteGUI {
     private final Color buttonColor       = new Color(60, 130, 200);
     private final Color buttonHoverColor  = new Color(30, 87, 153);
 
+    /**
+     * Costruttore: inizializza l'interfaccia grafica dell'area personale utente,
+     * mostrando i dati principali e i bottoni di accesso alle funzionalità.
+     *
+     * @param controller Controller per gestire la logica applicativa
+     * @param utente Utente generico corrente
+     */
     public AreaPersonaleUtenteGUI(Controller controller, UtenteGenerico utente) {
         this.controller = controller;
         this.utente = utente;
@@ -78,7 +88,7 @@ public class AreaPersonaleUtenteGUI {
 
         areaPersonaleUtentePanel.add(datiPanel, BorderLayout.NORTH);
 
-        // Bottoni principali desktop
+        // Bottoni principali desktop per l'utente
         JPanel bottoniPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 26, 18));
         bottoniPanel.setOpaque(false);
         tabellaOrarioButton = gradientButton("Tabella Orario");
@@ -97,7 +107,12 @@ public class AreaPersonaleUtenteGUI {
         cercaModificaButton.addActionListener(e -> apriCercaModificaPrenotazione());
     }
 
-    // Desktop label
+    /**
+     * Crea una JLabel bianca con stile personalizzato per titoli e testi.
+     *
+     * @param text Testo da visualizzare nell'etichetta
+     * @return JLabel formattata
+     */
     private JLabel styledLabelWhite(String text) {
         JLabel l = new JLabel(text);
         l.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
@@ -105,7 +120,12 @@ public class AreaPersonaleUtenteGUI {
         return l;
     }
 
-    // Desktop field
+    /**
+     * Crea un JTextField bianco con stile personalizzato.
+     *
+     * @param text Testo iniziale del campo
+     * @return JTextField formattato
+     */
     private JTextField styledTextFieldWhite(String text) {
         JTextField tf = new JTextField(text, 13);
         tf.setFont(new Font(FONT_FAMILY, Font.PLAIN, 14));
@@ -119,7 +139,12 @@ public class AreaPersonaleUtenteGUI {
         return tf;
     }
 
-    // Desktop button
+    /**
+     * Crea un JButton con effetto gradiente e stile personalizzato.
+     *
+     * @param text Testo da visualizzare sul pulsante
+     * @return JButton con gradiente e stile personalizzato
+     */
     private JButton gradientButton(String text) {
         JButton b = new JButton(text);
         b.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
@@ -152,7 +177,9 @@ public class AreaPersonaleUtenteGUI {
         return b;
     }
 
-    // Metodo che apre la GUI TabellaOrario
+    /**
+     * Apre una nuova finestra contenente la GUI della Tabella Orario.
+     */
     private void apriTabellaOrario() {
         TabellaOrarioGUI gui = new TabellaOrarioGUI(controller);
         JFrame frame = new JFrame("Tabella Orario");
@@ -163,9 +190,12 @@ public class AreaPersonaleUtenteGUI {
         frame.setVisible(true);
     }
 
-    // Metodo che apre la GUI EffettuaPrenotazione
+    /**
+     * Apre una nuova finestra per effettuare una prenotazione.
+     * Se la finestra è già aperta, viene portata in primo piano.
+     */
     private void apriEffettuaPrenotazione() {
-        if (prenotazioneFrame != null) {
+        if(prenotazioneFrame != null) {
             prenotazioneFrame.toFront();
             prenotazioneFrame.requestFocus();
             return;
@@ -185,7 +215,9 @@ public class AreaPersonaleUtenteGUI {
         });
     }
 
-    // Metodo che apre la GUI Cerca/Modifica Prenotazione
+    /**
+     * Apre una nuova finestra per cercare o modificare una prenotazione esistente.
+     */
     private void apriCercaModificaPrenotazione() {
         JFrame frame = new JFrame("Cerca/Modifica Prenotazione");
         frame.setContentPane(
@@ -197,6 +229,11 @@ public class AreaPersonaleUtenteGUI {
         frame.setVisible(true);
     }
 
+    /**
+     * Restituisce il pannello principale dell'area personale utente.
+     *
+     * @return JPanel principale dell'interfaccia
+     */
     public JPanel getPanel() {
         return areaPersonaleUtentePanel;
     }

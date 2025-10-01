@@ -13,6 +13,9 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.UUID;
 
+/**
+ * Classe che gestisce l'interfaccia grafica per l'effettuazione di una prenotazione.
+ */
 public class EffettuaPrenotazioneGUI {
     private static final String FONT_FAMILY = "Segoe UI";
     private static final String MSG_ERRORE_TITLE = "Errore";
@@ -42,6 +45,14 @@ public class EffettuaPrenotazioneGUI {
     private final Color buttonColor       = new Color(60, 130, 200);
     private final Color buttonHoverColor  = new Color(30, 87, 153);
 
+    /**
+     * Costruttore: crea l'interfaccia per effettuare una prenotazione.
+     * Inizializza tutti i campi di testo, le combo per le date e i bottoni,
+     * aggiunge i listener e popola le combo con gli anni, mesi e giorni disponibili.
+     *
+     * @param controller Controller per gestire la logica applicativa
+     * @param utente Utente che sta effettuando la prenotazione
+     */
     public EffettuaPrenotazioneGUI(Controller controller, UtenteGenerico utente) {
         this.controller = controller;
         this.utente = utente;
@@ -138,19 +149,19 @@ public class EffettuaPrenotazioneGUI {
         prenotaButton.addActionListener(e -> effettuaPrenotazione());
         annullaButton.addActionListener(e -> {
             JFrame f = (JFrame) SwingUtilities.getWindowAncestor(effettuaPrenotazionePanel);
-            if (f != null) f.dispose();
+            if(f != null) f.dispose();
         });
 
         // Popola e aggiusta le combo *dopo* l'inizializzazione
         SwingUtilities.invokeLater(() -> {
-            if (annoInizioComboBox.getItemCount() == 0) {
+            if(annoInizioComboBox.getItemCount() == 0) {
                 for (int anno = 2025; anno <= 2035; anno++) {
                     annoInizioComboBox.addItem(anno);
                     annoFineComboBox.addItem(anno);
                 }
             }
-            if (meseInizioComboBox.getItemCount() == 0) {
-                for (int m = 1; m <= 12; m++) {
+            if(meseInizioComboBox.getItemCount() == 0) {
+                for(int m = 1; m <= 12; m++) {
                     meseInizioComboBox.addItem(m);
                     meseFineComboBox.addItem(m);
                 }
@@ -169,11 +180,18 @@ public class EffettuaPrenotazioneGUI {
         });
     }
 
+    /**
+     * Aggiorna i giorni del mese nella ComboBox in base all'anno e mese selezionati.
+     *
+     * @param annoCombo ComboBox anno
+     * @param meseCombo ComboBox mese
+     * @param giornoCombo ComboBox giorno da aggiornare
+     */
     private void aggiornaGiorni(JComboBox<Integer> annoCombo, JComboBox<Integer> meseCombo, JComboBox<Integer> giornoCombo) {
-        if (annoCombo == null || meseCombo == null || giornoCombo == null) return;
+        if(annoCombo == null || meseCombo == null || giornoCombo == null) return;
         Object oAnno = annoCombo.getSelectedItem();
         Object oMese = meseCombo.getSelectedItem();
-        if (oAnno == null || oMese == null) return;
+        if(oAnno == null || oMese == null) return;
 
         int anno = (int) oAnno;
         int mese = (int) oMese;
@@ -182,19 +200,21 @@ public class EffettuaPrenotazioneGUI {
         Integer precedente = (Integer) giornoCombo.getSelectedItem();
 
         giornoCombo.removeAllItems();
-        for (int g = 1; g <= giorniNelMese; g++) {
+        for(int g = 1; g <= giorniNelMese; g++) {
             giornoCombo.addItem(g);
         }
-        if (precedente != null && precedente <= giorniNelMese) {
+        if(precedente != null && precedente <= giorniNelMese) {
             giornoCombo.setSelectedItem(precedente);
         } else {
             giornoCombo.setSelectedIndex(0);
         }
     }
 
-    // ==========================
-    // Prenotazione (refactor)
-    // ==========================
+    /**
+     * Effettua la prenotazione: legge i dati dalla GUI, valida i campi,
+     * verifica la disponibilità del volo e crea una nuova prenotazione tramite il controller.
+     * Visualizza messaggi di conferma o errore.
+     */
     private void effettuaPrenotazione() {
         String nome = nomeTextField.getText().trim();
         String cognome = cognomeTextField.getText().trim();
@@ -203,20 +223,20 @@ public class EffettuaPrenotazioneGUI {
         String destinazione = aeroportoDestinazioneTextField.getText().trim().toUpperCase();
 
         String err = validateDatiBase(nome, cognome, codiceFiscale, destinazione);
-        if (err != null) { showError(err); return; }
+        if(err != null) { showError(err); return; }
 
         LocalDate dataInizio = buildDate(annoInizioComboBox, meseInizioComboBox, giornoInizioComboBox);
         LocalDate dataFine   = buildDate(annoFineComboBox, meseFineComboBox, giornoFineComboBox);
 
         err = validateDateRange(dataInizio, dataFine);
-        if (err != null) { showError(err); return; }
+        if(err != null) { showError(err); return; }
 
         try {
             Volo volo = controller.cercaVoloPerDestinazioneEData(destinazione, dataInizio.toString());
-            if (volo == null) { showError("Nessun volo trovato per questa destinazione e data!"); return; }
+            if(volo == null) { showError("Nessun volo trovato per questa destinazione e data!"); return; }
 
             err = validateUserEligibility(email, volo);
-            if (err != null) { showError(err); return; }
+            if(err != null) { showError(err); return; }
 
             String numeroBiglietto = generateTicket();
             Prenotazione pren = controller.aggiungiPrenotazione(
@@ -231,7 +251,7 @@ public class EffettuaPrenotazioneGUI {
                     email,
                     null
             );
-            if (pren == null) { showError("Creazione prenotazione fallita."); return; }
+            if(pren == null) { showError("Creazione prenotazione fallita."); return; }
 
             showInfo(
                     "Prenotazione effettuata con successo!\n" +
@@ -239,25 +259,42 @@ public class EffettuaPrenotazioneGUI {
                             "Dal " + dataInizio + " al " + dataFine
             );
 
-            if (utente != null) {
+            if(utente != null) {
                 utente.aggiungiCodicePrenotazione(pren.getNumBiglietto());
             }
-        } catch (Exception ex) {
+        } catch(Exception ex) {
             showError("Errore durante la prenotazione: " + ex.getMessage());
             ex.printStackTrace();
         }
     }
 
+    /**
+     * Valida i dati base del passeggero e destinazione.
+     *
+     * @param nome Nome del passeggero
+     * @param cognome Cognome del passeggero
+     * @param codiceFiscale Codice fiscale del passeggero
+     * @param destinazione Aeroporto di destinazione
+     * @return Stringa con messaggio di errore, o null se valido
+     */
     private String validateDatiBase(String nome, String cognome, String codiceFiscale, String destinazione) {
-        if (nome.isEmpty() || cognome.isEmpty() || codiceFiscale.isEmpty() || destinazione.isEmpty()) {
+        if(nome.isEmpty() || cognome.isEmpty() || codiceFiscale.isEmpty() || destinazione.isEmpty()) {
             return "Tutti i campi devono essere compilati.";
         }
-        if (!Character.isUpperCase(nome.charAt(0)) || !Character.isUpperCase(cognome.charAt(0))) {
+        if(!Character.isUpperCase(nome.charAt(0)) || !Character.isUpperCase(cognome.charAt(0))) {
             return "Nome e Cognome devono iniziare con lettera maiuscola.";
         }
         return null;
     }
 
+    /**
+     * Costruisce una data a partire dalle ComboBox di anno, mese e giorno.
+     *
+     * @param anno ComboBox anno
+     * @param mese ComboBox mese
+     * @param giorno ComboBox giorno
+     * @return LocalDate corrispondente alla selezione
+     */
     private LocalDate buildDate(JComboBox<Integer> anno, JComboBox<Integer> mese, JComboBox<Integer> giorno) {
         return LocalDate.of(
                 (int) anno.getSelectedItem(),
@@ -266,45 +303,87 @@ public class EffettuaPrenotazioneGUI {
         );
     }
 
+    /**
+     * Valida l'intervallo di date selezionato.
+     *
+     * @param inizio Data di inizio viaggio
+     * @param fine Data di fine viaggio
+     * @return Stringa con messaggio di errore, o null se valido
+     */
     private String validateDateRange(LocalDate inizio, LocalDate fine) {
-        if (fine.isBefore(inizio)) {
+        if(fine.isBefore(inizio)) {
             return "La data di fine deve essere successiva o uguale alla data di inizio.";
         }
         return null;
     }
 
+    /**
+     * Verifica se l'utente può prenotare il volo selezionato.
+     *
+     * @param email Email dell'utente
+     * @param volo Volo selezionato
+     * @return Stringa con messaggio di errore, o null se valido
+     */
     private String validateUserEligibility(String email, Volo volo) {
-        if (utente != null && utente.isRegistrato()) {
+        if(utente != null && utente.isRegistrato()) {
             boolean giaPrenotato = controller.utenteHaPrenotazionePerVolo(utente.getLogin(), volo.getCodiceUnivoco());
-            if (giaPrenotato) {
+            if(giaPrenotato) {
                 return "Hai già una prenotazione per questo volo!";
             }
         } else {
-            if (!controller.emailRegistrata(email)) {
+            if(!controller.emailRegistrata(email)) {
                 return "Devi registrarti prima di prenotare con questa email.";
             }
         }
         return null;
     }
 
+    /**
+     * Genera un numero di biglietto univoco per la prenotazione.
+     *
+     * @return String con numero biglietto
+     */
     private String generateTicket() {
         return UUID.randomUUID().toString().substring(0, 8);
     }
 
+    /**
+     * Mostra un messaggio di errore all'utente tramite JOptionPane.
+     *
+     * @param msg Messaggio di errore da visualizzare
+     */
     private void showError(String msg) {
         JOptionPane.showMessageDialog(effettuaPrenotazionePanel, msg, MSG_ERRORE_TITLE, JOptionPane.ERROR_MESSAGE);
     }
 
+    /**
+     * Mostra un messaggio informativo all'utente tramite JOptionPane.
+     *
+     * @param msg Messaggio informativo da visualizzare
+     */
     private void showInfo(String msg) {
         JOptionPane.showMessageDialog(effettuaPrenotazionePanel, msg, MSG_SUCCESSO_TITLE, JOptionPane.INFORMATION_MESSAGE);
     }
 
+    /**
+     * Crea un'etichetta con testo bianco e font personalizzato.
+     *
+     * @param text Testo dell'etichetta
+     * @return JLabel stilizzata
+     */
     private JLabel styledLabelWhite(String text) {
         JLabel l = new JLabel(text);
         l.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
         l.setForeground(Color.WHITE);
         return l;
     }
+
+    /**
+     * Crea un campo di testo stilizzato per l'inserimento di dati.
+     *
+     * @param text Testo iniziale
+     * @return JTextField stilizzato
+     */
     private JTextField styledTextFieldWhite(String text) {
         JTextField tf = new JTextField(text, 13);
         tf.setFont(new Font(FONT_FAMILY, Font.PLAIN, 14));
@@ -317,6 +396,12 @@ public class EffettuaPrenotazioneGUI {
         tf.setCaretColor(mainGradientStart);
         return tf;
     }
+
+    /**
+     * Crea una ComboBox stilizzata per numeri interi.
+     *
+     * @return JComboBox<Integer> stilizzata
+     */
     private JComboBox<Integer> styledComboBoxInt() {
         JComboBox<Integer> cb = new JComboBox<>();
         cb.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
@@ -328,6 +413,13 @@ public class EffettuaPrenotazioneGUI {
         ));
         return cb;
     }
+
+    /**
+     * Crea un JButton con effetto gradiente e stile personalizzato.
+     *
+     * @param text Testo del pulsante
+     * @return JButton stilizzato
+     */
     private JButton gradientButton(String text) {
         JButton b = new JButton(text);
         b.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
@@ -359,6 +451,11 @@ public class EffettuaPrenotazioneGUI {
         return b;
     }
 
+    /**
+     * Restituisce il pannello principale della GUI.
+     *
+     * @return JPanel contenente tutti i componenti dell'interfaccia
+     */
     public JPanel getPanel() {
         return effettuaPrenotazionePanel;
     }
