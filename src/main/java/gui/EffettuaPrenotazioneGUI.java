@@ -338,15 +338,14 @@ public class EffettuaPrenotazioneGUI {
      * @return Stringa con messaggio di errore, o null se valido
      */
     private String validateUserEligibility(String email, Volo volo) {
+
         if(utente != null && utente.isRegistrato()) {
-            boolean giaPrenotato = controller.utenteHaPrenotazionePerVolo(utente.getLogin(), volo.getCodiceUnivoco());
-            if(giaPrenotato) {
-                return "Hai già una prenotazione per questo volo!";
-            }
-        } else {
-            if(!controller.emailRegistrata(email)) {
-                return "Devi registrarti prima di prenotare con questa email.";
-            }
+            return null;
+        }
+
+
+        if(!controller.emailRegistrata(email)) {
+            return "Devi registrarti prima di prenotare con questa email.";
         }
         return null;
     }

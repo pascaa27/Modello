@@ -489,15 +489,22 @@ public class Controller {
      * @return la prenotazione creata, o null in caso di errore
      */
     public Prenotazione aggiungiPrenotazione(PrenotazioneInput in) {
-        // 1) Validazioni di input (estratte)
+        // 1) Validazioni di input
         validatePrenotazioneInput(in);
 
-        // 2) Recupero entità necessarie (estratte)
+        // 2) Recupero entità necessarie
         Volo v = getAndValidateVolo(in.volo.numeroVolo);
         DatiPasseggero dp = resolvePasseggero(in);
 
-        // 3) Assicura che l'utente esista su DB (già presente nel tuo Controller)
-        UtenteGenerico utenteEffettivo = ensureUserRegistered(in.passeggero.email, in.volo.utenteGenerico);
+        // 3) Utente effettivo: se c'è un utente loggato NON imporre registrazione dell'email del passeggero
+        UtenteGenerico utenteEffettivo;
+        if (in.volo.utenteGenerico != null) {
+            // Utente loggato: usa lui, non forzare la registrazione del passeggero
+            utenteEffettivo = in.volo.utenteGenerico;
+        } else {
+            // Nessun utente loggato: (opzionale) garantisci che l'email del passeggero esista come utente
+            utenteEffettivo = ensureUserRegistered(in.passeggero.email, null);
+        }
 
         // 4) Costruzione prenotazione e inserimento
         String postoNormalizzato = normalizeSeatOrNull(in.base.posto);
@@ -510,7 +517,7 @@ public class Controller {
                 v
         );
 
-        if(!tryInsertPrenotazione(pren, utenteEffettivo, in.passeggero.email)) {
+        if (!tryInsertPrenotazione(pren, utenteEffettivo, in.passeggero.email)) {
             return null; // errore già loggato
         }
 
@@ -563,19 +570,24 @@ public class Controller {
     }
 
     /**
-     * Trova/crea/aggiorna i dati passeggero coerentemente.
-     * @param in input con i dati del passeggero
-     * @return DatiPasseggero risolto/aggiornato
+     * Costruisce i DatiPasseggero da utilizzare per la prenotazione corrente
+     * usando esclusivamente i valori forniti dall'input.
+     * Questo consente di:
+     * - effettuare più prenotazioni con lo stesso login per passeggeri diversi;
+     * - utilizzare la stessa email con nome/cognome/codice fiscale differenti
+     *   senza che vengano sovrascritti da valori associati a quell'email.
+     *
+     * @param in input con i dati del passeggero digitati dall'utente
+     * @return un nuovo DatiPasseggero con i valori passati in input
      */
     private DatiPasseggero resolvePasseggero(PrenotazioneInput in) {
-        DatiPasseggero dp = datiPasseggeroDAO.findByEmail(in.passeggero.email);
-        if(dp == null) {
-            return new DatiPasseggero(in.passeggero.nome, in.passeggero.cognome, in.passeggero.codiceFiscale, in.passeggero.email);
-        }
-        if(dp.getCodiceFiscale() == null || !dp.getCodiceFiscale().equalsIgnoreCase(in.passeggero.codiceFiscale)) {
-            dp.setCodiceFiscale(in.passeggero.codiceFiscale);
-        }
-        return dp;
+        // Usa SEMPRE i dati digitati per questa prenotazione
+        return new DatiPasseggero(
+                in.passeggero.nome,
+                in.passeggero.cognome,
+                in.passeggero.codiceFiscale,
+                in.passeggero.email
+        );
     }
 
     /**
