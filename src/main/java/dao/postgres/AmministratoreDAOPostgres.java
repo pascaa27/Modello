@@ -23,7 +23,7 @@ public class AmministratoreDAOPostgres implements AmministratoreDAO {
     public AmministratoreDAOPostgres() {
         try {
             this.conn = ConnessioneDatabase.getInstance().getConnection();
-        } catch (SQLException e) {
+        } catch(SQLException e) {
             // Eccezione dedicata invece di una generica RuntimeException
             throw new DatabaseInitializationException("Errore nella connessione al database", e);
         }
@@ -53,11 +53,11 @@ public class AmministratoreDAOPostgres implements AmministratoreDAO {
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, email);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
+                if(rs.next()) {
                     return mapResultSetToAmministratore(rs);
                 }
             }
-        } catch (SQLException e) {
+        } catch(SQLException e) {
             // Mantengo il comportamento attuale (puoi sostituire con logging se preferisci)
             e.printStackTrace();
         }

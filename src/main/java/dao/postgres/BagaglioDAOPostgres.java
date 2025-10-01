@@ -36,7 +36,7 @@ public class BagaglioDAOPostgres implements BagaglioDAO {
     public BagaglioDAOPostgres() {
         try {
             this.conn = ConnessioneDatabase.getInstance().getConnection();
-        } catch (SQLException e) {
+        } catch(SQLException e) {
             throw new DatabaseInitializationException("Errore nella connessione al database", e);
         }
     }
@@ -65,7 +65,7 @@ public class BagaglioDAOPostgres implements BagaglioDAO {
                     bagagli.add(mapResultSetToBagaglio(rs));
                 }
             }
-        } catch (SQLException e) {
+        } catch(SQLException e) {
             LOGGER.log(Level.WARNING, "Errore in findByPrenotazione per numBiglietto={0}", numBiglietto);
             LOGGER.log(Level.FINE, LOG_SQL_DETAILS, e);
         }
@@ -82,19 +82,19 @@ public class BagaglioDAOPostgres implements BagaglioDAO {
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, codice);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
+                if(rs.next()) {
                     String cod = rs.getString("codUnivoco");
                     double peso = rs.getDouble("pesoKg");
                     StatoBagaglio stato = StatoBagaglio.valueOf(rs.getString("stato"));
                     String numBiglietto = rs.getString("numBiglietto");
                     Prenotazione pren = null;
-                    if (numBiglietto != null && controller != null) {
+                    if(numBiglietto != null && controller != null) {
                         pren = controller.cercaPrenotazione(numBiglietto);
                     }
                     return new Bagaglio(cod, peso, stato, pren);
                 }
             }
-        } catch (SQLException e) {
+        } catch(SQLException e) {
             LOGGER.log(Level.WARNING, "Errore in findById per codUnivoco={0}", codice);
             LOGGER.log(Level.FINE, LOG_SQL_DETAILS, e);
         }
@@ -114,7 +114,7 @@ public class BagaglioDAOPostgres implements BagaglioDAO {
             while (rs.next()) {
                 bagagli.add(mapResultSetToBagaglio(rs));
             }
-        } catch (SQLException e) {
+        } catch(SQLException e) {
             LOGGER.log(Level.WARNING, "Errore in findAll()", e);
             LOGGER.log(Level.FINE, LOG_SQL_DETAILS, e);
         }
@@ -133,7 +133,7 @@ public class BagaglioDAOPostgres implements BagaglioDAO {
             ps.setString(1, bagaglio.getCodUnivoco());
             ps.setDouble(2, bagaglio.getPesoKg());
             ps.setString(3, bagaglio.getStato().name());
-            if (bagaglio.getPrenotazione() != null) {
+            if(bagaglio.getPrenotazione() != null) {
                 ps.setString(4, bagaglio.getPrenotazione().getNumBiglietto());
             } else {
                 ps.setNull(4, Types.VARCHAR);
@@ -141,7 +141,7 @@ public class BagaglioDAOPostgres implements BagaglioDAO {
             int n = ps.executeUpdate();
             LOGGER.log(Level.INFO, "[BagagliDAO] insert {0}{1}{2}", new Object[]{bagaglio.getCodUnivoco(), LOG_ROWS, n});
             return n > 0;
-        } catch (SQLException e) {
+        } catch(SQLException e) {
             LOGGER.log(Level.WARNING, "[BagagliDAO] insert FAILED for {0}", bagaglio.getCodUnivoco());
             LOGGER.log(Level.FINE, LOG_SQL_DETAILS, e);
         }
@@ -159,7 +159,7 @@ public class BagaglioDAOPostgres implements BagaglioDAO {
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setDouble(1, bagaglio.getPesoKg());
             ps.setString(2, bagaglio.getStato().name());
-            if (bagaglio.getPrenotazione() != null) {
+            if(bagaglio.getPrenotazione() != null) {
                 ps.setString(3, bagaglio.getPrenotazione().getNumBiglietto());
             } else {
                 ps.setNull(3, Types.VARCHAR);
@@ -168,7 +168,7 @@ public class BagaglioDAOPostgres implements BagaglioDAO {
             int n = ps.executeUpdate();
             LOGGER.log(Level.INFO, "[BagagliDAO] update {0}{1}{2}", new Object[]{bagaglio.getCodUnivoco(), LOG_ROWS, n});
             return n > 0;
-        } catch (SQLException e) {
+        } catch(SQLException e) {
             LOGGER.log(Level.WARNING, "[BagagliDAO] update FAILED for {0}", bagaglio.getCodUnivoco());
             LOGGER.log(Level.FINE, LOG_SQL_DETAILS, e);
         }
@@ -188,7 +188,7 @@ public class BagaglioDAOPostgres implements BagaglioDAO {
             int n = ps.executeUpdate();
             LOGGER.log(Level.INFO, "[BagagliDAO] delete {0}{1}{2}", new Object[]{codUnivoco, LOG_ROWS, n});
             return n > 0;
-        } catch (SQLException e) {
+        } catch(SQLException e) {
             LOGGER.log(Level.WARNING, "[BagagliDAO] delete FAILED for {0}", codUnivoco);
             LOGGER.log(Level.FINE, LOG_SQL_DETAILS, e);
         }
@@ -210,7 +210,7 @@ public class BagaglioDAOPostgres implements BagaglioDAO {
         String numBiglietto = rs.getString("numBiglietto"); // può essere NULL
 
         Prenotazione pren = null;
-        if (controller != null && numBiglietto != null) {
+        if(controller != null && numBiglietto != null) {
             pren = controller.cercaPrenotazione(numBiglietto); // ok se resta null
         }
 

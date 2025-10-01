@@ -80,7 +80,7 @@ public class Controller {
         bagagli.clear();
         try {
             bagagli.addAll(bagaglioDAO.findAll());
-        } catch (Exception e) {
+        } catch(Exception e) {
             LOGGER.log(Level.WARNING, "Impossibile ricaricare i bagagli dal DB", e);
             LOGGER.log(Level.FINE, LOG_DETAILS, e);
         }
@@ -93,7 +93,7 @@ public class Controller {
         voliGestiti.clear();
         try {
             voliGestiti.addAll(voloDAO.findAll());
-        } catch (Exception e) {
+        } catch(Exception e) {
             LOGGER.log(Level.WARNING, "Impossibile ricaricare i voli dal DB", e);
             LOGGER.log(Level.FINE, LOG_DETAILS, e);
         }
@@ -103,7 +103,7 @@ public class Controller {
      * Inserisce alcuni voli iniziali nel database se è vuoto.
      */
     private void seedVoliInizialiNelDB() {
-        for (String[] r : VOLI_INIZIALI) {
+        for(String[] r : VOLI_INIZIALI) {
             StatoVolo stato = parseStato(r[2]);
 
             Volo v = new Volo();
@@ -121,7 +121,7 @@ public class Controller {
 
             try {
                 voloDAO.insert(v);
-            } catch (Exception e) {
+            } catch(Exception e) {
                 LOGGER.log(Level.FINE, () -> "Seed volo fallito per " + v.getCodiceUnivoco());
                 LOGGER.log(Level.FINER, LOG_DETAILS, e);
             }
@@ -269,7 +269,7 @@ public class Controller {
      * @param in dati aggiornati del volo
      */
     public void aggiornaVolo(VoloInput in) {
-        for (Volo volo : voliGestiti) {
+        for(Volo volo : voliGestiti) {
             if(safeEquals(volo.getCodiceUnivoco(), in.codice)) {
                 volo.setCompagniaAerea(in.compagnia);
                 volo.setDataVolo(in.data);
@@ -322,7 +322,7 @@ public class Controller {
      * @return il volo trovato o null
      */
     public Volo cercaVolo(String codiceUnivoco) {
-        for (Volo volo : voliGestiti) {
+        for(Volo volo : voliGestiti) {
             if(safeEquals(volo.getCodiceUnivoco(), codiceUnivoco)) {
                 return volo;
             }
@@ -337,7 +337,7 @@ public class Controller {
      * @return il volo trovato o null
      */
     public Volo cercaVoloPerDestinazioneEData(String dest, String data) {
-        for (Volo v : voliGestiti) {
+        for(Volo v : voliGestiti) {
             if(equalsIgnoreCase(v.getAeroporto(), dest) && safeEquals(v.getDataVolo(), data)) {
                 return v;
             }
@@ -352,7 +352,7 @@ public class Controller {
      */
     public List<Volo> cercaVoliPerDestinazione(String dest) {
         List<Volo> result = new ArrayList<>();
-        for (Volo v : voliGestiti) {
+        for(Volo v : voliGestiti) {
             if(equalsIgnoreCase(v.getAeroporto(), dest)) {
                 result.add(v);
             }
@@ -368,7 +368,7 @@ public class Controller {
      */
     public boolean utenteHaPrenotazionePerVolo(String email, String codiceVolo) {
         List<Prenotazione> prenotazioniUtente = prenotazioneDAO.findByEmailUtente(email);
-        for (Prenotazione p : prenotazioniUtente) {
+        for(Prenotazione p : prenotazioniUtente) {
             if(p.getVolo() != null && safeEquals(p.getVolo().getCodiceUnivoco(), codiceVolo)) {
                 return true;
             }
@@ -383,7 +383,7 @@ public class Controller {
         prenotazioni.clear();
         try {
             prenotazioni.addAll(prenotazioneDAO.findAll());
-        } catch (Exception e) {
+        } catch(Exception e) {
             LOGGER.log(Level.WARNING, "Impossibile ricaricare le prenotazioni dal DB", e);
             LOGGER.log(Level.FINE, LOG_DETAILS, e);
         }
@@ -477,7 +477,7 @@ public class Controller {
             if(!ok) {
                 throw new IllegalStateException("Creazione utente fallita per email=" + email);
             }
-        } catch (Exception e) {
+        } catch(Exception e) {
             throw new IllegalStateException("Impossibile registrare automaticamente l'utente con email " + email + ". Registralo prima di prenotare.", e);
         }
         return nuovo;
@@ -593,11 +593,11 @@ public class Controller {
                         + " per volo " + (pren.getVolo() != null ? pren.getVolo().getCodiceUnivoco() : "?"));
             }
             return ok;
-        } catch (IllegalArgumentException ie) {
+        } catch(IllegalArgumentException ie) {
             LOGGER.log(Level.WARNING, "Inserimento prenotazione rifiutato: {0}", ie.getMessage());
             LOGGER.log(Level.FINE, LOG_DETAILS, ie);
             return false;
-        } catch (Exception e) {
+        } catch(Exception e) {
             LOGGER.log(Level.WARNING, "Errore imprevisto in inserimento prenotazione per email={0}", emailPasseggero);
             LOGGER.log(Level.FINE, LOG_DETAILS, e);
             return false;
@@ -643,7 +643,7 @@ public class Controller {
         if(utente == null) return Collections.emptyList();
 
         List<Prenotazione> result = new ArrayList<>();
-        for (Prenotazione p : prenotazioni) {
+        for(Prenotazione p : prenotazioni) {
             if(p.getUtenteGenerico() != null &&
                     utente.getNomeUtente() != null &&
                     equalsIgnoreCase(utente.getNomeUtente(), p.getUtenteGenerico().getNomeUtente()) &&
@@ -655,12 +655,12 @@ public class Controller {
         // Carica dal DB solo le prenotazioni mancanti
         try {
             List<Prenotazione> dalDB = prenotazioneDAO.findByEmailUtente(utente.getLogin());
-            for (Prenotazione p : dalDB) {
+            for(Prenotazione p : dalDB) {
                 if(!containsPrenotazione(prenotazioni, p.getNumBiglietto())) prenotazioni.add(p);
                 if(!containsPrenotazione(result, p.getNumBiglietto()) && p.getStato() != StatoPrenotazione.CANCELLATA)
                     result.add(p);
             }
-        } catch (Exception e) {
+        } catch(Exception e) {
             LOGGER.log(Level.WARNING, "Errore nel caricamento prenotazioni utente={0}", utente.getLogin());
             LOGGER.log(Level.FINE, LOG_DETAILS, e);
         }
@@ -675,7 +675,7 @@ public class Controller {
      * @return true se presente
      */
     private boolean containsPrenotazione(List<Prenotazione> list, String numBiglietto) {
-        for (Prenotazione p : list) {
+        for(Prenotazione p : list) {
             if(safeEquals(p.getNumBiglietto(), numBiglietto)) return true;
         }
         return false;
@@ -696,7 +696,7 @@ public class Controller {
         try {
             int n = Integer.parseInt(t.substring(1));
             return (n >= 1 && n <= 30) ? (letter + String.valueOf(n)) : null;
-        } catch (NumberFormatException _) { // Java 21 unnamed pattern
+        } catch(NumberFormatException _) { // Java 21 unnamed pattern
             return null;
         }
     }
@@ -718,7 +718,7 @@ public class Controller {
      */
     public Prenotazione cercaPrenotazione(String numeroBiglietto) {
         // Prima cerca in cache
-        for (Prenotazione p : prenotazioni) {
+        for(Prenotazione p : prenotazioni) {
             if(safeEquals(p.getNumBiglietto(), numeroBiglietto)) {
                 return p;
             }
@@ -746,7 +746,7 @@ public class Controller {
             try {
                 // aggiorna SOLO se il passeggero è registrato
                 if (datiPasseggeroDAO.findByEmail(dp.getEmail()) != null && !datiPasseggeroDAO.update(dp)) return false;
-            } catch (Exception e) {
+            } catch(Exception e) {
                 LOGGER.log(Level.WARNING, "Errore aggiornando DatiPasseggero per email={0}", dp.getEmail());
                 LOGGER.log(Level.FINE, LOG_DETAILS, e);
                 return false;
@@ -758,7 +758,7 @@ public class Controller {
 
         // riallinea la cache senza duplicati
         boolean found = false;
-        for (int i = 0; i < prenotazioni.size(); i++) {
+        for(int i = 0; i < prenotazioni.size(); i++) {
             if(safeEquals(prenotazioni.get(i).getNumBiglietto(), prenotazione.getNumBiglietto())) {
                 prenotazioni.set(i, prenotazione);
                 found = true;
@@ -860,7 +860,7 @@ public class Controller {
         s = s.trim().toUpperCase();
         try {
             return StatoVolo.valueOf(s);
-        } catch (IllegalArgumentException _) { // Java 21 unnamed pattern
+        } catch(IllegalArgumentException _) { // Java 21 unnamed pattern
             LOGGER.log(Level.FINEST, "Stato volo sconosciuto: {0}", s);
             return null;
         }
@@ -885,7 +885,7 @@ public class Controller {
      */
     public List<Object[]> tuttiVoli() {
         List<Object[]> rows = new ArrayList<>();
-        for (Volo v : voliGestiti) {
+        for(Volo v : voliGestiti) {
             rows.add(new Object[]{
                     v.getCodiceUnivoco(),                      // 0 Numero Volo
                     v.getCompagniaAerea(),                     // 1 Compagnia
@@ -929,7 +929,7 @@ public class Controller {
                 new VoloFilter(filter.numeroVolo, filter.compagnia, filter.stato, filter.data,
                         filter.orario, filter.aeroporto, filter.gate, ap);
         List<Volo> result = new ArrayList<>();
-        for (Volo v : voliGestiti) {
+        for(Volo v : voliGestiti) {
             if(f == null || matchVolo(v, f)) {
                 result.add(v);
             }
@@ -973,7 +973,7 @@ public class Controller {
      */
     public List<Object[]> ricercaVoli(VoloFilter filter) {
         List<Object[]> righe = new ArrayList<>();
-        for (Volo v : ricercaVoliRaw(filter)) {
+        for(Volo v : ricercaVoliRaw(filter)) {
             righe.add(voloToRow(v));
         }
         return righe;
@@ -1025,7 +1025,7 @@ public class Controller {
      */
     public List<Object[]> ricercaPasseggeri(PrenotazioneFilter f) {
         List<Object[]> risultati = new ArrayList<>();
-        for (Prenotazione p : prenotazioni) {
+        for(Prenotazione p : prenotazioni) {
             if(matchPrenotazione(p, f)) {
                 risultati.add(prenotazioneToRow(p));
             }
@@ -1121,7 +1121,7 @@ public class Controller {
      * @return true se tutte vere
      */
     private static boolean allTrue(boolean... checks) {
-        for (boolean ok : checks) {
+        for(boolean ok : checks) {
             if(!ok) return false;
         }
         return true;
@@ -1198,7 +1198,7 @@ public class Controller {
      */
     public List<Object[]> ricercaBagagli(String codiceBagaglio, String stato) {
         List<Object[]> risultati = new ArrayList<>();
-        for (Bagaglio b : bagaglioDAO.findAll()) {
+        for(Bagaglio b : bagaglioDAO.findAll()) {
             boolean match = true;
             if(codiceBagaglio != null && !codiceBagaglio.isEmpty() &&
                     (b.getCodUnivoco() == null || !b.getCodUnivoco().contains(codiceBagaglio))) {
@@ -1303,7 +1303,7 @@ public class Controller {
      * @return amministratore trovato o null se non esiste
      */
     public Amministratore getAmministratoreByLogin(String login) {
-        for (Amministratore a : amministratori) {
+        for(Amministratore a : amministratori) {
             if(safeEquals(a.getLogin(), login)) {
                 return a;
             }
@@ -1331,7 +1331,7 @@ public class Controller {
      * @return il DatiPasseggero trovato o null se non esiste
      */
     public DatiPasseggero getDatiPasseggeroByCodiceFiscale(String codiceFiscale) {
-        for (DatiPasseggero d : datiPasseggeri) {
+        for(DatiPasseggero d : datiPasseggeri) {
             if(codiceFiscale != null && codiceFiscale.equals(d.getCodiceFiscale())) {
                 return d;
             }
@@ -1353,7 +1353,7 @@ public class Controller {
      * @return l'utente trovato o null se non esiste
      */
     public UtenteGenerico getUtenteByEmail(String email) {
-        for (UtenteGenerico u : getTuttiUtenti()) {
+        for(UtenteGenerico u : getTuttiUtenti()) {
             // Se il tuo modello ha getEmail(), usa quello. Qui mantengo getNomeUtente come "email/login"
             if(email != null && email.equalsIgnoreCase(u.getNomeUtente())) {
                 return u;
@@ -1379,7 +1379,7 @@ public class Controller {
      * @return il volo trovato o null se non esiste
      */
     public Volo getVoloByCodice(String codiceVolo) {
-        for (Volo v : voliGestiti) {
+        for(Volo v : voliGestiti) {
             if(v.getCodiceUnivoco() != null && v.getCodiceUnivoco().equals(codiceVolo)) {
                 return v;
             }
@@ -1405,7 +1405,7 @@ public class Controller {
      * @return i dati passeggero trovati o null
      */
     public DatiPasseggero getDatiPasseggeroByEmailUtente(String emailUtente) {
-        for (Prenotazione p : prenotazioni) {
+        for(Prenotazione p : prenotazioni) {
             if(p.getDatiPasseggero() != null &&
                     p.getDatiPasseggero().getEmail().equalsIgnoreCase(emailUtente)) {
                 return p.getDatiPasseggero();
