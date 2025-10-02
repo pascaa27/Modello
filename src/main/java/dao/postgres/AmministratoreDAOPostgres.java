@@ -4,13 +4,12 @@ import dao.AmministratoreDAO;
 import model.Amministratore;
 import database.ConnessioneDatabase;
 import controller.Controller;
-
 import java.sql.*;
 
 /**
  * Implementazione Postgres dell'AmministratoreDAO.
  * - Gestisce l'accesso al database per gli amministratori.
-  */
+ */
 public class AmministratoreDAOPostgres implements AmministratoreDAO {
 
     private Connection conn;
@@ -50,7 +49,7 @@ public class AmministratoreDAOPostgres implements AmministratoreDAO {
         final String sql = "SELECT email, password, nome, cognome " +
                 "FROM registrazioneutente " +
                 "WHERE email = ? AND ruolo = 'amministratore'";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        try(PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, email);
             try (ResultSet rs = ps.executeQuery()) {
                 if(rs.next()) {
@@ -85,6 +84,7 @@ public class AmministratoreDAOPostgres implements AmministratoreDAO {
      * Eccezione di runtime dedicata ai problemi di inizializzazione del database.
      */
     public class DatabaseInitializationException extends RuntimeException {
+
         /**
          * Crea una nuova eccezione di inizializzazione del database.
          * @param message messaggio descrittivo

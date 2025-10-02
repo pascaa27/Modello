@@ -6,7 +6,6 @@ import model.StatoPrenotazione;
 import model.UtenteGenerico;
 import model.Volo;
 import model.StatoVolo;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;

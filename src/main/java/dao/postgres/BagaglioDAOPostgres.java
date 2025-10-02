@@ -6,7 +6,6 @@ import model.StatoBagaglio;
 import model.Prenotazione;
 import database.ConnessioneDatabase;
 import controller.Controller;
-
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,9 +57,9 @@ public class BagaglioDAOPostgres implements BagaglioDAO {
     public List<Bagaglio> findByPrenotazione(String numBiglietto) {
         List<Bagaglio> bagagli = new ArrayList<>();
         final String sql = SQL_SELECT + SELECT_COLUMNS + " FROM public.bagagli WHERE numBiglietto = ?";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        try(PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, numBiglietto);
-            try (ResultSet rs = ps.executeQuery()) {
+            try(ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     bagagli.add(mapResultSetToBagaglio(rs));
                 }
@@ -79,9 +78,9 @@ public class BagaglioDAOPostgres implements BagaglioDAO {
      */
     public Bagaglio findById(String codice) {
         final String sql = SQL_SELECT + SELECT_COLUMNS + " FROM public.bagagli WHERE codUnivoco = ?";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        try(PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, codice);
-            try (ResultSet rs = ps.executeQuery()) {
+            try(ResultSet rs = ps.executeQuery()) {
                 if(rs.next()) {
                     String cod = rs.getString("codUnivoco");
                     double peso = rs.getDouble("pesoKg");
@@ -109,9 +108,9 @@ public class BagaglioDAOPostgres implements BagaglioDAO {
     public List<Bagaglio> findAll() {
         List<Bagaglio> bagagli = new ArrayList<>();
         final String sql = SQL_SELECT + SELECT_COLUMNS + " FROM public.bagagli ORDER BY codUnivoco";
-        try (PreparedStatement ps = conn.prepareStatement(sql);
+        try(PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
+            while(rs.next()) {
                 bagagli.add(mapResultSetToBagaglio(rs));
             }
         } catch(SQLException e) {
@@ -129,7 +128,7 @@ public class BagaglioDAOPostgres implements BagaglioDAO {
     @Override
     public boolean insert(Bagaglio bagaglio) {
         final String sql = "INSERT INTO public.bagagli (codUnivoco, pesoKg, stato, numBiglietto) VALUES (?, ?, ?, ?)";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        try(PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, bagaglio.getCodUnivoco());
             ps.setDouble(2, bagaglio.getPesoKg());
             ps.setString(3, bagaglio.getStato().name());
@@ -156,7 +155,7 @@ public class BagaglioDAOPostgres implements BagaglioDAO {
     @Override
     public boolean update(Bagaglio bagaglio) {
         final String sql = "UPDATE public.bagagli SET pesoKg = ?, stato = ?, numBiglietto = ? WHERE codUnivoco = ?";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        try(PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setDouble(1, bagaglio.getPesoKg());
             ps.setString(2, bagaglio.getStato().name());
             if(bagaglio.getPrenotazione() != null) {
@@ -183,7 +182,7 @@ public class BagaglioDAOPostgres implements BagaglioDAO {
     @Override
     public boolean delete(String codUnivoco) {
         final String sql = "DELETE FROM public.bagagli WHERE codUnivoco = ?";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        try(PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, codUnivoco);
             int n = ps.executeUpdate();
             LOGGER.log(Level.INFO, "[BagagliDAO] delete {0}{1}{2}", new Object[]{codUnivoco, LOG_ROWS, n});
@@ -221,6 +220,7 @@ public class BagaglioDAOPostgres implements BagaglioDAO {
      * Eccezione di runtime dedicata ai problemi di inizializzazione della connessione al database.
      */
     public class DatabaseInitializationException extends RuntimeException {
+
         /**
          * Crea una nuova DatabaseInitializationException.
          * @param message

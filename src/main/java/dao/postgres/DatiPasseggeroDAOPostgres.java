@@ -3,7 +3,6 @@ package dao.postgres;
 import dao.DatiPasseggeroDAO;
 import model.DatiPasseggero;
 import database.ConnessioneDatabase;
-
 import java.sql.*;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -138,7 +137,7 @@ public class DatiPasseggeroDAOPostgres implements DatiPasseggeroDAO {
     @Override
     public boolean deleteByEmail(String email) {
         final String sql = "DELETE FROM public.datipasseggeri WHERE email = LOWER(BTRIM(?))";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        try(PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, email);
             return ps.executeUpdate() > 0;
         } catch(SQLException e) {
@@ -239,6 +238,7 @@ public class DatiPasseggeroDAOPostgres implements DatiPasseggeroDAO {
      * Eccezione runtime che segnala un problema durante l'inizializzazione della connessione al database.
      */
     public class DatabaseInitializationException extends RuntimeException {
+
         /**
          * Crea una nuova DatabaseInitializationException con messaggio e causa.
          *

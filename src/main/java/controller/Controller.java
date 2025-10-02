@@ -504,7 +504,7 @@ public class Controller {
 
         // 3) Utente effettivo: se c'è un utente loggato NON imporre registrazione dell'email del passeggero
         UtenteGenerico utenteEffettivo;
-        if (in.volo.utenteGenerico != null) {
+        if(in.volo.utenteGenerico != null) {
             // Utente loggato: usa lui, non forzare la registrazione del passeggero
             utenteEffettivo = in.volo.utenteGenerico;
         } else {
@@ -523,7 +523,7 @@ public class Controller {
                 v
         );
 
-        if (!tryInsertPrenotazione(pren, utenteEffettivo, in.passeggero.email)) {
+        if(!tryInsertPrenotazione(pren, utenteEffettivo, in.passeggero.email)) {
             return null; // errore già loggato
         }
 

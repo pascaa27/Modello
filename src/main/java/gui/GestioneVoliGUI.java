@@ -3,7 +3,6 @@ package gui;
 import controller.Controller;
 import model.StatoVolo;
 import model.Volo;
-
 import javax.swing.*;
 import java.awt.*;
 import java.util.regex.Pattern;

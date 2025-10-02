@@ -4,7 +4,6 @@ import dao.PrenotazioneDAO;
 import database.ConnessioneDatabase;
 import controller.Controller;
 import model.*;
-
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -226,9 +225,9 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
     public List<Prenotazione> findAllByUtente(String emailUtente) {
         List<Prenotazione> out = new ArrayList<>();
         String sql = BASE_SELECT + " WHERE p.emailutente = ? ORDER BY p.numbiglietto";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        try(PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, emailUtente);
-            try (ResultSet rs = ps.executeQuery()) {
+            try(ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     DatiPasseggero dp = new DatiPasseggero(
                             rs.getString(COL_DP_NOME),
@@ -246,7 +245,7 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
                     out.add(p);
                 }
             }
-        } catch (SQLException e) {
+        } catch(SQLException e) {
             LOGGER.log(Level.WARNING, "Errore findAllByUtente per email={0}", emailUtente);
             LOGGER.log(Level.FINE, LOG_SQL_DETAILS, e);
         }
@@ -268,7 +267,7 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
         try(PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
-            while (rs.next()) {
+            while(rs.next()) {
                 DatiPasseggero dp = new DatiPasseggero(
                         rs.getString(COL_DP_NOME),
                         rs.getString(COL_DP_COGNOME),
@@ -303,10 +302,10 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
     @Override
     public Prenotazione findByCodice(String codice) {
         final String sql = BASE_SELECT + " WHERE p.numbiglietto = ?";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        try(PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, codice);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
+            try(ResultSet rs = ps.executeQuery()) {
+                if(rs.next()) {
                     DatiPasseggero dp = new DatiPasseggero(
                             rs.getString(COL_DP_NOME),
                             rs.getString(COL_DP_COGNOME),
@@ -323,7 +322,7 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
                     );
                 }
             }
-        } catch (SQLException e) {
+        } catch(SQLException e) {
             LOGGER.log(Level.WARNING, "Errore findByCodice per numbiglietto={0}", codice);
             LOGGER.log(Level.FINE, LOG_SQL_DETAILS, e);
         }
@@ -592,13 +591,13 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
                 "  AND UPPER(dp_cognome) = ? " +
                 "LIMIT 1";
 
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        try(PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, idVolo);
             ps.setString(2, normalizeEmail(dp.getEmail()));     // lowercase
             ps.setString(3, norm(dp.getCodiceFiscale()));       // uppercase + alfanumerico
             ps.setString(4, norm(dp.getNome()));                // uppercase + alfanumerico
             ps.setString(5, norm(dp.getCognome()));             // uppercase + alfanumerico
-            try (ResultSet rs = ps.executeQuery()) {
+            try(ResultSet rs = ps.executeQuery()) {
                 return rs.next();
             }
         }
@@ -608,6 +607,7 @@ public class PrenotazioneDAOPostgres implements PrenotazioneDAO {
      * Eccezione runtime per segnalare problemi in fase di inizializzazione DB.
      */
     public class DatabaseInitializationException extends RuntimeException {
+
         /**
          * Crea una nuova eccezione con messaggio e causa originale.
          *

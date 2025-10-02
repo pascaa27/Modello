@@ -4,7 +4,6 @@ import dao.VoloDAO;
 import model.Volo;
 import model.StatoVolo;
 import database.ConnessioneDatabase;
-
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -170,10 +169,7 @@ public class VoloDAOPostgres implements VoloDAO {
         return -1;
     }
 
-
     //Helpers
-
-
     /**
      * Riempie il PreparedStatement con i campi del volo secondo l'ordine previsto dalla query.
      *
@@ -235,6 +231,7 @@ public class VoloDAOPostgres implements VoloDAO {
      * Eccezione runtime per segnalare problemi in fase di inizializzazione della connessione al database.
      */
     public class DatabaseInitializationException extends RuntimeException {
+
         /**
          * Crea una nuova DatabaseInitializationException con messaggio e causa originale.
          *

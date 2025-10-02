@@ -4,7 +4,6 @@ import controller.Controller;
 import model.UtenteGenerico;
 import database.ConnessioneDatabase;
 import dao.UtenteGenericoDAO;
-
 import java.sql.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -30,7 +29,7 @@ public class UtenteGenericoDAOPostgres implements UtenteGenericoDAO {
     public UtenteGenericoDAOPostgres() {
         try {
             this.conn = ConnessioneDatabase.getInstance().getConnection();
-        } catch (SQLException e) {
+        } catch(SQLException e) {
             // Eccezione dedicata invece di una generica RuntimeException
             throw new DatabaseInitializationException("Errore nella connessione al database", e);
         }
@@ -56,14 +55,14 @@ public class UtenteGenericoDAOPostgres implements UtenteGenericoDAO {
         // Seleziona solo utenti con ruolo 'utente' (niente SELECT *)
         final String sql = "SELECT email, password, nome, cognome " +
                 "FROM registrazioneutente WHERE email = ? AND ruolo = 'utente'";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        try(PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, email);
-            try (ResultSet rs = ps.executeQuery()) {
+            try(ResultSet rs = ps.executeQuery()) {
                 if(rs.next()) {
                     return mapResultSetToUtenteGenerico(rs);
                 }
             }
-        } catch (SQLException e) {
+        } catch(SQLException e) {
             LOGGER.log(Level.WARNING, "Errore findByEmail per email={0}", email);
             LOGGER.log(Level.FINE, LOG_SQL_DETAILS, e);
         }
@@ -81,12 +80,12 @@ public class UtenteGenericoDAOPostgres implements UtenteGenericoDAO {
 
         final String sql = "SELECT 1 FROM public.registrazioneutente WHERE LOWER(email) = LOWER(?) LIMIT 1";
 
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        try(PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, email.trim());
             try (ResultSet rs = ps.executeQuery()) {
                 return rs.next(); // true se trova almeno una riga
             }
-        } catch (SQLException e) {
+        } catch(SQLException e) {
             LOGGER.log(Level.WARNING, "Errore existsByEmail per email={0}", email);
             LOGGER.log(Level.FINE, LOG_SQL_DETAILS, e);
             return false;
@@ -103,12 +102,12 @@ public class UtenteGenericoDAOPostgres implements UtenteGenericoDAO {
     public boolean emailEsiste(String email) {
         if(email == null || email.isBlank()) return false;
         final String sql = "SELECT 1 FROM datipasseggeri WHERE LOWER(email) = ? LIMIT 1";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        try(PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, email.toLowerCase());
-            try (ResultSet rs = ps.executeQuery()) {
+            try(ResultSet rs = ps.executeQuery()) {
                 return rs.next();
             }
-        } catch (SQLException e) {
+        } catch(SQLException e) {
             LOGGER.log(Level.WARNING, "Errore emailEsiste per email={0}", email);
             LOGGER.log(Level.FINE, LOG_SQL_DETAILS, e);
             return false;
@@ -125,13 +124,13 @@ public class UtenteGenericoDAOPostgres implements UtenteGenericoDAO {
     public boolean insert(UtenteGenerico u) {
         final String sql = "INSERT INTO registrazioneutente (email, password, nome, cognome, ruolo) " +
                 "VALUES (?, ?, ?, ?, 'utente')";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        try(PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, u.getLogin());       // login -> email
             ps.setString(2, u.getPassword());
             ps.setString(3, u.getNomeUtente());
             ps.setString(4, u.getCognomeUtente());
             return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
+        } catch(SQLException e) {
             LOGGER.log(Level.WARNING, "Errore insert utente email={0}", u.getLogin());
             LOGGER.log(Level.FINE, LOG_SQL_DETAILS, e);
         }
@@ -149,13 +148,13 @@ public class UtenteGenericoDAOPostgres implements UtenteGenericoDAO {
         final String sql = "UPDATE registrazioneutente " +
                 "SET password = ?, nome = ?, cognome = ? " +
                 "WHERE email = ? AND ruolo = 'utente'";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        try(PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, u.getPassword());
             ps.setString(2, u.getNomeUtente());
             ps.setString(3, u.getCognomeUtente());
             ps.setString(4, u.getLogin());
             return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
+        } catch(SQLException e) {
             LOGGER.log(Level.WARNING, "Errore update utente email={0}", u.getLogin());
             LOGGER.log(Level.FINE, LOG_SQL_DETAILS, e);
         }
@@ -171,10 +170,10 @@ public class UtenteGenericoDAOPostgres implements UtenteGenericoDAO {
     @Override
     public boolean delete(String email) {
         final String sql = "DELETE FROM registrazioneutente WHERE email = ? AND ruolo = 'utente'";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        try(PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, email);
             return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
+        } catch(SQLException e) {
             LOGGER.log(Level.WARNING, "Errore delete utente email={0}", email);
             LOGGER.log(Level.FINE, LOG_SQL_DETAILS, e);
         }
@@ -226,6 +225,7 @@ public class UtenteGenericoDAOPostgres implements UtenteGenericoDAO {
      * Eccezione runtime per segnalare problemi nell'inizializzazione della connessione al DB.
      */
     public class DatabaseInitializationException extends RuntimeException {
+
         /**
          * Crea una nuova DatabaseInitializationException con messaggio e causa.
          *

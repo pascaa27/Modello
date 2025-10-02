@@ -3,7 +3,6 @@ package gui;
 import controller.Controller;
 import model.Bagaglio;
 import model.StatoBagaglio;
-
 import javax.swing.*;
 import java.awt.*;
 

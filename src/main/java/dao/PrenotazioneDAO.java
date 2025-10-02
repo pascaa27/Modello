@@ -2,7 +2,6 @@ package dao;
 
 import model.Prenotazione;
 import model.UtenteGenerico;
-
 import java.sql.SQLException;
 import java.util.List;
 
