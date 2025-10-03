@@ -3,16 +3,16 @@ package model;
 /**
  * La classe rappresenta lo spazio informativo
  * di un utente riguardo notifiche e aggiornamenti sui voli.
- * <p>
- * Ogni istanza contiene eventuali informazioni su:
+ *
+ * <p>Ogni istanza contiene eventuali informazioni su:</p>
  * <ul>
  *     <li>Ritardi dei voli</li>
  *     <li>Cancellazioni dei voli</li>
  *     <li>Variazioni (modifiche di orario, gate, ecc.) dei voli</li>
  * </ul>
- * Inoltre, è collegata a un oggetto {@link Utente}, che rappresenta
- * il proprietario dell'area personale.
- * </p>
+ *
+ * <p>Inoltre, è collegata a un oggetto {@link Utente}, che rappresenta
+ * il proprietario dell'area personale.</p>
  *
  * @see Utente
  */
@@ -41,9 +41,8 @@ public class AreaPersonale {
     /**
      * Costruttore vuoto richiesto da framework o strumenti di binding
      * che necessitano di un'istanza inizializzata senza parametri.
-     * <p>
-     * Utile ad esempio per il caricamento statico di dati da controller.
-     * </p>
+     *
+     * <p>Utile ad esempio per il caricamento statico di dati da controller.</p>
      */
     public AreaPersonale() {
         // vuoto, necessario per il framework nel controller
@@ -54,7 +53,6 @@ public class AreaPersonale {
      *
      * @return stringa che descrive il ritardo, oppure {@code null} se assente
      */
-
     public String getRitardoVolo() {
         return ritardoVolo;
     }
