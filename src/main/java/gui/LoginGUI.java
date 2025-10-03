@@ -30,8 +30,8 @@ public class LoginGUI {
     private JButton showHideButton;
     private JPasswordField passwordField;
     private Controller controller;
-    private static final String ADMIN_EMAIL = "a";
-    private static final String ADMIN_PASS = "a";
+    private static final String ADMIN_EMAIL = "pasqualepisano@gmail.com";
+    private static final String ADMIN_PASS = "30L";
 
     // Palette colori
     private final Color mainGradientStart = new Color(30, 87, 153);
@@ -434,7 +434,7 @@ public class LoginGUI {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             Controller controller = new Controller();
-            Amministratore amministratore = new Amministratore("a", "a", "A", "A");
+            Amministratore amministratore = new Amministratore("pasqualepisano@gmail.com", "30L", "Pasquale", "Pisano");
             JFrame frame = new JFrame("Area Login - Aeroporto");
             frame.setContentPane(new LoginGUI(controller, amministratore).getLoginPanel());
             frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
